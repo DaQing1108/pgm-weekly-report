@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s http://localhost:3001/api/reports)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(r[''''version''''], r[''''filename'''']\\) for r in d[''''reports'''']]\")",
+      "Bash(gh auth:*)",
+      "Bash(brew install:*)",
+      "Bash(sudo npm:*)",
+      "Bash(~/.local/bin/railway --version)",
+      "Read(//Users/daqingliao/.railway/**)",
+      "Read(//Users/daqingliao/.config/**)",
+      "Bash(RAILWAY_TOKEN=5ed994aa-c845-4463-bf8a-470cabf4d970 ~/.local/bin/railway whoami)",
+      "Bash(RAILWAY_TOKEN=5ed994aa-c845-4463-bf8a-470cabf4d970 ~/.local/bin/railway --help)",
+      "Bash(~/.local/bin/railway login:*)",
+      "Bash(curl -s https://pgm-weekly-report-production.up.railway.app/api/health)",
+      "Bash(curl -s https://pgm-weekly-report-production.up.railway.app/api/reports)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(r[''''version''''], r[''''period'''']\\) for r in d[''''reports'''']]\")"
+    ]
+  }
+}
