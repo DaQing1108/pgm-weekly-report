@@ -50,6 +50,15 @@ app.get('/api/reports/:filename', (req, res) => {
   res.json({ content });
 });
 
+// 下載 .md 檔案
+app.get('/api/reports/:filename/download', (req, res) => {
+  const filePath = path.join(REPORTS_DIR, req.params.filename);
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: '找不到檔案' });
+  res.setHeader('Content-Disposition', `attachment; filename="${req.params.filename}"`);
+  res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+  res.sendFile(filePath);
+});
+
 // /read — 純 HTML 靜態頁面，供 NotebookLM / 爬蟲使用
 app.get('/read', (req, res) => {
   const files = fs.readdirSync(REPORTS_DIR)

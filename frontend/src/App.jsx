@@ -77,6 +77,23 @@ export default function App() {
           {!error && !selected && <div style={styles.empty}>選擇左側週報版本以閱讀內容</div>}
           {selected && (
             <div style={styles.content}>
+              {/* 下載按鈕 */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+                <a
+                  href={`${API}/api/reports/${selected.filename}/download`}
+                  download={selected.filename}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                    background: '#2B6CB0', color: 'white', textDecoration: 'none',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)', transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#1A365D'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#2B6CB0'}
+                >
+                  ↓ 下載 .md
+                </a>
+              </div>
               <div
                 className="md-body"
                 dangerouslySetInnerHTML={{ __html: marked.parse(selected.content.replace(/（v\d+）/g, '')) }}
