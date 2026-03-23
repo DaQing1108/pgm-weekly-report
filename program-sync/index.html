@@ -88,17 +88,6 @@
     <!-- 右欄 -->
     <div class="stack">
 
-      <!-- 熱力圖 -->
-      <div class="panel">
-        <div class="panel__header">
-          <span class="panel__title">子組健康熱力圖</span>
-          <span class="text-xs text-secondary">5 子組 × 本週狀態</span>
-        </div>
-        <div class="panel__body">
-          <div class="heatmap" id="heatmap"></div>
-        </div>
-      </div>
-
       <!-- 需決策事項 -->
       <div class="panel">
         <div class="panel__header">
@@ -182,7 +171,6 @@ async function init() {
 function renderAll() {
   renderKPIs();
   renderProjects('all');
-  renderHeatmap();
   renderDecisions();
   updateWeekBadge();
 }
@@ -264,50 +252,6 @@ window.toggleDetail = function(id) {
   const el = document.getElementById(`detail-${id}`);
   el?.classList.toggle('open');
 };
-
-// ── 熱力圖 ─────────────────────────────────────────────────────
-function renderHeatmap() {
-  const projects = store.getAll('projects');
-  const TEAMS = [
-    { id:'media-agent', name:'Media Agent' },
-    { id:'learnmode',   name:'LearnMode'   },
-    { id:'chuangzaoli', name:'創造栗'       },
-    { id:'tv-solution', name:'TV Solution' },
-    { id:'healthcare',  name:'Healthcare'  },
-  ];
-
-  // 建立 5×4 格（5 組 × 最多 4 個指標）
-  const cells = [];
-  TEAMS.forEach(team => {
-    const tp = projects.filter(p => p.team === team.id);
-    const on = tp.filter(p => p.status === 'on-track').length;
-    const pct = tp.length ? Math.round((on / tp.length) * 100) : 100;
-    const cls = pct >= 80 ? 'on-track' : pct >= 60 ? 'at-risk' : 'behind';
-
-    cells.push(`
-      <div class="heatmap__cell heatmap__cell--${cls}" title="${team.name}: ${pct}% On Track">
-        <div class="heatmap__cell-name">${team.name}</div>
-        <div>${pct}%</div>
-      </div>`);
-
-    // 填入各個專案
-    const slots = tp.slice(0, 3);
-    for (let i = 0; i < 3; i++) {
-      const proj = slots[i];
-      if (proj) {
-        cells.push(`
-          <div class="heatmap__cell heatmap__cell--${proj.status}" title="${proj.name}: ${proj.progress}%">
-            <div class="heatmap__cell-name">${proj.name.substring(0,10)}</div>
-            <div>${proj.progress}%</div>
-          </div>`);
-      } else {
-        cells.push(`<div class="heatmap__cell heatmap__cell--inactive"></div>`);
-      }
-    }
-  });
-
-  document.getElementById('heatmap').innerHTML = cells.join('');
-}
 
 // ── 需決策事項 ──────────────────────────────────────────────────
 function renderDecisions() {
