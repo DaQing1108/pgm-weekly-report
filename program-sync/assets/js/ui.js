@@ -68,11 +68,16 @@ export function modal(html, options = {}) {
   document.body.style.overflow = 'hidden';
 
   const close = () => {
-    overlay.style.animation = 'overlay-in 0.15s ease reverse';
-    overlay.addEventListener('animationend', () => {
+    let done = false;
+    const cleanup = () => {
+      if (done) return;
+      done = true;
       overlay.remove();
       document.body.style.overflow = '';
-    }, { once: true });
+    };
+    overlay.style.animation = 'overlay-in 0.15s ease reverse';
+    overlay.addEventListener('animationend', cleanup, { once: true });
+    setTimeout(cleanup, 200); // fallback: animationend 未觸發時保底移除
   };
 
   // 點擊背景關閉

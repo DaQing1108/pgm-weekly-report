@@ -85,7 +85,7 @@ async function _autoSync() {
     return true;
   } catch { return false; }
 }
-import { toast, renderBadge, formatDate, generateId, confirm, isOverdue } from './assets/js/ui.js';
+import { toast, renderBadge, formatDate, generateId, modal, isOverdue } from './assets/js/ui.js';
 
 _autoSync().then(ok => { if (!ok) seedData(); });
 
@@ -152,6 +152,7 @@ function renderPanels() {
                   title="點擊切換狀態">
               ${statusLabel(a.status)}
             </span>
+            <button class="btn btn-ghost btn-sm" onclick="editAction('${a.id}')" style="padding:2px 4px;color:var(--color-text-tertiary);" title="編輯">✏️</button>
             <button class="btn btn-ghost btn-sm" onclick="deleteAction('${a.id}')" style="padding:2px 4px;color:var(--color-text-tertiary);" title="刪除">✕</button>
           </div>
         </div>`;
@@ -220,20 +221,107 @@ window.addAction = function(catId) {
 };
 
 // ── 刪除 ───────────────────────────────────────────────────────
-window.deleteAction = async function(id) {
-  const ok = await confirm('刪除此 Action？');
-  if (ok) { store.delete('actions', id); toast('已刪除', 'success'); }
+window.deleteAction = function(id) {
+  if (!window.confirm('確定刪除此 Action？')) return;
+  store.delete('actions', id);
+  toast('已刪除', 'success');
+};
+
+// ── 編輯 Action（含變更專案）───────────────────────────────────
+window.editAction = function(id) {
+  const a = store.getById('actions', id);
+  if (!a) return;
+
+  const projects = store.sortBy('projects', 'name', 'asc');
+  const members  = store.sortBy('members',  'name', 'asc');
+
+  const projOpts = `<option value="">— 無 —</option>` +
+    projects.map(p => `<option value="${p.name}" ${a.project === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
+
+  const ownerOpts = `<option value="">— 選擇 —</option>` +
+    members.map(m => `<option value="${m.name}" ${a.owner === m.name ? 'selected' : ''}>${m.name}</option>`).join('');
+
+  const catOpts = CATEGORIES.map(c =>
+    `<option value="${c.id}" ${a.category === c.id ? 'selected' : ''}>${c.label}</option>`
+  ).join('');
+
+  const statusOpts = [
+    { v:'pending',     l:'⏳ 待辦'   },
+    { v:'in-progress', l:'🔄 進行中' },
+    { v:'done',        l:'✅ 完成'   },
+    { v:'blocked',     l:'🚫 阻塞'   },
+  ].map(s => `<option value="${s.v}" ${a.status === s.v ? 'selected' : ''}>${s.l}</option>`).join('');
+
+  const { close, el } = modal(`
+    <div class="modal__header">
+      <span class="modal__title">編輯 Action</span>
+      <button class="modal__close" type="button">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="stack">
+        <div class="inp-group">
+          <label class="inp-label">任務名稱</label>
+          <input class="inp" id="eTask" value="${a.task.replace(/"/g,'&quot;')}" placeholder="任務描述">
+        </div>
+        <div class="inp-group">
+          <label class="inp-label" style="color:var(--color-info);font-weight:700;">🗂 所屬專案</label>
+          <select class="inp" id="eProject">${projOpts}</select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);">
+          <div class="inp-group">
+            <label class="inp-label">分類</label>
+            <select class="inp" id="eCategory">${catOpts}</select>
+          </div>
+          <div class="inp-group">
+            <label class="inp-label">狀態</label>
+            <select class="inp" id="eStatus">${statusOpts}</select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);">
+          <div class="inp-group">
+            <label class="inp-label">負責人</label>
+            <select class="inp" id="eOwner">${ownerOpts}</select>
+          </div>
+          <div class="inp-group">
+            <label class="inp-label">截止日期</label>
+            <input type="date" class="inp" id="eDue" value="${a.dueDate || ''}">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn-outline" id="eCancel">取消</button>
+      <button class="btn btn-primary" id="eSave">儲存變更</button>
+    </div>
+  `);
+
+  el.querySelector('.modal__close').addEventListener('click', close);
+  el.querySelector('#eCancel').addEventListener('click', close);
+  el.querySelector('#eSave').addEventListener('click', () => {
+    const task = el.querySelector('#eTask').value.trim();
+    if (!task) { toast('任務名稱不能空白', 'error'); return; }
+    const updated = {
+      ...a,
+      task,
+      project:  el.querySelector('#eProject').value,
+      category: el.querySelector('#eCategory').value,
+      status:   el.querySelector('#eStatus').value,
+      owner:    el.querySelector('#eOwner').value,
+      dueDate:  el.querySelector('#eDue').value,
+    };
+    close();
+    store.save('actions', updated);
+    toast('✅ 已更新', 'success');
+  });
 };
 
 // ── 批次完成 ───────────────────────────────────────────────────
-document.getElementById('btnMarkDone').addEventListener('click', async () => {
+document.getElementById('btnMarkDone').addEventListener('click', () => {
   const inProg = store.query('actions', a => a.status === 'in-progress');
   if (!inProg.length) { toast('沒有進行中的 Action', 'info'); return; }
-  const ok = await confirm(`將 ${inProg.length} 個「進行中」Action 標記為完成？`);
-  if (ok) {
-    inProg.forEach(a => store.save('actions', { ...a, status: 'done' }));
-    toast(`✅ ${inProg.length} 項已標記完成`, 'success');
-  }
+  if (!window.confirm(`將 ${inProg.length} 個「進行中」Action 標記為完成？`)) return;
+  inProg.forEach(a => store.save('actions', { ...a, status: 'done' }));
+  toast(`✅ ${inProg.length} 項已標記完成`, 'success');
 });
 
 function populateOwnerSelects() {
