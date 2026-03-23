@@ -140,11 +140,41 @@
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
 import { toast, renderBadge, formatDate, isOverdue } from './assets/js/ui.js';
-import { initApi, fetchReports, downloadUrl } from './assets/js/api.js';
+import { initApi, fetchReports, fetchReportContent, downloadUrl } from './assets/js/api.js';
+import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
+
+// ── 自動從後端歷史週報同步真實資料 ────────────────────────────
+async function autoSyncFromHistory() {
+  try {
+    const available = await initApi();
+    if (!available) return false;
+
+    // 若已有歷史資料則跳過
+    const hasReal = store.getAll('projects').some(p => p._source === 'history');
+    if (hasReal) return false;
+
+    const reports = await fetchReports();
+    if (reports.length === 0) return false;
+
+    // 取最新 2 份週報解析同步
+    let replaced = false;
+    for (let i = 0; i < Math.min(2, reports.length); i++) {
+      const content = await fetchReportContent(reports[i].filename);
+      const parsed  = parseHistoricalReport(content, reports[i].filename);
+      syncToStore(parsed, store, { replaceAll: i === 0 }); // 第一份清除舊資料
+      replaced = true;
+    }
+    return replaced;
+  } catch (e) {
+    console.warn('[autoSync] 失敗:', e.message);
+    return false;
+  }
+}
 
 // ── 初始化 ─────────────────────────────────────────────────────
-function init() {
-  seedData();
+async function init() {
+  const synced = await autoSyncFromHistory();
+  if (!synced) seedData(); // 無後端或同步失敗時才用種子資料
   renderAll();
 }
 

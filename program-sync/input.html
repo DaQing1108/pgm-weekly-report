@@ -245,10 +245,27 @@
 <script type="module">
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
+import { initApi, fetchReports, fetchReportContent } from './assets/js/api.js';
+import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
+
+async function _autoSync() {
+  try {
+    const ok = await initApi();
+    if (!ok) return false;
+    if (store.getAll("projects").some(p => p._source === "history")) return false;
+    const rpts = await fetchReports();
+    if (!rpts.length) return false;
+    for (let i = 0; i < Math.min(2, rpts.length); i++) {
+      const c = await fetchReportContent(rpts[i].filename);
+      syncToStore(parseHistoricalReport(c, rpts[i].filename), store, { replaceAll: i === 0 });
+    }
+    return true;
+  } catch { return false; }
+}
 import { toast, renderBadge, formatDate, generateId, relativeTime } from './assets/js/ui.js';
 import { parseText } from './assets/js/import.js';
 
-seedData();
+_autoSync().then(ok => { if (!ok) seedData(); });
 
 const TEAM_NAMES = {
   'media-agent':'Media Agent','learnmode':'LearnMode',
