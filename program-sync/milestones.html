@@ -117,7 +117,7 @@ async function _autoSync() {
     return true;
   } catch { return false; }
 }
-import { toast, formatDate, generateId, confirm } from './assets/js/ui.js';
+import { toast, formatDate, generateId } from './assets/js/ui.js';
 
 _autoSync().then(ok => { if (!ok) seedData(); });
 
@@ -233,9 +233,10 @@ window.changeStatus = function(id, status) {
   toast('里程碑狀態已更新', 'success');
 };
 
-window.deleteMs = async function(id) {
-  const ok = await confirm('刪除此里程碑？');
-  if (ok) { store.delete('milestones', id); toast('已刪除', 'success'); }
+window.deleteMs = function(id) {
+  if (!window.confirm('確定要刪除此里程碑？')) return;
+  store.delete('milestones', id);
+  toast('已刪除', 'success');
 };
 
 // ── HTML5 Drag & Drop（同天排序）─────────────────────────────

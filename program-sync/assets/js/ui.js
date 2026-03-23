@@ -261,8 +261,8 @@ export function confirm(message, confirmLabel = '確認') {
       </div>
     `);
 
-    el.querySelector('#_conf-cancel').addEventListener('click', () => { close(); resolve(false); });
-    el.querySelector('#_conf-ok').addEventListener('click', () => { close(); resolve(true); });
+    el.querySelector('#_conf-cancel').addEventListener('click', e => { e.stopPropagation(); close(); setTimeout(() => resolve(false), 50); });
+    el.querySelector('#_conf-ok').addEventListener('click', e => { e.stopPropagation(); close(); setTimeout(() => resolve(true), 50); });
   });
 }
 
