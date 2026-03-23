@@ -71,6 +71,7 @@
           <button class="tab-btn" data-filter="on-track">🟢 正常</button>
           <button class="tab-btn" data-filter="at-risk">🟡 風險</button>
           <button class="tab-btn" data-filter="behind">🔴 落後</button>
+          <button class="tab-btn" data-filter="paused">⏸️ 暫緩</button>
         </div>
       </div>
       <div class="panel__body" id="projectList" style="padding:var(--space-md) var(--space-lg);">
@@ -194,9 +195,9 @@ function renderKPIs() {
 
   document.getElementById('kpiHealth').textContent = `${s.onTrackPct}%`;
   document.getElementById('kpiHealthSub').textContent =
-    `${s.onTrackProjects} 正常 / ${s.atRiskProjects} 風險 / ${s.behindProjects} 落後`;
+    `${s.onTrackProjects} 正常 / ${s.atRiskProjects} 風險 / ${s.behindProjects} 落後${s.pausedProjects ? ` / ${s.pausedProjects} 暫緩` : ''}`;
   document.getElementById('kpiTotal').textContent = s.totalProjects;
-  document.getElementById('kpiTotalSub').textContent = `${s.behindProjects} 個專案落後`;
+  document.getElementById('kpiTotalSub').textContent = `${s.behindProjects} 落後 / ${s.pausedProjects} 暫緩`;
   document.getElementById('kpiRisks').textContent = s.highRisks;
   document.getElementById('kpiActions').textContent = s.overdueActions;
 
@@ -239,7 +240,7 @@ function renderProjects(filter) {
   el.innerHTML = list.map(p => {
     const pct      = effectiveProgress(p);
     const isAuto   = p.progressMode === 'auto';
-    const barColor = p.status === 'on-track' ? 'var(--color-success)' : p.status === 'at-risk' ? 'var(--color-warning)' : 'var(--color-danger)';
+    const barColor = p.status === 'on-track' ? 'var(--color-success)' : p.status === 'at-risk' ? 'var(--color-warning)' : p.status === 'paused' ? 'var(--color-text-tertiary)' : 'var(--color-danger)';
     const overdue  = p.targetDate && isOverdue(p.targetDate);
     return `
     <div class="project-row project-row--${p.status}" data-id="${p.id}" onclick="toggleDetail('${p.id}')">

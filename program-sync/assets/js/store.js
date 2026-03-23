@@ -111,8 +111,10 @@ export const store = {
     const onTrackProjects = projects.filter(p => p.status === 'on-track').length;
     const atRiskProjects  = projects.filter(p => p.status === 'at-risk').length;
     const behindProjects  = projects.filter(p => p.status === 'behind').length;
-    const onTrackPct      = totalProjects > 0
-      ? Math.round((onTrackProjects / totalProjects) * 100)
+    const pausedProjects  = projects.filter(p => p.status === 'paused').length;
+    const activeProjects  = totalProjects - pausedProjects;
+    const onTrackPct      = activeProjects > 0
+      ? Math.round((onTrackProjects / activeProjects) * 100)
       : 0;
 
     const highRisks = risks.filter(r => r.level === 'high' && r.status !== 'closed').length;
@@ -130,6 +132,7 @@ export const store = {
       atRiskProjects,
       behindProjects,
       onTrackProjects,
+      pausedProjects,
     };
   },
 

@@ -128,6 +128,7 @@
                   <option value="on-track">🟢 On Track</option>
                   <option value="at-risk">🟡 At Risk</option>
                   <option value="behind">🔴 Behind</option>
+                  <option value="paused">⏸️ 暫緩</option>
                 </select>
               </div>
               <div class="inp-group">
@@ -492,7 +493,7 @@ function updateProgressDisplay(v) {
   document.getElementById('progressVal').textContent = `${v}%`;
   const fill = document.getElementById('progressPreview');
   const status = document.getElementById('qStatus').value;
-  const color = status === 'on-track' ? 'var(--color-success)' : status === 'at-risk' ? 'var(--color-warning)' : 'var(--color-danger)';
+  const color = status === 'on-track' ? 'var(--color-success)' : status === 'at-risk' ? 'var(--color-warning)' : status === 'paused' ? 'var(--color-text-tertiary)' : 'var(--color-danger)';
   fill.style.width   = `${v}%`;
   fill.style.background = color;
 }
@@ -504,7 +505,7 @@ function updatePreview(p) {
     el.innerHTML = `<div class="empty-state"><span class="empty-state__icon">👆</span><p class="empty-state__msg">選擇專案後顯示預覽</p></div>`;
     return;
   }
-  const barColor = p.status === 'on-track' ? 'var(--color-success)' : p.status === 'at-risk' ? 'var(--color-warning)' : 'var(--color-danger)';
+  const barColor = p.status === 'on-track' ? 'var(--color-success)' : p.status === 'at-risk' ? 'var(--color-warning)' : p.status === 'paused' ? 'var(--color-text-tertiary)' : 'var(--color-danger)';
   el.innerHTML = `
     <div class="stack-sm">
       <div class="row row--between">

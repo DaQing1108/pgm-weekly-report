@@ -55,6 +55,15 @@ export const PROJECTS_CATALOG = [
     priority: 'high',
   },
   {
+    id: 'proj-learn-003',
+    name: 'B2小車V3',
+    team: 'learnmode',
+    category: 'Product',
+    description: 'B2小車第三代產品開發，目前開發暫緩。',
+    targetDate: '2026-12-31',
+    priority: 'medium',
+  },
+  {
     id: 'proj-learn-002',
     name: 'Classroom Analytics Dashboard',
     team: 'learnmode',
@@ -132,6 +141,7 @@ export const STATUS_OPTIONS = [
   { value: 'on-track', label: '✅ On Track',  color: 'var(--color-success)' },
   { value: 'at-risk',  label: '⚠️ At Risk',   color: 'var(--color-warning)' },
   { value: 'behind',   label: '🔴 Behind',    color: 'var(--color-danger)'  },
+  { value: 'paused',   label: '⏸️ 暫緩',      color: 'var(--color-text-secondary)' },
 ];
 
 export const RISK_LEVELS = [

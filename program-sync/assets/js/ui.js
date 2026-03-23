@@ -109,6 +109,7 @@ export function renderBadge(status) {
     'on-track':    ['badge-success', '🟢 On Track'],
     'at-risk':     ['badge-warning', '🟡 At Risk'],
     'behind':      ['badge-danger',  '🔴 Behind'],
+    'paused':      ['badge-neutral', '⏸️ 暫緩'],
     'done':        ['badge-success', '✅ Done'],
     'pending':     ['badge-neutral', '⏳ 待辦'],
     'in-progress': ['badge-info',    '🔄 進行中'],

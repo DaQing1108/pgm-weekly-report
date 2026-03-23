@@ -211,6 +211,7 @@
 .project-row--on-track { border-left-color: var(--color-success); }
 .project-row--at-risk  { border-left-color: var(--color-warning); }
 .project-row--behind   { border-left-color: var(--color-danger); }
+.project-row--paused   { border-left-color: var(--color-text-tertiary); opacity: .75; }
 
 .project-row__dot {
   width: 8px;
@@ -222,6 +223,7 @@
 .project-row__dot--on-track { background: var(--color-success); }
 .project-row__dot--at-risk  { background: var(--color-warning); }
 .project-row__dot--behind   { background: var(--color-danger); }
+.project-row__dot--paused   { background: var(--color-text-tertiary); }
 
 .project-row__name {
   font-size: var(--font-size-md);
