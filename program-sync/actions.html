@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Action Items — P&D Program Sync</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar__logo">
+    <div class="navbar__logo-icon">P</div>
+    <span>P&amp;D CENTER</span>
+  </a>
+  <span class="navbar__week-badge">W11</span>
+  <div class="navbar__links">
+    <a href="index.html"      class="navbar__link">儀表板</a>
+    <a href="input.html"      class="navbar__link">快速輸入</a>
+    <a href="risks.html"      class="navbar__link">風險管理</a>
+    <a href="actions.html"    class="navbar__link active">Action Items</a>
+    <a href="milestones.html" class="navbar__link">里程碑</a>
+    <a href="trends.html"     class="navbar__link">趨勢分析</a>
+    <a href="review.html"     class="navbar__link">審核流程</a>
+  </div>
+  <div class="navbar__actions">
+    <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+  </div>
+</nav>
+
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-header__title">Action Items</h1>
+      <p class="page-header__sub">追蹤所有行動事項的執行狀態</p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn-outline btn-sm" id="btnMarkDone">✓ 批次完成</button>
+    </div>
+  </div>
+
+  <!-- 完成率進度條 -->
+  <div class="panel" style="margin-bottom:var(--space-xl);">
+    <div class="panel__body" style="padding:var(--space-lg) var(--space-xl);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-sm);">
+        <span class="font-600">整體完成率</span>
+        <div id="actionSummary" class="text-sm text-secondary"></div>
+      </div>
+      <div class="progress-bar" style="height:12px;">
+        <div class="progress-bar__fill" id="completionBar" style="width:0%;"></div>
+      </div>
+      <div class="progress-bar__label" id="completionLabel">
+        <span>0 / 0 項已完成</span>
+        <span id="overdueCount" style="color:var(--color-danger)"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 三類別面板 -->
+  <div class="grid-3" id="actionPanels"></div>
+
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { store }    from './assets/js/store.js';
+import { seedData } from './assets/data/seed.js';
+import { toast, renderBadge, formatDate, generateId, confirm, isOverdue } from './assets/js/ui.js';
+
+seedData();
+
+const CATEGORIES = [
+  { id: 'technical', label: '⚙️ 技術',  color: 'var(--color-info)'    },
+  { id: 'business',  label: '📋 業務',  color: 'var(--color-warning)' },
+  { id: 'resource',  label: '👥 資源',  color: 'var(--color-success)' },
+];
+
+const STATUS_CYCLE = ['pending', 'in-progress', 'done', 'blocked'];
+
+function renderAll() {
+  renderProgressBar();
+  renderPanels();
+}
+
+// ── 進度條 ─────────────────────────────────────────────────────
+function renderProgressBar() {
+  const all   = store.getAll('actions');
+  const done  = all.filter(a => a.status === 'done').length;
+  const total = all.length;
+  const pct   = total ? Math.round((done / total) * 100) : 0;
+  const today = new Date().toISOString().split('T')[0];
+  const overdue = all.filter(a => a.dueDate && a.dueDate < today && a.status !== 'done').length;
+
+  document.getElementById('completionBar').style.width = `${pct}%`;
+  document.getElementById('completionBar').style.background =
+    pct >= 80 ? 'var(--color-success)' : pct >= 50 ? 'var(--color-warning)' : 'var(--color-danger)';
+  document.getElementById('completionLabel').innerHTML =
+    `<span>${done} / ${total} 項已完成（${pct}%）</span>
+     ${overdue > 0 ? `<span style="color:var(--color-danger)">⚠️ ${overdue} 項逾期</span>` : '<span style="color:var(--color-success)">無逾期</span>'}`;
+  document.getElementById('actionSummary').textContent =
+    `待辦 ${all.filter(a=>a.status==='pending').length} / 進行中 ${all.filter(a=>a.status==='in-progress').length} / 阻塞 ${all.filter(a=>a.status==='blocked').length}`;
+}
+
+// ── 三欄面板 ───────────────────────────────────────────────────
+function renderPanels() {
+  const all   = store.getAll('actions');
+  const today = new Date().toISOString().split('T')[0];
+  const el    = document.getElementById('actionPanels');
+
+  el.innerHTML = CATEGORIES.map(cat => {
+    const items = all.filter(a => a.category === cat.id);
+    const done  = items.filter(a => a.status === 'done').length;
+
+    const rows = items.map(a => {
+      const late = isOverdue(a.dueDate) && a.status !== 'done';
+      return `
+        <div class="action-row ${late ? 'a-late' : ''}" id="arow-${a.id}">
+          <div class="action-row__task">
+            <span>${a.task}</span>
+            ${a.project ? `<span class="badge badge-neutral" style="margin-left:4px;font-size:10px;">${a.project.substring(0,15)}</span>` : ''}
+          </div>
+          <div class="action-row__owner text-xs text-secondary">${a.owner || '—'}</div>
+          <div class="action-row__due text-xs ${late ? 'text-danger' : 'text-secondary'}"
+               style="${late ? 'color:var(--color-danger);font-weight:600;' : ''}">
+            ${a.dueDate ? formatDate(a.dueDate) : '—'}
+            ${late ? ' ⚠️' : ''}
+          </div>
+          <div style="display:flex;align-items:center;gap:var(--space-xs);">
+            <span class="badge ${statusBadgeCls(a.status)}"
+                  style="cursor:pointer;"
+                  onclick="cycleStatus('${a.id}')"
+                  title="點擊切換狀態">
+              ${statusLabel(a.status)}
+            </span>
+            <button class="btn btn-ghost btn-sm" onclick="deleteAction('${a.id}')" style="padding:2px 4px;color:var(--color-text-tertiary);" title="刪除">✕</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Inline 新增表單
+    const addForm = `
+      <div class="inline-form" style="margin-top:var(--space-sm);">
+        <input type="text" class="inp" id="newTask-${cat.id}" placeholder="新增 ${cat.label} 行動…">
+        <select class="inp" id="newOwner-${cat.id}" style="width:110px;">
+          <option value="">負責人</option>
+          <option>Steve Liu</option><option>TC Peng</option><option>Tonny Shen</option>
+          <option>Tom Liu</option><option>Alex Chen</option><option>Michael Wu</option>
+          <option>Dream Lin</option><option>Jenny Huang</option><option>Kevin Chang</option>
+          <option>Lily Tsai</option><option>Ryan Hsu</option>
+        </select>
+        <input type="date" class="inp" id="newDue-${cat.id}" style="width:130px;">
+        <button class="btn btn-primary btn-sm" onclick="addAction('${cat.id}')">+</button>
+      </div>`;
+
+    return `
+      <div class="panel">
+        <div class="panel__header" style="border-left:3px solid ${cat.color};">
+          <span class="panel__title">${cat.label}</span>
+          <span class="badge badge-neutral">${done}/${items.length}</span>
+        </div>
+        <div class="panel__body" style="padding:var(--space-md) var(--space-lg);">
+          ${rows || `<p class="text-sm text-secondary">尚無${cat.label}行動項</p>`}
+          ${addForm}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function statusBadgeCls(status) {
+  return { 'done':'badge-success', 'in-progress':'badge-info', 'pending':'badge-neutral', 'blocked':'badge-danger' }[status] || 'badge-neutral';
+}
+
+function statusLabel(status) {
+  return { 'done':'✅ 完成', 'in-progress':'🔄 進行中', 'pending':'⏳ 待辦', 'blocked':'🚫 阻塞' }[status] || status;
+}
+
+// ── 狀態循環（inline 點擊）──────────────────────────────────────
+window.cycleStatus = function(id) {
+  const a = store.getById('actions', id);
+  if (!a) return;
+  const idx = STATUS_CYCLE.indexOf(a.status);
+  const next = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+  store.save('actions', { ...a, status: next });
+  // 不重繪全頁，只更新 badge
+  renderAll();
+};
+
+// ── 新增 action ────────────────────────────────────────────────
+window.addAction = function(catId) {
+  const task  = document.getElementById(`newTask-${catId}`)?.value.trim();
+  const owner = document.getElementById(`newOwner-${catId}`)?.value;
+  const due   = document.getElementById(`newDue-${catId}`)?.value;
+  if (!task) { toast('請輸入行動任務', 'error'); return; }
+
+  store.save('actions', {
+    id: generateId(),
+    category: catId,
+    task, owner: owner || '',
+    dueDate: due || '',
+    status: 'pending',
+    weekStart: new Date().toISOString().split('T')[0],
+  });
+  toast('✅ 已新增行動', 'success');
+};
+
+// ── 刪除 ───────────────────────────────────────────────────────
+window.deleteAction = async function(id) {
+  const ok = await confirm('刪除此 Action？');
+  if (ok) { store.delete('actions', id); toast('已刪除', 'success'); }
+};
+
+// ── 批次完成 ───────────────────────────────────────────────────
+document.getElementById('btnMarkDone').addEventListener('click', async () => {
+  const inProg = store.query('actions', a => a.status === 'in-progress');
+  if (!inProg.length) { toast('沒有進行中的 Action', 'info'); return; }
+  const ok = await confirm(`將 ${inProg.length} 個「進行中」Action 標記為完成？`);
+  if (ok) {
+    inProg.forEach(a => store.save('actions', { ...a, status: 'done' }));
+    toast(`✅ ${inProg.length} 項已標記完成`, 'success');
+  }
+});
+
+window.addEventListener('store:updated', renderAll);
+renderAll();
+</script>
+
+<style>
+.text-danger { color: var(--color-danger); }
+</style>
+</body>
+</html>

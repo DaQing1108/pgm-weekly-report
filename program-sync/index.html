@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P&D Center Program Sync</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+</head>
+<body>
+
+<!-- ── Navbar ──────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="index.html" class="navbar__logo">
+    <div class="navbar__logo-icon">P</div>
+    <span>P&amp;D CENTER</span>
+  </a>
+  <span class="navbar__week-badge" id="weekBadge">W11</span>
+  <div class="navbar__links">
+    <a href="index.html"      class="navbar__link active">儀表板</a>
+    <a href="input.html"      class="navbar__link">快速輸入</a>
+    <a href="risks.html"      class="navbar__link">風險管理</a>
+    <a href="actions.html"    class="navbar__link">Action Items</a>
+    <a href="milestones.html" class="navbar__link">里程碑</a>
+    <a href="trends.html"     class="navbar__link">趨勢分析</a>
+    <a href="review.html"     class="navbar__link">審核流程</a>
+  </div>
+  <div class="navbar__actions">
+    <button class="btn btn-outline btn-sm" id="btnApiKey">🔑 API Key</button>
+    <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+  </div>
+</nav>
+
+<!-- ── Page ────────────────────────────────────────────────── -->
+<div class="page-container">
+
+  <!-- KPI Row -->
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi-card kpi-ok">
+      <div class="kpi-card__label">專案健康度</div>
+      <div class="kpi-card__value" id="kpiHealth">—%</div>
+      <div class="kpi-card__sub" id="kpiHealthSub">載入中…</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-card__label">進行中專案</div>
+      <div class="kpi-card__value" id="kpiTotal">—</div>
+      <div class="kpi-card__sub" id="kpiTotalSub"></div>
+    </div>
+    <div class="kpi-card kpi-warn">
+      <div class="kpi-card__label">高風險項目</div>
+      <div class="kpi-card__value" id="kpiRisks">—</div>
+      <div class="kpi-card__sub">需要立即關注</div>
+    </div>
+    <div class="kpi-card kpi-bad">
+      <div class="kpi-card__label">逾期 Actions</div>
+      <div class="kpi-card__value" id="kpiActions">—</div>
+      <div class="kpi-card__sub">待追蹤</div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+
+    <!-- 左欄：專案列表 -->
+    <div class="panel">
+      <div class="panel__header">
+        <span class="panel__title">專案進度總覽</span>
+        <div class="tab-bar" id="statusFilter">
+          <button class="tab-btn active" data-filter="all">全部</button>
+          <button class="tab-btn" data-filter="on-track">🟢 正常</button>
+          <button class="tab-btn" data-filter="at-risk">🟡 風險</button>
+          <button class="tab-btn" data-filter="behind">🔴 落後</button>
+        </div>
+      </div>
+      <div class="panel__body" id="projectList" style="padding:var(--space-md) var(--space-lg);">
+        <div class="empty-state">
+          <span class="empty-state__icon">⏳</span>
+          <p class="empty-state__msg">載入中…</p>
+        </div>
+      </div>
+      <div class="panel__footer">
+        <span class="text-sm text-secondary" id="projectCount">0 個專案</span>
+        <a href="input.html" class="btn btn-outline btn-sm" style="margin-left:auto;">+ 新增專案</a>
+      </div>
+    </div>
+
+    <!-- 右欄 -->
+    <div class="stack">
+
+      <!-- 熱力圖 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">子組健康熱力圖</span>
+          <span class="text-xs text-secondary">5 子組 × 本週狀態</span>
+        </div>
+        <div class="panel__body">
+          <div class="heatmap" id="heatmap"></div>
+        </div>
+      </div>
+
+      <!-- 需決策事項 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">需決策事項</span>
+          <a href="risks.html" class="btn btn-ghost btn-sm">查看全部 →</a>
+        </div>
+        <div class="panel__body" id="decisionList" style="padding:var(--space-md) var(--space-lg);">
+          <div class="empty-state">
+            <span class="empty-state__icon">📋</span>
+            <p class="empty-state__msg">無待決策事項</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- V3：歷史週報中心（後端已連線時顯示） -->
+  <div id="archiveSection" style="display:none;margin-top:var(--space-xl);">
+    <div class="panel">
+      <div class="panel__header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="panel__title">☁ 歷史週報中心</span>
+        <span class="badge badge--info" id="archiveBadge">載入中…</span>
+      </div>
+      <div class="panel__body" id="archiveList" style="padding:var(--space-md) var(--space-lg);">
+        <div class="empty-state">
+          <span class="empty-state__icon">☁</span>
+          <p class="empty-state__msg">尚無雲端週報</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { store }    from './assets/js/store.js';
+import { seedData } from './assets/data/seed.js';
+import { toast, renderBadge, formatDate, isOverdue } from './assets/js/ui.js';
+import { initApi, fetchReports, downloadUrl } from './assets/js/api.js';
+
+// ── 初始化 ─────────────────────────────────────────────────────
+function init() {
+  seedData();
+  renderAll();
+}
+
+// ── 渲染全部 ───────────────────────────────────────────────────
+function renderAll() {
+  renderKPIs();
+  renderProjects('all');
+  renderHeatmap();
+  renderDecisions();
+  updateWeekBadge();
+}
+
+// ── 週次 badge ──────────────────────────────────────────────────
+function updateWeekBadge() {
+  const snaps = store.trendData(1);
+  if (snaps.length > 0) {
+    document.getElementById('weekBadge').textContent = snaps[0].weekLabel || 'W11';
+  }
+}
+
+// ── KPI ─────────────────────────────────────────────────────────
+function renderKPIs() {
+  const s = store.stats();
+  const healthEl = document.getElementById('kpiHealth');
+  const healthCard = healthEl.closest('.kpi-card');
+
+  document.getElementById('kpiHealth').textContent = `${s.onTrackPct}%`;
+  document.getElementById('kpiHealthSub').textContent =
+    `${s.onTrackProjects} 正常 / ${s.atRiskProjects} 風險 / ${s.behindProjects} 落後`;
+  document.getElementById('kpiTotal').textContent = s.totalProjects;
+  document.getElementById('kpiTotalSub').textContent = `${s.behindProjects} 個專案落後`;
+  document.getElementById('kpiRisks').textContent = s.highRisks;
+  document.getElementById('kpiActions').textContent = s.overdueActions;
+
+  // 動態顏色
+  healthCard.className = `kpi-card ${s.onTrackPct >= 80 ? 'kpi-ok' : s.onTrackPct >= 60 ? 'kpi-warn' : 'kpi-bad'}`;
+}
+
+// ── 專案列表 ────────────────────────────────────────────────────
+let currentFilter = 'all';
+
+function renderProjects(filter) {
+  currentFilter = filter;
+  const all = store.getAll('projects');
+  const list = filter === 'all' ? all : all.filter(p => p.status === filter);
+  const el = document.getElementById('projectList');
+  document.getElementById('projectCount').textContent = `${list.length} 個專案`;
+
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <span class="empty-state__icon">🎉</span>
+      <p class="empty-state__msg">此狀態無專案</p>
+    </div>`;
+    return;
+  }
+
+  const TEAM_NAMES = {
+    'media-agent':'Media Agent','learnmode':'LearnMode',
+    'chuangzaoli':'創造栗','tv-solution':'TV Solution','healthcare':'Healthcare'
+  };
+
+  el.innerHTML = list.map(p => {
+    const barColor = p.status === 'on-track' ? 'var(--color-success)' : p.status === 'at-risk' ? 'var(--color-warning)' : 'var(--color-danger)';
+    const overdue  = p.targetDate && isOverdue(p.targetDate);
+    return `
+    <div class="project-row project-row--${p.status}" data-id="${p.id}" onclick="toggleDetail('${p.id}')">
+      <div class="project-row__dot project-row__dot--${p.status}"></div>
+      <div class="project-row__name">${p.name}</div>
+      <span class="badge badge-neutral text-xs">${TEAM_NAMES[p.team] || p.team}</span>
+      ${overdue ? '<span class="badge badge-danger text-xs">逾期</span>' : ''}
+      <div class="project-row__progress-wrap">
+        <div class="project-row__progress-bar">
+          <div class="project-row__progress-fill" style="width:${p.progress}%;background:${barColor}"></div>
+        </div>
+        <div class="project-row__progress-pct">${p.progress}%</div>
+      </div>
+    </div>
+    <div class="project-row__detail" id="detail-${p.id}">
+      ${p.weekDone ? `<p><strong>本週完成：</strong>${p.weekDone}</p>` : ''}
+      ${p.blockers  ? `<p><strong>阻塞：</strong><span style="color:var(--color-danger)">${p.blockers}</span></p>` : ''}
+      <p><strong>負責人：</strong>${p.owner || '—'}　<strong>目標日期：</strong>${formatDate(p.targetDate)}</p>
+    </div>`;
+  }).join('');
+}
+
+window.toggleDetail = function(id) {
+  const el = document.getElementById(`detail-${id}`);
+  el?.classList.toggle('open');
+};
+
+// ── 熱力圖 ─────────────────────────────────────────────────────
+function renderHeatmap() {
+  const projects = store.getAll('projects');
+  const TEAMS = [
+    { id:'media-agent', name:'Media Agent' },
+    { id:'learnmode',   name:'LearnMode'   },
+    { id:'chuangzaoli', name:'創造栗'       },
+    { id:'tv-solution', name:'TV Solution' },
+    { id:'healthcare',  name:'Healthcare'  },
+  ];
+
+  // 建立 5×4 格（5 組 × 最多 4 個指標）
+  const cells = [];
+  TEAMS.forEach(team => {
+    const tp = projects.filter(p => p.team === team.id);
+    const on = tp.filter(p => p.status === 'on-track').length;
+    const pct = tp.length ? Math.round((on / tp.length) * 100) : 100;
+    const cls = pct >= 80 ? 'on-track' : pct >= 60 ? 'at-risk' : 'behind';
+
+    cells.push(`
+      <div class="heatmap__cell heatmap__cell--${cls}" title="${team.name}: ${pct}% On Track">
+        <div class="heatmap__cell-name">${team.name}</div>
+        <div>${pct}%</div>
+      </div>`);
+
+    // 填入各個專案
+    const slots = tp.slice(0, 3);
+    for (let i = 0; i < 3; i++) {
+      const proj = slots[i];
+      if (proj) {
+        cells.push(`
+          <div class="heatmap__cell heatmap__cell--${proj.status}" title="${proj.name}: ${proj.progress}%">
+            <div class="heatmap__cell-name">${proj.name.substring(0,10)}</div>
+            <div>${proj.progress}%</div>
+          </div>`);
+      } else {
+        cells.push(`<div class="heatmap__cell heatmap__cell--inactive"></div>`);
+      }
+    }
+  });
+
+  document.getElementById('heatmap').innerHTML = cells.join('');
+}
+
+// ── 需決策事項 ──────────────────────────────────────────────────
+function renderDecisions() {
+  const risks = store.query('risks', r => r.level === 'high' && r.status !== 'closed');
+  const el = document.getElementById('decisionList');
+
+  if (risks.length === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <span class="empty-state__icon">✅</span>
+      <p class="empty-state__msg">本週無高風險決策事項</p>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = risks.slice(0, 5).map(r => `
+    <div class="decision-card">
+      <div class="decision-card__title">${r.description.substring(0,60)}${r.description.length>60?'…':''}</div>
+      <div class="decision-card__meta">
+        ${renderBadge('high')} &nbsp;
+        <span>${r.project || '—'}</span> &nbsp;
+        <span>負責：${r.owner || '—'}</span>
+        ${r.dueDate ? `&nbsp; <span>截止：${formatDate(r.dueDate)}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+// ── 篩選 tabs ───────────────────────────────────────────────────
+document.getElementById('statusFilter').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('#statusFilter .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProjects(btn.dataset.filter);
+});
+
+// ── store:updated 事件 ─────────────────────────────────────────
+window.addEventListener('store:updated', () => renderAll());
+
+// ── API Key 按鈕 ───────────────────────────────────────────────
+document.getElementById('btnApiKey').addEventListener('click', () => {
+  const { modal } = { modal: window._ui?.modal };
+  // 簡化：導引到 report.html
+  window.location.href = 'report.html#apikey';
+});
+
+// ── 歷史週報中心（V3 後端整合）────────────────────────────────
+async function initArchive() {
+  const available = await initApi();
+  if (!available) return;
+
+  document.getElementById('archiveSection').style.display = '';
+
+  try {
+    const reports = await fetchReports();
+    const badge = document.getElementById('archiveBadge');
+    const list  = document.getElementById('archiveList');
+
+    badge.textContent = `${reports.length} 份週報`;
+
+    if (reports.length === 0) {
+      list.innerHTML = `<div class="empty-state"><span class="empty-state__icon">☁</span><p class="empty-state__msg">尚無雲端週報</p></div>`;
+      return;
+    }
+
+    list.innerHTML = reports.map(r => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--color-border-default);">
+        <div>
+          <span style="font-weight:500;font-size:13px;">${r.filename.replace('.md','')}</span>
+          ${r.period ? `<span class="text-secondary text-xs" style="margin-left:8px;">${r.period}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:8px;">
+          ${r.date ? `<span class="badge badge--neutral">${r.date}</span>` : ''}
+          <a href="${downloadUrl(r.filename)}" class="btn btn-outline btn-sm" download>⬇ 下載</a>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    document.getElementById('archiveList').innerHTML = `<p class="text-secondary text-sm">載入失敗：${err.message}</p>`;
+  }
+}
+
+// ── 啟動 ───────────────────────────────────────────────────────
+init();
+initArchive();
+</script>
+</body>
+</html>

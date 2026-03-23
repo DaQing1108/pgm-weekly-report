@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>快速輸入 — P&D Program Sync</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar__logo">
+    <div class="navbar__logo-icon">P</div>
+    <span>P&amp;D CENTER</span>
+  </a>
+  <span class="navbar__week-badge" id="weekBadge">W11</span>
+  <div class="navbar__links">
+    <a href="index.html"      class="navbar__link">儀表板</a>
+    <a href="input.html"      class="navbar__link active">快速輸入</a>
+    <a href="risks.html"      class="navbar__link">風險管理</a>
+    <a href="actions.html"    class="navbar__link">Action Items</a>
+    <a href="milestones.html" class="navbar__link">里程碑</a>
+    <a href="trends.html"     class="navbar__link">趨勢分析</a>
+    <a href="review.html"     class="navbar__link">審核流程</a>
+  </div>
+  <div class="navbar__actions">
+    <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+  </div>
+</nav>
+
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-header__title">快速輸入</h1>
+      <p class="page-header__sub">更新本週專案進度，或批次貼入文字自動解析</p>
+    </div>
+  </div>
+
+  <!-- 模式切換 -->
+  <div class="tab-bar" id="modeTab" style="max-width:320px;margin-bottom:var(--space-xl);">
+    <button class="tab-btn active" data-mode="quick">🎯 快速更新</button>
+    <button class="tab-btn" data-mode="batch">📋 批次貼入</button>
+  </div>
+
+  <!-- ── 快速更新模式 ──────────────────────────────────────── -->
+  <div id="modeQuick">
+    <div class="main-grid">
+      <!-- 左：表單 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">更新專案進度</span>
+        </div>
+        <div class="panel__body">
+          <div class="stack">
+
+            <!-- 專案選擇 -->
+            <div class="inp-group">
+              <label class="inp-label inp-label--required">選擇專案</label>
+              <select class="inp" id="qProject">
+                <option value="">— 選擇或新增專案 —</option>
+              </select>
+            </div>
+
+            <!-- 或輸入新專案名稱 -->
+            <div class="inp-group" id="newProjGroup" style="display:none;">
+              <label class="inp-label">新專案名稱</label>
+              <input type="text" class="inp" id="qNewProjName" placeholder="輸入專案名稱">
+              <div class="inp-grid">
+                <div class="inp-group">
+                  <label class="inp-label">子組</label>
+                  <select class="inp" id="qNewTeam">
+                    <option value="media-agent">Media Agent</option>
+                    <option value="learnmode">LearnMode</option>
+                    <option value="chuangzaoli">創造栗</option>
+                    <option value="tv-solution">TV Solution</option>
+                    <option value="healthcare">Healthcare</option>
+                  </select>
+                </div>
+                <div class="inp-group">
+                  <label class="inp-label">目標日期</label>
+                  <input type="date" class="inp" id="qTargetDate">
+                </div>
+              </div>
+            </div>
+
+            <!-- 狀態 + 進度 -->
+            <div class="inp-grid">
+              <div class="inp-group">
+                <label class="inp-label inp-label--required">專案狀態</label>
+                <select class="inp" id="qStatus">
+                  <option value="on-track">🟢 On Track</option>
+                  <option value="at-risk">🟡 At Risk</option>
+                  <option value="behind">🔴 Behind</option>
+                </select>
+              </div>
+              <div class="inp-group">
+                <label class="inp-label">負責人</label>
+                <select class="inp" id="qOwner">
+                  <option value="">— 選擇 —</option>
+                  <option value="Steve Liu">Steve Liu</option>
+                  <option value="TC Peng">TC Peng</option>
+                  <option value="Tonny Shen">Tonny Shen</option>
+                  <option value="Tom Liu">Tom Liu</option>
+                  <option value="Alex Chen">Alex Chen</option>
+                  <option value="Michael Wu">Michael Wu</option>
+                  <option value="Dream Lin">Dream Lin</option>
+                  <option value="Jenny Huang">Jenny Huang</option>
+                  <option value="Kevin Chang">Kevin Chang</option>
+                  <option value="Lily Tsai">Lily Tsai</option>
+                  <option value="Ryan Hsu">Ryan Hsu</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 完成率 -->
+            <div class="inp-group">
+              <label class="inp-label">完成率</label>
+              <input type="range" class="inp-range" id="qProgress" min="0" max="100" value="50">
+              <div style="display:flex;justify-content:space-between;font-size:var(--font-size-xs);color:var(--color-text-tertiary);margin-top:4px;">
+                <span>0%</span>
+                <span style="font-weight:700;font-size:var(--font-size-md);color:var(--color-info)" id="progressVal">50%</span>
+                <span>100%</span>
+              </div>
+            </div>
+
+            <!-- 即時進度條預覽 -->
+            <div class="progress-bar-wrap" style="margin-top:-var(--space-sm);">
+              <div class="progress-bar">
+                <div class="progress-bar__fill" id="progressPreview" style="width:50%;"></div>
+              </div>
+            </div>
+
+            <!-- 本週完成 -->
+            <div class="inp-group">
+              <label class="inp-label">本週完成事項</label>
+              <textarea class="inp" id="qWeekDone" rows="3" placeholder="簡述本週完成的工作…"></textarea>
+            </div>
+
+            <!-- 阻塞項 -->
+            <div class="inp-group">
+              <label class="inp-label">阻塞項目</label>
+              <textarea class="inp" id="qBlockers" rows="2" placeholder="描述當前阻塞因素（若無請留空）…"></textarea>
+            </div>
+
+            <!-- 風險 -->
+            <div class="inp-group">
+              <label class="inp-label">新增關聯風險</label>
+              <div style="display:flex;gap:var(--space-sm);">
+                <select class="inp" id="qRiskLevel" style="width:100px;flex-shrink:0;">
+                  <option value="">無</option>
+                  <option value="high">🔴 高</option>
+                  <option value="medium">🟡 中</option>
+                  <option value="low">🟢 低</option>
+                </select>
+                <input type="text" class="inp" id="qRiskDesc" placeholder="風險描述（選填）">
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="panel__footer">
+          <button class="btn btn-outline btn-sm" id="btnReset">重置</button>
+          <button class="btn btn-primary" id="btnSaveQuick" style="margin-left:auto;">✓ 儲存更新</button>
+        </div>
+      </div>
+
+      <!-- 右：預覽卡片 -->
+      <div class="stack">
+        <div class="panel">
+          <div class="panel__header">
+            <span class="panel__title">即時預覽</span>
+          </div>
+          <div class="panel__body" id="quickPreview">
+            <div class="empty-state">
+              <span class="empty-state__icon">👆</span>
+              <p class="empty-state__msg">選擇專案後顯示預覽</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 最近更新 -->
+        <div class="panel">
+          <div class="panel__header">
+            <span class="panel__title">最近更新</span>
+          </div>
+          <div class="panel__body" id="recentList" style="padding:var(--space-md);"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 批次貼入模式 ──────────────────────────────────────── -->
+  <div id="modeBatch" style="display:none;">
+    <div class="main-grid">
+      <!-- 左：貼上區 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">批次貼入</span>
+          <select class="inp" id="batchSource" style="width:120px;">
+            <option value="raw">純文字</option>
+            <option value="slack">Slack</option>
+            <option value="email">Email</option>
+            <option value="jira">JIRA</option>
+          </select>
+        </div>
+        <div class="panel__body">
+          <div class="inp-group">
+            <label class="inp-label">貼上本週更新文字</label>
+            <textarea class="inp" id="batchText" rows="16" placeholder="將 Slack 訊息、Email 或任意文字貼入這裡…
+
+範例：
+✅ AI Content Pipeline 完成語音轉文字整合，進度 72%
+⚠️ Healthcare AI 醫療授權未簽署，延遲 @Ryan Hsu 2026/03/31
+🔴 LearnMode Mobile RN 升級失敗，Michael Wu 負責修復"></textarea>
+          </div>
+        </div>
+        <div class="panel__footer">
+          <span class="text-xs text-secondary">支援 Slack / Email / JIRA / 純文字格式</span>
+          <button class="btn btn-primary" id="btnParse" style="margin-left:auto;">🔍 解析文字</button>
+        </div>
+      </div>
+
+      <!-- 右：解析結果 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">解析預覽</span>
+          <button class="btn btn-success btn-sm" id="btnImportAll" style="display:none;">✓ 全部匯入</button>
+        </div>
+        <div class="panel__body" id="parseResult" style="padding:var(--space-md);">
+          <div class="empty-state">
+            <span class="empty-state__icon">📋</span>
+            <p class="empty-state__msg">解析後在此顯示結果<br>可逐項勾選確認匯入</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { store }    from './assets/js/store.js';
+import { seedData } from './assets/data/seed.js';
+import { toast, renderBadge, formatDate, generateId, relativeTime } from './assets/js/ui.js';
+import { parseText } from './assets/js/import.js';
+
+seedData();
+
+const TEAM_NAMES = {
+  'media-agent':'Media Agent','learnmode':'LearnMode',
+  'chuangzaoli':'創造栗','tv-solution':'TV Solution','healthcare':'Healthcare'
+};
+
+// ── 模式切換 ───────────────────────────────────────────────────
+document.getElementById('modeTab').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('#modeTab .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const mode = btn.dataset.mode;
+  document.getElementById('modeQuick').style.display = mode === 'quick' ? '' : 'none';
+  document.getElementById('modeBatch').style.display = mode === 'batch' ? '' : 'none';
+});
+
+// ── 載入專案下拉 ───────────────────────────────────────────────
+function loadProjectSelect() {
+  const sel = document.getElementById('qProject');
+  const projects = store.getAll('projects');
+  const groups = {};
+  projects.forEach(p => {
+    if (!groups[p.team]) groups[p.team] = [];
+    groups[p.team].push(p);
+  });
+
+  sel.innerHTML = '<option value="">— 選擇專案 —</option><option value="__new__">+ 新增專案</option>';
+  Object.entries(groups).forEach(([team, list]) => {
+    const og = document.createElement('optgroup');
+    og.label = TEAM_NAMES[team] || team;
+    list.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `${p.name} (${p.progress}%)`;
+      og.appendChild(opt);
+    });
+    sel.appendChild(og);
+  });
+}
+
+loadProjectSelect();
+
+// ── 專案選擇變更 ───────────────────────────────────────────────
+document.getElementById('qProject').addEventListener('change', function() {
+  const id = this.value;
+  const newGroup = document.getElementById('newProjGroup');
+
+  if (id === '__new__') {
+    newGroup.style.display = '';
+    updatePreview(null);
+    return;
+  }
+  newGroup.style.display = 'none';
+
+  if (!id) { updatePreview(null); return; }
+
+  const p = store.getById('projects', id);
+  if (!p) return;
+
+  document.getElementById('qStatus').value   = p.status;
+  document.getElementById('qProgress').value = p.progress;
+  document.getElementById('qOwner').value     = p.owner || '';
+  document.getElementById('qWeekDone').value  = p.weekDone || '';
+  document.getElementById('qBlockers').value  = p.blockers || '';
+  updateProgressDisplay(p.progress);
+  updatePreview(p);
+});
+
+// ── 進度條即時更新 ─────────────────────────────────────────────
+document.getElementById('qProgress').addEventListener('input', function() {
+  const v = parseInt(this.value);
+  updateProgressDisplay(v);
+  const id = document.getElementById('qProject').value;
+  if (id && id !== '__new__') {
+    const p = store.getById('projects', id);
+    if (p) updatePreview({ ...p, progress: v, status: document.getElementById('qStatus').value });
+  }
+});
+
+document.getElementById('qStatus').addEventListener('change', function() {
+  const id = document.getElementById('qProject').value;
+  if (id && id !== '__new__') {
+    const p = store.getById('projects', id);
+    if (p) updatePreview({ ...p, status: this.value });
+  }
+});
+
+function updateProgressDisplay(v) {
+  document.getElementById('progressVal').textContent = `${v}%`;
+  const fill = document.getElementById('progressPreview');
+  const status = document.getElementById('qStatus').value;
+  const color = status === 'on-track' ? 'var(--color-success)' : status === 'at-risk' ? 'var(--color-warning)' : 'var(--color-danger)';
+  fill.style.width   = `${v}%`;
+  fill.style.background = color;
+}
+
+// ── 預覽 ───────────────────────────────────────────────────────
+function updatePreview(p) {
+  const el = document.getElementById('quickPreview');
+  if (!p) {
+    el.innerHTML = `<div class="empty-state"><span class="empty-state__icon">👆</span><p class="empty-state__msg">選擇專案後顯示預覽</p></div>`;
+    return;
+  }
+  const barColor = p.status === 'on-track' ? 'var(--color-success)' : p.status === 'at-risk' ? 'var(--color-warning)' : 'var(--color-danger)';
+  el.innerHTML = `
+    <div class="stack-sm">
+      <div class="row row--between">
+        <strong style="font-size:var(--font-size-md)">${p.name}</strong>
+        ${renderBadge(p.status)}
+      </div>
+      <div class="row">
+        <span class="badge badge-neutral">${TEAM_NAMES[p.team] || p.team}</span>
+        <span class="text-sm text-secondary">負責：${p.owner || '—'}</span>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span class="text-xs text-secondary">完成率</span>
+          <span class="font-600" style="color:${barColor}">${p.progress}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-bar__fill" style="width:${p.progress}%;background:${barColor}"></div></div>
+      </div>
+      ${p.weekDone ? `<p class="text-sm"><strong>本週完成：</strong>${p.weekDone}</p>` : ''}
+      ${p.blockers  ? `<p class="text-sm" style="color:var(--color-danger)"><strong>⚠️ 阻塞：</strong>${p.blockers}</p>` : ''}
+    </div>`;
+}
+
+// ── 儲存 ───────────────────────────────────────────────────────
+document.getElementById('btnSaveQuick').addEventListener('click', () => {
+  const projId = document.getElementById('qProject').value;
+  const status = document.getElementById('qStatus').value;
+  const progress = parseInt(document.getElementById('qProgress').value);
+  const owner = document.getElementById('qOwner').value;
+  const weekDone = document.getElementById('qWeekDone').value.trim();
+  const blockers = document.getElementById('qBlockers').value.trim();
+  const riskLevel = document.getElementById('qRiskLevel').value;
+  const riskDesc = document.getElementById('qRiskDesc').value.trim();
+
+  let item;
+  if (projId === '__new__') {
+    const name = document.getElementById('qNewProjName').value.trim();
+    if (!name) { toast('請輸入專案名稱', 'error'); return; }
+    item = {
+      id: generateId(),
+      name,
+      team: document.getElementById('qNewTeam').value,
+      targetDate: document.getElementById('qTargetDate').value,
+      status, progress, owner, weekDone, blockers,
+    };
+  } else if (projId) {
+    item = store.getById('projects', projId);
+    if (!item) { toast('找不到專案', 'error'); return; }
+    Object.assign(item, { status, progress, owner, weekDone, blockers });
+  } else {
+    toast('請選擇專案', 'error'); return;
+  }
+
+  store.save('projects', item);
+
+  if (riskLevel && riskDesc) {
+    store.save('risks', {
+      id: generateId(),
+      level: riskLevel,
+      description: riskDesc,
+      project: item.name,
+      team: item.team,
+      owner,
+      status: 'open',
+      mitigation: '',
+      weekStart: new Date().toISOString().split('T')[0],
+    });
+  }
+
+  toast('✅ 儲存成功', 'success');
+  loadProjectSelect();
+  renderRecentList();
+  updatePreview(item);
+});
+
+// ── 重置 ───────────────────────────────────────────────────────
+document.getElementById('btnReset').addEventListener('click', () => {
+  document.getElementById('qProject').value = '';
+  document.getElementById('qStatus').value = 'on-track';
+  document.getElementById('qProgress').value = 50;
+  document.getElementById('qOwner').value = '';
+  document.getElementById('qWeekDone').value = '';
+  document.getElementById('qBlockers').value = '';
+  document.getElementById('qRiskLevel').value = '';
+  document.getElementById('qRiskDesc').value = '';
+  document.getElementById('newProjGroup').style.display = 'none';
+  updateProgressDisplay(50);
+  updatePreview(null);
+});
+
+// ── 最近更新列表 ───────────────────────────────────────────────
+function renderRecentList() {
+  const projects = store.sortBy('projects', '_updatedAt', 'desc').slice(0, 5);
+  const el = document.getElementById('recentList');
+  if (!projects.length) { el.innerHTML = '<p class="text-sm text-secondary">尚無資料</p>'; return; }
+  el.innerHTML = projects.map(p => `
+    <div class="project-row project-row--${p.status}" style="margin-bottom:4px;">
+      <div class="project-row__dot project-row__dot--${p.status}"></div>
+      <span class="flex-1 text-sm">${p.name}</span>
+      <span class="text-xs text-secondary">${p.progress}%</span>
+      <span class="text-xs text-tertiary">${relativeTime(p._updatedAt)}</span>
+    </div>`).join('');
+}
+renderRecentList();
+
+// ── 批次解析 ───────────────────────────────────────────────────
+let parsedData = null;
+
+document.getElementById('btnParse').addEventListener('click', () => {
+  const text   = document.getElementById('batchText').value.trim();
+  const source = document.getElementById('batchSource').value;
+  if (!text) { toast('請先貼入文字', 'error'); return; }
+
+  parsedData = parseText(text, source);
+  renderParseResult(parsedData);
+});
+
+function renderParseResult(data) {
+  const el  = document.getElementById('parseResult');
+  const btn = document.getElementById('btnImportAll');
+
+  const total = data.projects.length + data.risks.length + data.actions.length + data.milestones.length;
+
+  if (total === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <span class="empty-state__icon">🤔</span>
+      <p class="empty-state__msg">未偵測到可解析的資料<br>請確認文字格式或換一種來源設定</p>
+    </div>`;
+    btn.style.display = 'none';
+    return;
+  }
+
+  btn.style.display = '';
+
+  const sections = [
+    { key:'projects',  label:'📁 專案', icon:'on-track' },
+    { key:'risks',     label:'⚠️ 風險', icon:'at-risk' },
+    { key:'actions',   label:'✅ Actions', icon:'on-track' },
+    { key:'milestones',label:'📅 里程碑', icon:'on-track' },
+  ];
+
+  let html = `<p class="text-sm text-secondary" style="margin-bottom:var(--space-md);">共解析到 ${total} 筆資料，請勾選確認匯入：</p>`;
+
+  sections.forEach(sec => {
+    if (!data[sec.key]?.length) return;
+    html += `<div class="section-heading">${sec.label} (${data[sec.key].length})</div>`;
+    data[sec.key].forEach((item, idx) => {
+      const label = item.name || item.description || item.task || '(未命名)';
+      html += `
+        <label style="display:flex;align-items:center;gap:var(--space-sm);padding:6px var(--space-sm);border-radius:var(--radius-sm);cursor:pointer;margin-bottom:4px;border:1px solid var(--color-border-default);background:var(--color-bg-primary);">
+          <input type="checkbox" checked data-type="${sec.key}" data-idx="${idx}" style="accent-color:var(--color-info);">
+          <span class="text-sm flex-1">${label.substring(0,60)}${label.length>60?'…':''}</span>
+          ${item.level ? renderBadge(item.level) : item.status ? renderBadge(item.status) : ''}
+        </label>`;
+    });
+  });
+
+  el.innerHTML = html;
+}
+
+document.getElementById('btnImportAll').addEventListener('click', () => {
+  if (!parsedData) return;
+  const checkboxes = document.querySelectorAll('#parseResult input[type=checkbox]:checked');
+  let count = 0;
+
+  checkboxes.forEach(cb => {
+    const type = cb.dataset.type;
+    const idx  = parseInt(cb.dataset.idx);
+    const item = parsedData[type]?.[idx];
+    if (!item) return;
+
+    if (type === 'projects')   store.save('projects', item);
+    if (type === 'risks')      store.save('risks', item);
+    if (type === 'actions')    store.save('actions', item);
+    if (type === 'milestones') store.save('milestones', item);
+    count++;
+  });
+
+  toast(`✅ 已匯入 ${count} 筆資料`, 'success');
+  document.getElementById('batchText').value = '';
+  document.getElementById('parseResult').innerHTML = `<div class="empty-state">
+    <span class="empty-state__icon">✅</span>
+    <p class="empty-state__msg">匯入完成</p>
+  </div>`;
+  document.getElementById('btnImportAll').style.display = 'none';
+  loadProjectSelect();
+  renderRecentList();
+});
+
+window.addEventListener('store:updated', renderRecentList);
+</script>
+</body>
+</html>

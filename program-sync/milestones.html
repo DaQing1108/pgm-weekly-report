@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>里程碑 — P&D Program Sync</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar__logo">
+    <div class="navbar__logo-icon">P</div>
+    <span>P&amp;D CENTER</span>
+  </a>
+  <span class="navbar__week-badge">W11</span>
+  <div class="navbar__links">
+    <a href="index.html"      class="navbar__link">儀表板</a>
+    <a href="input.html"      class="navbar__link">快速輸入</a>
+    <a href="risks.html"      class="navbar__link">風險管理</a>
+    <a href="actions.html"    class="navbar__link">Action Items</a>
+    <a href="milestones.html" class="navbar__link active">里程碑</a>
+    <a href="trends.html"     class="navbar__link">趨勢分析</a>
+    <a href="review.html"     class="navbar__link">審核流程</a>
+  </div>
+  <div class="navbar__actions">
+    <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+  </div>
+</nav>
+
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-header__title">里程碑時間軸</h1>
+      <p class="page-header__sub">追蹤所有專案關鍵交付日期</p>
+    </div>
+    <div class="page-header__right">
+      <select class="inp" id="filterTeam" style="width:140px;">
+        <option value="all">全部子組</option>
+        <option value="media-agent">Media Agent</option>
+        <option value="learnmode">LearnMode</option>
+        <option value="chuangzaoli">創造栗</option>
+        <option value="tv-solution">TV Solution</option>
+        <option value="healthcare">Healthcare</option>
+      </select>
+      <button class="btn btn-primary" id="btnAddMs">+ 新增里程碑</button>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <!-- 左：時間軸 -->
+    <div class="panel">
+      <div class="panel__header">
+        <span class="panel__title">時間軸</span>
+        <span class="text-xs text-secondary" id="msCount">0 個里程碑</span>
+      </div>
+      <div class="panel__body" id="timeline" style="padding:var(--space-xl) var(--space-2xl);"></div>
+
+      <!-- Inline 新增表單 -->
+      <div class="panel__footer" style="flex-direction:column;align-items:stretch;gap:var(--space-sm);">
+        <div class="section-heading" style="margin:0">快速新增里程碑</div>
+        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap;">
+          <input type="text" class="inp" id="newMsName" placeholder="里程碑名稱" style="flex:1;min-width:160px;">
+          <input type="date" class="inp" id="newMsDate" style="width:140px;">
+          <select class="inp" id="newMsTeam" style="width:130px;">
+            <option value="media-agent">Media Agent</option>
+            <option value="learnmode">LearnMode</option>
+            <option value="chuangzaoli">創造栗</option>
+            <option value="tv-solution">TV Solution</option>
+            <option value="healthcare">Healthcare</option>
+          </select>
+          <button class="btn btn-primary" id="btnSaveMs">新增</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：月份概覽 + 統計 -->
+    <div class="stack">
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">月份概覽</span>
+        </div>
+        <div class="panel__body" id="monthOverview" style="padding:var(--space-md) var(--space-lg);"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">子組分佈</span>
+        </div>
+        <div class="panel__body" id="teamDist" style="padding:var(--space-md) var(--space-lg);"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { store }    from './assets/js/store.js';
+import { seedData } from './assets/data/seed.js';
+import { toast, formatDate, generateId, confirm } from './assets/js/ui.js';
+
+seedData();
+
+const TEAM_NAMES = {
+  'media-agent':'Media Agent','learnmode':'LearnMode',
+  'chuangzaoli':'創造栗','tv-solution':'TV Solution','healthcare':'Healthcare'
+};
+
+const TEAM_COLORS = {
+  'media-agent':'#4caf6e','learnmode':'#378add','chuangzaoli':'#e4a23c',
+  'tv-solution':'#9c6fcc','healthcare':'#d94f4f'
+};
+
+let filterTeam = 'all';
+let dragSrcId  = null;
+
+function renderAll() {
+  renderTimeline();
+  renderMonthOverview();
+  renderTeamDist();
+}
+
+// ── 時間軸 ─────────────────────────────────────────────────────
+function renderTimeline() {
+  let milestones = store.sortBy('milestones', 'date', 'asc');
+  if (filterTeam !== 'all') milestones = milestones.filter(m => m.team === filterTeam);
+
+  const el    = document.getElementById('timeline');
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('msCount').textContent = `${milestones.length} 個里程碑`;
+
+  if (!milestones.length) {
+    el.innerHTML = `<div class="empty-state">
+      <span class="empty-state__icon">📅</span>
+      <p class="empty-state__msg">尚無里程碑，請新增</p>
+    </div>`;
+    return;
+  }
+
+  // 按月份分組
+  const groups = {};
+  milestones.forEach(m => {
+    const month = m.date.substring(0, 7); // 'YYYY-MM'
+    if (!groups[month]) groups[month] = [];
+    groups[month].push(m);
+  });
+
+  let html = '<div class="milestone-timeline">';
+
+  Object.entries(groups).forEach(([month, list]) => {
+    const [y, mo] = month.split('-');
+    html += `<div class="section-heading" style="margin-bottom:var(--space-md);">${y} 年 ${parseInt(mo)} 月</div>`;
+
+    list.forEach(m => {
+      const isPast   = m.date < today;
+      const isToday  = m.date === today;
+      const msClass  = isPast ? 'milestone--done' : isToday ? 'milestone--today' : 'milestone--future';
+      const badge    = isPast ? '✅' : isToday ? '🎯' : '📅';
+      const teamColor = TEAM_COLORS[m.team] || 'var(--color-text-tertiary)';
+
+      html += `
+        <div class="milestone ${msClass}"
+             draggable="true"
+             data-id="${m.id}"
+             data-date="${m.date}"
+             ondragstart="onDragStart(event)"
+             ondragover="onDragOver(event)"
+             ondrop="onDrop(event)"
+             ondragend="onDragEnd(event)"
+             onclick="toggleMs('${m.id}')">
+          <div class="milestone__date">${formatDate(m.date)}</div>
+          <div class="milestone__name">${badge} ${m.name}</div>
+          <div class="milestone__meta">
+            <span style="color:${teamColor};font-weight:600;">${TEAM_NAMES[m.team] || m.team}</span>
+            ${m.project ? ` · ${m.project}` : ''}
+          </div>
+          <div class="milestone__detail" id="ms-${m.id}">
+            <div style="display:flex;gap:var(--space-sm);align-items:center;">
+              <select onchange="changeStatus('${m.id}',this.value)" onclick="event.stopPropagation()" class="inp" style="width:120px;padding:4px;">
+                <option value="upcoming" ${m.status==='upcoming'?'selected':''}>即將到來</option>
+                <option value="done" ${m.status==='done'?'selected':''}>已完成</option>
+                <option value="delayed" ${m.status==='delayed'?'selected':''}>延遲</option>
+              </select>
+              <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteMs('${m.id}')">刪除</button>
+            </div>
+          </div>
+        </div>`;
+    });
+
+    // 今日橘色虛線（如果今天在此月份）
+    if (month === today.substring(0, 7)) {
+      const afterToday = list.find(m => m.date > today);
+      if (!afterToday) {
+        // 插入今日線在月份末尾
+      }
+    }
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+window.toggleMs = function(id) {
+  const el = document.getElementById(`ms-${id}`);
+  if (!el) return;
+  el.classList.toggle('open');
+};
+
+window.changeStatus = function(id, status) {
+  const m = store.getById('milestones', id);
+  if (!m) return;
+  store.save('milestones', { ...m, status });
+  toast('里程碑狀態已更新', 'success');
+};
+
+window.deleteMs = async function(id) {
+  const ok = await confirm('刪除此里程碑？');
+  if (ok) { store.delete('milestones', id); toast('已刪除', 'success'); }
+};
+
+// ── HTML5 Drag & Drop（同天排序）─────────────────────────────
+window.onDragStart = function(e) {
+  dragSrcId = e.currentTarget.dataset.id;
+  e.currentTarget.style.opacity = '0.4';
+  e.dataTransfer.effectAllowed = 'move';
+};
+
+window.onDragOver = function(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.style.borderTop = '2px solid var(--color-info)';
+};
+
+window.onDrop = function(e) {
+  e.preventDefault();
+  const targetId = e.currentTarget.dataset.id;
+  if (dragSrcId === targetId) return;
+
+  const src  = store.getById('milestones', dragSrcId);
+  const tgt  = store.getById('milestones', targetId);
+  if (!src || !tgt) return;
+
+  // 只允許同天交換
+  if (src.date !== tgt.date) {
+    toast('只能在同一天內重新排序', 'info');
+    return;
+  }
+
+  // 交換 _order 欄位（或直接交換 id 位置）
+  const srcOrder = src._order ?? 0;
+  const tgtOrder = tgt._order ?? 1;
+  store.save('milestones', { ...src, _order: tgtOrder });
+  store.save('milestones', { ...tgt, _order: srcOrder });
+};
+
+window.onDragEnd = function(e) {
+  e.currentTarget.style.opacity   = '';
+  document.querySelectorAll('.milestone').forEach(el => el.style.borderTop = '');
+};
+
+// ── 月份概覽 ───────────────────────────────────────────────────
+function renderMonthOverview() {
+  const milestones = store.sortBy('milestones', 'date', 'asc');
+  const today = new Date().toISOString().split('T')[0];
+  const groups = {};
+  milestones.forEach(m => {
+    const month = m.date.substring(0, 7);
+    if (!groups[month]) groups[month] = { upcoming:0, done:0, delayed:0 };
+    groups[month][m.status] = (groups[month][m.status] || 0) + 1;
+  });
+
+  const el = document.getElementById('monthOverview');
+  el.innerHTML = Object.entries(groups).map(([month, counts]) => {
+    const [y, mo] = month.split('-');
+    const total = Object.values(counts).reduce((a,b) => a+b, 0);
+    return `
+      <div style="margin-bottom:var(--space-md);">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span class="text-sm font-600">${y}/${mo}</span>
+          <span class="text-xs text-secondary">${total} 個</span>
+        </div>
+        <div class="progress-bar" style="height:6px;">
+          <div class="progress-bar__fill" style="width:${counts.done/total*100}%;background:var(--color-success)"></div>
+        </div>
+        <div style="display:flex;gap:var(--space-sm);margin-top:4px;">
+          <span class="text-xs" style="color:var(--color-success)">✅ ${counts.done||0}</span>
+          <span class="text-xs" style="color:var(--color-info)">📅 ${counts.upcoming||0}</span>
+          ${counts.delayed ? `<span class="text-xs" style="color:var(--color-danger)">⚠️ ${counts.delayed}</span>` : ''}
+        </div>
+      </div>`;
+  }).join('') || '<p class="text-sm text-secondary">尚無資料</p>';
+}
+
+// ── 子組分佈 ───────────────────────────────────────────────────
+function renderTeamDist() {
+  const milestones = store.getAll('milestones');
+  const counts = {};
+  milestones.forEach(m => { counts[m.team] = (counts[m.team] || 0) + 1; });
+
+  const el = document.getElementById('teamDist');
+  el.innerHTML = Object.entries(counts).map(([team, cnt]) => {
+    const color = TEAM_COLORS[team] || 'var(--color-text-tertiary)';
+    return `
+      <div style="display:flex;align-items:center;gap:var(--space-sm);margin-bottom:var(--space-sm);">
+        <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+        <span class="text-sm flex-1">${TEAM_NAMES[team] || team}</span>
+        <span class="text-sm font-600">${cnt}</span>
+      </div>`;
+  }).join('') || '<p class="text-sm text-secondary">尚無資料</p>';
+}
+
+// ── 篩選 ───────────────────────────────────────────────────────
+document.getElementById('filterTeam').addEventListener('change', function() {
+  filterTeam = this.value;
+  renderTimeline();
+});
+
+// ── 新增里程碑 ─────────────────────────────────────────────────
+document.getElementById('btnSaveMs').addEventListener('click', () => {
+  const name = document.getElementById('newMsName').value.trim();
+  const date = document.getElementById('newMsDate').value;
+  const team = document.getElementById('newMsTeam').value;
+  if (!name) { toast('請輸入里程碑名稱', 'error'); return; }
+  if (!date) { toast('請選擇日期', 'error'); return; }
+
+  store.save('milestones', {
+    id: generateId(),
+    name, date, team,
+    status: 'upcoming',
+    weekStart: new Date().toISOString().split('T')[0],
+  });
+  document.getElementById('newMsName').value = '';
+  document.getElementById('newMsDate').value = '';
+  toast('✅ 里程碑已新增', 'success');
+});
+
+// ── 新增按鈕（Modal 選項，這裡跳到 inline）─────────────────────
+document.getElementById('btnAddMs').addEventListener('click', () => {
+  document.getElementById('newMsName').focus();
+});
+
+window.addEventListener('store:updated', renderAll);
+renderAll();
+</script>
+</body>
+</html>

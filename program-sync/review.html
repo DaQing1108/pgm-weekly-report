@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>審核流程 — P&D Program Sync</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.0.0/marked.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar__logo">
+    <div class="navbar__logo-icon">P</div>
+    <span>P&amp;D CENTER</span>
+  </a>
+  <span class="navbar__week-badge">W11</span>
+  <div class="navbar__links">
+    <a href="index.html"      class="navbar__link">儀表板</a>
+    <a href="input.html"      class="navbar__link">快速輸入</a>
+    <a href="risks.html"      class="navbar__link">風險管理</a>
+    <a href="actions.html"    class="navbar__link">Action Items</a>
+    <a href="milestones.html" class="navbar__link">里程碑</a>
+    <a href="trends.html"     class="navbar__link">趨勢分析</a>
+    <a href="review.html"     class="navbar__link active">審核流程</a>
+  </div>
+  <div class="navbar__actions">
+    <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+  </div>
+</nav>
+
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-header__title">週報審核流程</h1>
+      <p class="page-header__sub">審核、核准或退回週報草稿</p>
+    </div>
+    <div class="page-header__right">
+      <span class="text-sm text-secondary">身份：</span>
+      <select class="inp" id="reviewerSelect" style="width:150px;">
+        <option value="alex">Alex (Engineering Manager)</option>
+        <option value="michael">Michael (Product Director)</option>
+        <option value="dream">Dream (Design Lead)</option>
+      </select>
+      <select class="inp" id="weekSelect" style="width:180px;">
+        <option value="">— 選擇週次 —</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- ── 左側 35%：Stepper + 操作 ───────────────────────── -->
+    <div class="sidebar-sticky stack">
+
+      <!-- 流程狀態 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">審核流程</span>
+          <span id="currentStatusBadge" class="review-badge review-badge--draft">Draft</span>
+        </div>
+        <div class="panel__body">
+          <div class="stepper" id="stepper">
+            <!-- 動態生成 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 審核操作 -->
+      <div class="panel" id="reviewActionPanel">
+        <div class="panel__header">
+          <span class="panel__title">審核操作</span>
+        </div>
+        <div class="panel__body stack">
+          <div class="inp-group">
+            <label class="inp-label">審核備註</label>
+            <textarea class="inp" id="reviewComment" rows="3" placeholder="填寫審核意見或修改建議…"></textarea>
+          </div>
+          <div style="display:flex;gap:var(--space-sm);">
+            <button class="btn btn-success" id="btnApprove" style="flex:1;">✅ 核准</button>
+            <button class="btn btn-danger"  id="btnReject"  style="flex:1;">❌ 退回</button>
+          </div>
+          <button class="btn btn-outline btn-sm" id="btnRevertDraft">↩ 退回草稿</button>
+        </div>
+      </div>
+
+      <!-- 版本歷史 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">版本歷史</span>
+        </div>
+        <div class="panel__body" id="versionList" style="padding:var(--space-md);"></div>
+      </div>
+
+    </div>
+
+    <!-- ── 右側 65%：週報預覽（唯讀）─────────────────────── -->
+    <div class="panel" style="overflow:hidden;display:flex;flex-direction:column;min-height:600px;">
+      <div class="panel__header">
+        <span class="panel__title">週報內容</span>
+        <div id="previewMeta" class="text-xs text-secondary"></div>
+      </div>
+      <div style="flex:1;overflow-y:auto;" id="reportPreviewWrap">
+        <div class="md-preview" id="reportPreview">
+          <div class="empty-state" style="min-height:300px;">
+            <span class="empty-state__icon">📄</span>
+            <p class="empty-state__msg">請選擇週次以載入週報草稿</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { store }    from './assets/js/store.js';
+import { seedData } from './assets/data/seed.js';
+import { toast, formatDate, relativeTime, renderReviewBadge } from './assets/js/ui.js';
+import { REVIEWERS } from './assets/data/schema.js';
+
+seedData();
+
+let currentWeekStart = null;
+let currentDraft     = null;
+let currentReviewer  = 'alex';
+
+// ── 初始化週次下拉 ─────────────────────────────────────────────
+function initWeekSelect() {
+  const sel = document.getElementById('weekSelect');
+  const drafts = store.getAll('drafts');
+  const snaps  = store.getAll('snapshots');
+
+  // 收集有草稿或快照的週次
+  const weeks = new Set([
+    ...drafts.map(d => d.weekStart),
+    ...snaps.map(s => s.weekStart),
+  ]);
+
+  const sorted = Array.from(weeks).sort().reverse();
+
+  if (!sorted.length) {
+    // 若無草稿，插入預設示範週次
+    sorted.push('2026-03-16');
+  }
+
+  sorted.forEach(w => {
+    const opt = document.createElement('option');
+    opt.value = w;
+    const d = new Date(w);
+    const weekNo = Math.ceil(((d - new Date(d.getFullYear(), 0, 1)) / 86400000 + new Date(d.getFullYear(), 0, 1).getDay() + 1) / 7);
+    opt.textContent = `W${String(weekNo).padStart(2,'0')} — ${formatDate(w)}`;
+    sel.appendChild(opt);
+  });
+
+  if (sorted.length) {
+    sel.value = sorted[0];
+    loadWeek(sorted[0]);
+  }
+}
+
+function loadWeek(weekStart) {
+  currentWeekStart = weekStart;
+  currentDraft     = store.getLatestDraft(weekStart);
+
+  renderStepper();
+  renderPreview();
+  renderVersionList();
+  updateStatusBadge();
+}
+
+// ── Stepper ────────────────────────────────────────────────────
+function renderStepper() {
+  const draft = currentDraft;
+  const status = draft?.reviewStatus || 'draft';
+
+  const STEPS = [
+    { id: 'draft',     label: '草稿建立',  desc: '週報初稿完成' },
+    { id: 'submitted', label: '送出審核',  desc: '提交給審核人員' },
+    { id: 'reviewing', label: '審核中',    desc: '等待核准或退回' },
+    { id: 'approved',  label: '已核准',    desc: '週報正式發布' },
+  ];
+
+  const stateMap = {
+    'draft':     0,
+    'in-review': 2,
+    'approved':  3,
+    'rejected':  2, // 顯示在審核中步驟
+  };
+
+  const currentStep = stateMap[status] ?? 0;
+
+  const el = document.getElementById('stepper');
+  el.innerHTML = STEPS.map((step, idx) => {
+    let cls = 'step--pending';
+    if (idx < currentStep) cls = 'step--done';
+    else if (idx === currentStep) cls = 'step--active';
+
+    const icon = cls === 'step--done' ? '✓' : idx + 1;
+
+    let extraInfo = '';
+    if (status === 'rejected' && idx === 2) {
+      extraInfo = `<div class="step__time" style="color:var(--color-danger)">❌ 已退回</div>`;
+    }
+    if (draft?.reviewedBy && idx === 3 && status === 'approved') {
+      extraInfo = `<div class="step__time">${draft.reviewedBy} · ${relativeTime(draft.reviewedAt)}</div>`;
+    }
+
+    return `
+      <div class="step ${cls}">
+        <div class="step__circle">${icon}</div>
+        <div class="step__content">
+          <div class="step__title">${step.label}</div>
+          <div class="step__desc">${step.desc}</div>
+          ${extraInfo}
+          ${draft?.reviewComment && idx === 2 && (status === 'rejected' || status === 'approved') ?
+            `<div class="step__desc" style="margin-top:4px;font-style:italic;">"${draft.reviewComment.substring(0,60)}"</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── 預覽 ───────────────────────────────────────────────────────
+function renderPreview() {
+  const el  = document.getElementById('reportPreview');
+  const meta = document.getElementById('previewMeta');
+
+  if (!currentDraft?.content) {
+    // 嘗試從 snapshots 取得摘要
+    const snap = store.getAll('snapshots').find(s => s.weekStart === currentWeekStart);
+    if (snap) {
+      meta.textContent = `快照 · ${formatDate(snap.weekStart)} · ${snap.snapshotBy}`;
+      el.innerHTML = `<div style="padding:var(--space-xl) var(--space-2xl);">
+        <h2>本週 KPI 快照</h2>
+        <p><strong>整體健康度：</strong>${snap.onTrackPct}%</p>
+        <p><strong>高風險：</strong>${snap.highRisks}</p>
+        <p><strong>逾期 Actions：</strong>${snap.overdueActions}</p>
+        <p class="text-secondary">尚無完整週報草稿。請至<a href="report.html" style="color:var(--color-info)">週報生成頁面</a>建立草稿。</p>
+      </div>`;
+    } else {
+      meta.textContent = '無草稿';
+      el.innerHTML = `<div class="empty-state" style="min-height:300px;">
+        <span class="empty-state__icon">📄</span>
+        <p class="empty-state__msg">此週次尚無草稿<br><a href="report.html" style="color:var(--color-info)">前往生成週報</a></p>
+      </div>`;
+    }
+    return;
+  }
+
+  meta.textContent = `v${currentDraft.version} · ${formatDate(currentDraft.createdAt)} · ${currentDraft.author || '—'}`;
+  el.innerHTML = window.marked.parse(currentDraft.content);
+}
+
+// ── 版本歷史 ───────────────────────────────────────────────────
+function renderVersionList() {
+  const drafts = store.getAll('drafts')
+    .filter(d => d.weekStart === currentWeekStart)
+    .sort((a,b) => b.version - a.version);
+
+  const el = document.getElementById('versionList');
+  if (!drafts.length) {
+    el.innerHTML = '<p class="text-sm text-secondary">此週次尚無版本記錄</p>';
+    return;
+  }
+
+  el.innerHTML = `<div class="version-list">` + drafts.map(d => `
+    <div class="version-item ${d.id === currentDraft?.id ? 'active' : ''}"
+         onclick="loadVersion('${d.id}')">
+      <div class="version-item__number">v${d.version}</div>
+      <div class="version-item__meta">
+        <div class="version-item__who">${d.author || '—'} &nbsp; ${renderReviewBadge(d.reviewStatus)}</div>
+        <div class="version-item__time">${relativeTime(d.createdAt)}</div>
+      </div>
+    </div>`).join('') + `</div>`;
+}
+
+window.loadVersion = function(draftId) {
+  const d = store.getById('drafts', draftId);
+  if (!d) return;
+  currentDraft = d;
+  renderPreview();
+  renderVersionList();
+  updateStatusBadge();
+};
+
+// ── 狀態 badge ─────────────────────────────────────────────────
+function updateStatusBadge() {
+  const status = currentDraft?.reviewStatus || 'draft';
+  const badge = document.getElementById('currentStatusBadge');
+  badge.className = `review-badge review-badge--${status}`;
+  const labels = { draft:'Draft', 'in-review':'In Review', approved:'Approved', rejected:'Rejected' };
+  badge.textContent = labels[status] || status;
+
+  // 顯示/隱藏操作按鈕
+  const canReview = status === 'in-review';
+  document.getElementById('btnApprove').disabled = !canReview;
+  document.getElementById('btnReject').disabled  = !canReview;
+}
+
+// ── 核准 ───────────────────────────────────────────────────────
+document.getElementById('btnApprove').addEventListener('click', () => {
+  if (!currentDraft) { toast('請先選擇草稿', 'error'); return; }
+  const comment = document.getElementById('reviewComment').value.trim();
+  const reviewer = REVIEWERS.find(r => r.id === currentReviewer);
+
+  store.save('drafts', {
+    ...currentDraft,
+    reviewStatus: 'approved',
+    reviewedBy: reviewer?.name || currentReviewer,
+    reviewedAt: new Date().toISOString(),
+    reviewComment: comment,
+  });
+
+  // 建立 snapshot
+  store.createSnapshot(currentWeekStart, {
+    reviewStatus: 'approved',
+    snapshotBy: reviewer?.name || currentReviewer,
+  });
+
+  currentDraft = store.getLatestDraft(currentWeekStart);
+  toast('✅ 週報已核准，快照已建立', 'success');
+  renderStepper();
+  updateStatusBadge();
+  renderVersionList();
+});
+
+// ── 退回 ───────────────────────────────────────────────────────
+document.getElementById('btnReject').addEventListener('click', () => {
+  if (!currentDraft) { toast('請先選擇草稿', 'error'); return; }
+  const comment = document.getElementById('reviewComment').value.trim();
+  if (!comment) { toast('退回時請填寫退回原因', 'error'); return; }
+  const reviewer = REVIEWERS.find(r => r.id === currentReviewer);
+
+  store.save('drafts', {
+    ...currentDraft,
+    reviewStatus: 'rejected',
+    reviewedBy: reviewer?.name || currentReviewer,
+    reviewedAt: new Date().toISOString(),
+    reviewComment: comment,
+  });
+
+  currentDraft = store.getById('drafts', currentDraft.id);
+  toast('❌ 週報已退回，請修改後重新送審', 'info');
+  renderStepper();
+  updateStatusBadge();
+  renderVersionList();
+});
+
+// ── 退回草稿 ───────────────────────────────────────────────────
+document.getElementById('btnRevertDraft').addEventListener('click', () => {
+  if (!currentDraft) return;
+  store.save('drafts', { ...currentDraft, reviewStatus: 'draft' });
+  currentDraft = store.getById('drafts', currentDraft.id);
+  toast('↩ 已退回草稿狀態', 'info');
+  renderStepper();
+  updateStatusBadge();
+  renderVersionList();
+});
+
+// ── 週次切換 ───────────────────────────────────────────────────
+document.getElementById('weekSelect').addEventListener('change', function() {
+  if (this.value) loadWeek(this.value);
+});
+
+document.getElementById('reviewerSelect').addEventListener('change', function() {
+  currentReviewer = this.value;
+});
+
+window.addEventListener('store:updated', () => {
+  if (currentWeekStart) {
+    currentDraft = store.getLatestDraft(currentWeekStart);
+    renderVersionList();
+  }
+});
+
+initWeekSelect();
+</script>
+</body>
+</html>

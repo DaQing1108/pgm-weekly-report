@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>趨勢分析 — P&D Program Sync</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar__logo">
+    <div class="navbar__logo-icon">P</div>
+    <span>P&amp;D CENTER</span>
+  </a>
+  <span class="navbar__week-badge">W11</span>
+  <div class="navbar__links">
+    <a href="index.html"      class="navbar__link">儀表板</a>
+    <a href="input.html"      class="navbar__link">快速輸入</a>
+    <a href="risks.html"      class="navbar__link">風險管理</a>
+    <a href="actions.html"    class="navbar__link">Action Items</a>
+    <a href="milestones.html" class="navbar__link">里程碑</a>
+    <a href="trends.html"     class="navbar__link active">趨勢分析</a>
+    <a href="review.html"     class="navbar__link">審核流程</a>
+  </div>
+  <div class="navbar__actions">
+    <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+  </div>
+</nav>
+
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-header__title">趨勢分析</h1>
+      <p class="page-header__sub">歷史健康度、風險與行動效率趨勢</p>
+    </div>
+    <div class="page-header__right">
+      <span class="text-sm text-secondary">顯示週數：</span>
+      <div class="tab-bar" id="weeksTab">
+        <button class="tab-btn" data-weeks="4">4週</button>
+        <button class="tab-btn active" data-weeks="8">8週</button>
+        <button class="tab-btn" data-weeks="12">12週</button>
+      </div>
+      <button class="btn btn-outline btn-sm" id="btnSnapshot">📸 建立快照</button>
+    </div>
+  </div>
+
+  <div class="trends-grid">
+    <!-- ── 左欄 60%：圖表 ─────────────────────────────────── -->
+    <div class="stack">
+
+      <!-- 健康度折線圖 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">整體健康度趨勢</span>
+          <span class="text-xs text-secondary">On Track %</span>
+        </div>
+        <div class="panel__body">
+          <div class="chart-container">
+            <div class="chart-canvas-wrap" style="height:200px;">
+              <canvas id="chartHealth"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 風險堆疊長條圖 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">風險分佈趨勢</span>
+          <span class="text-xs text-secondary">High / Medium / Low</span>
+        </div>
+        <div class="panel__body">
+          <div class="chart-container">
+            <div class="chart-canvas-wrap" style="height:180px;">
+              <canvas id="chartRisk"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action 完成率 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">Action 完成率趨勢</span>
+          <span class="text-xs text-secondary">完成率 % + 逾期數</span>
+        </div>
+        <div class="panel__body">
+          <div class="chart-container">
+            <div class="chart-canvas-wrap" style="height:180px;">
+              <canvas id="chartAction"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── 右欄 40% ────────────────────────────────────────── -->
+    <div class="stack">
+
+      <!-- KPI 對比卡片 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">本週 vs 上週</span>
+        </div>
+        <div class="panel__body">
+          <div class="grid-2" id="kpiComparison" style="gap:var(--space-sm);">
+            <!-- 動態生成 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 各組折線圖 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">各子組健康度</span>
+        </div>
+        <div class="panel__body">
+          <div class="chart-container">
+            <div class="chart-canvas-wrap" style="height:220px;">
+              <canvas id="chartTeam"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 快照歷史列表 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">快照歷史</span>
+          <span class="text-xs text-secondary" id="snapCount">0 筆</span>
+        </div>
+        <div class="panel__body" id="snapList" style="padding:var(--space-md);max-height:300px;overflow-y:auto;"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { store }    from './assets/js/store.js';
+import { seedData } from './assets/data/seed.js';
+import { toast, formatDate, renderBadge } from './assets/js/ui.js';
+import {
+  renderHealthTrend, renderRiskTrend, renderActionTrend,
+  renderTeamTrend, renderWeekComparison, destroyAll
+} from './assets/js/trends.js';
+
+seedData();
+
+let currentWeeks = 8;
+
+function renderAll() {
+  const snapshots = store.trendData(currentWeeks);
+  const cur  = snapshots[snapshots.length - 1] || null;
+  const prev = snapshots[snapshots.length - 2] || null;
+
+  // 圖表
+  renderHealthTrend('chartHealth', snapshots);
+  renderRiskTrend  ('chartRisk',   snapshots);
+  renderActionTrend('chartAction', snapshots);
+  renderTeamTrend  ('chartTeam',   snapshots);
+
+  // KPI 對比
+  renderWeekComparison('kpiComparison', cur, prev);
+
+  // 快照列表
+  renderSnapList(store.trendData(20));
+}
+
+function renderSnapList(snaps) {
+  const el = document.getElementById('snapList');
+  document.getElementById('snapCount').textContent = `${snaps.length} 筆`;
+
+  if (!snaps.length) {
+    el.innerHTML = `<div class="empty-state"><span class="empty-state__icon">📊</span><p class="empty-state__msg">尚無快照資料</p></div>`;
+    return;
+  }
+
+  const sorted = [...snaps].reverse();
+  el.innerHTML = sorted.map(s => {
+    const cls = s.onTrackPct >= 80 ? 'badge-success' : s.onTrackPct >= 60 ? 'badge-warning' : 'badge-danger';
+    return `
+      <div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) 0;border-bottom:1px solid var(--color-border-default);">
+        <div style="flex:1;">
+          <div class="text-sm font-600">${s.weekLabel || s.weekStart}</div>
+          <div class="text-xs text-secondary">${formatDate(s.weekStart)} · ${s.snapshotBy || '—'}</div>
+        </div>
+        <span class="badge ${cls}">${s.onTrackPct}%</span>
+        ${renderBadge(s.reviewStatus || 'draft')}
+      </div>`;
+  }).join('');
+}
+
+// ── 週數切換 ───────────────────────────────────────────────────
+document.getElementById('weeksTab').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('#weeksTab .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentWeeks = parseInt(btn.dataset.weeks);
+  destroyAll();
+  renderAll();
+});
+
+// ── 建立快照 ───────────────────────────────────────────────────
+document.getElementById('btnSnapshot').addEventListener('click', () => {
+  const weekStart = new Date('2026-03-16').toISOString().split('T')[0];
+  store.createSnapshot(weekStart, { snapshotBy: 'User', reviewStatus: 'draft' });
+  toast('📸 快照已建立', 'success');
+  renderAll();
+});
+
+window.addEventListener('store:updated', renderAll);
+renderAll();
+</script>
+</body>
+</html>

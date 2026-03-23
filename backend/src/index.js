@@ -6,79 +6,117 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Reports directory: env var → backend/reports/ → fallback to parent dir (dev)
+// Reports directory
 const REPORTS_DIR = process.env.REPORTS_DIR
   || path.join(__dirname, '../reports');
 
-// Serve built React frontend in production
-const FRONTEND_BUILD = path.join(__dirname, '../../frontend/dist');
-if (fs.existsSync(FRONTEND_BUILD)) {
-  app.use(express.static(FRONTEND_BUILD));
+// V3: Serve program-sync Vanilla JS app
+const PROGRAM_SYNC = path.join(__dirname, '../../program-sync');
+if (fs.existsSync(PROGRAM_SYNC)) {
+  app.use(express.static(PROGRAM_SYNC));
 }
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 
+// ── Health ────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'PgM Weekly Report API is running' });
+  res.json({ status: 'ok', version: 'v3', message: 'PgM Weekly Report API is running' });
 });
 
+// ── List reports ──────────────────────────────────────────────
 app.get('/api/reports', (req, res) => {
-  const files = fs.readdirSync(REPORTS_DIR)
-    .filter(f => f.endsWith('.md') && !f.includes('_v7'))
-    .map(f => {
-      const content = fs.readFileSync(path.join(REPORTS_DIR, f), 'utf-8');
-      const versionMatch = f.match(/v(\d+)/);
-      const dateMatch = content.match(/報告日期[：:]\s*([\d/]+)/);
-      const periodMatch = content.match(/報告週期[：:]\s*([^\n]+)/);
-      return {
-        filename: f,
-        version: versionMatch ? `v${versionMatch[1]}` : f,
-        date: dateMatch ? dateMatch[1] : '',
-        period: periodMatch ? periodMatch[1].trim() : '',
-        content
-      };
-    })
-    .sort((a, b) => b.version.localeCompare(a.version));
-  res.json({ reports: files });
+  try {
+    const files = fs.readdirSync(REPORTS_DIR)
+      .filter(f => f.endsWith('.md') && !f.includes('_v7'))
+      .map(f => {
+        const content = fs.readFileSync(path.join(REPORTS_DIR, f), 'utf-8');
+        const versionMatch = f.match(/v(\d+)/);
+        const dateMatch = content.match(/報告日期[：:]\s*([\d/]+)/);
+        const periodMatch = content.match(/報告週期[：:]\s*([^\n]+)/);
+        return {
+          filename: f,
+          version: versionMatch ? `v${versionMatch[1]}` : f,
+          date: dateMatch ? dateMatch[1] : '',
+          period: periodMatch ? periodMatch[1].trim() : '',
+          size: Buffer.byteLength(content, 'utf-8')
+        };
+      })
+      .sort((a, b) => b.filename.localeCompare(a.filename));
+    res.json({ reports: files });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
+// ── Get single report content ────────────────────────────────
 app.get('/api/reports/:filename', (req, res) => {
-  const filePath = path.join(REPORTS_DIR, req.params.filename);
+  const filename = path.basename(req.params.filename); // sanitize
+  const filePath = path.join(REPORTS_DIR, filename);
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: '找不到檔案' });
   const content = fs.readFileSync(filePath, 'utf-8');
   res.json({ content });
 });
 
-// 下載 .md 檔案
+// ── Download .md ──────────────────────────────────────────────
 app.get('/api/reports/:filename/download', (req, res) => {
-  const filePath = path.join(REPORTS_DIR, req.params.filename);
+  const filename = path.basename(req.params.filename);
+  const filePath = path.join(REPORTS_DIR, filename);
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: '找不到檔案' });
-  res.setHeader('Content-Disposition', `attachment; filename="${req.params.filename}"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
   res.sendFile(filePath);
 });
 
-// /read — 純 HTML 靜態頁面，供 NotebookLM / 爬蟲使用
+// ── Save report to backend (V3 new) ──────────────────────────
+app.post('/api/reports', (req, res) => {
+  try {
+    const { filename, content } = req.body;
+    if (!filename || !content) return res.status(400).json({ error: '缺少 filename 或 content' });
+
+    // Sanitize: only allow alphanumeric, underscore, hyphen, dot
+    const safe = path.basename(filename).replace(/[^a-zA-Z0-9_\-\.]/g, '_');
+    if (!safe.endsWith('.md')) return res.status(400).json({ error: '只允許 .md 檔案' });
+
+    const filePath = path.join(REPORTS_DIR, safe);
+    fs.writeFileSync(filePath, content, 'utf-8');
+    res.json({ success: true, filename: safe, size: Buffer.byteLength(content, 'utf-8') });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Delete report (V3 new) ────────────────────────────────────
+app.delete('/api/reports/:filename', (req, res) => {
+  try {
+    const filename = path.basename(req.params.filename);
+    const filePath = path.join(REPORTS_DIR, filename);
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: '找不到檔案' });
+    fs.unlinkSync(filePath);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── /read — for NotebookLM / crawlers ────────────────────────
 app.get('/read', (req, res) => {
   const files = fs.readdirSync(REPORTS_DIR)
     .filter(f => f.endsWith('.md') && !f.includes('_v7'))
-    .sort()
-    .reverse();
+    .sort().reverse();
 
   const sections = files.map(f => {
     const raw = fs.readFileSync(path.join(REPORTS_DIR, f), 'utf-8');
-    // 移除 markdown 符號，保留純文字
     const text = raw
-      .replace(/```[\s\S]*?```/g, '')   // 移除 code block
-      .replace(/#{1,6}\s/g, '')          // 移除標題 #
-      .replace(/\*\*(.+?)\*\*/g, '$1')  // 移除粗體
-      .replace(/\*(.+?)\*/g, '$1')      // 移除斜體
-      .replace(/`(.+?)`/g, '$1')        // 移除 inline code
-      .replace(/\|.+\|/g, '')           // 移除表格
-      .replace(/[-*]\s/g, '')           // 移除列表符號
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/#{1,6}\s/g, '')
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/\*(.+?)\*/g, '$1')
+      .replace(/`(.+?)`/g, '$1')
+      .replace(/\|.+\|/g, '')
+      .replace(/[-*]\s/g, '')
       .trim();
-    return `<section><h2>${f.replace('.md','')}</h2><pre>${text}</pre></section>`;
+    return `<section><h2>${f.replace('.md', '')}</h2><pre>${text}</pre></section>`;
   }).join('<hr>');
 
   res.send(`<!DOCTYPE html>
@@ -91,10 +129,10 @@ ${sections}
 </html>`);
 });
 
-// Fallback: serve React app for all non-API routes (production)
-if (fs.existsSync(FRONTEND_BUILD)) {
+// ── Fallback: serve program-sync SPA ─────────────────────────
+if (fs.existsSync(PROGRAM_SYNC)) {
   app.get('*', (req, res) => {
-    res.sendFile(path.join(FRONTEND_BUILD, 'index.html'));
+    res.sendFile(path.join(PROGRAM_SYNC, 'index.html'));
   });
 }
 

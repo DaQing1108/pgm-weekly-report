@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>風險管理 — P&D Program Sync</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar__logo">
+    <div class="navbar__logo-icon">P</div>
+    <span>P&amp;D CENTER</span>
+  </a>
+  <span class="navbar__week-badge">W11</span>
+  <div class="navbar__links">
+    <a href="index.html"      class="navbar__link">儀表板</a>
+    <a href="input.html"      class="navbar__link">快速輸入</a>
+    <a href="risks.html"      class="navbar__link active">風險管理</a>
+    <a href="actions.html"    class="navbar__link">Action Items</a>
+    <a href="milestones.html" class="navbar__link">里程碑</a>
+    <a href="trends.html"     class="navbar__link">趨勢分析</a>
+    <a href="review.html"     class="navbar__link">審核流程</a>
+  </div>
+  <div class="navbar__actions">
+    <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+  </div>
+</nav>
+
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-header__title">風險管理</h1>
+      <p class="page-header__sub">追蹤並管理所有開放中的專案風險</p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn-primary" id="btnAddRisk">+ 新增風險</button>
+    </div>
+  </div>
+
+  <!-- 統計條 -->
+  <div class="stats-bar" id="statsBar" style="margin-bottom:var(--space-xl);">
+    <div class="stats-bar__item">
+      <div class="stats-bar__val" id="statTotal" style="color:var(--color-text-primary)">0</div>
+      <div class="stats-bar__lbl">總計風險</div>
+    </div>
+    <div class="stats-bar__item">
+      <div class="stats-bar__val" id="statHigh" style="color:var(--color-danger)">0</div>
+      <div class="stats-bar__lbl">高風險</div>
+    </div>
+    <div class="stats-bar__item">
+      <div class="stats-bar__val" id="statMed" style="color:var(--color-warning)">0</div>
+      <div class="stats-bar__lbl">中風險</div>
+    </div>
+    <div class="stats-bar__item">
+      <div class="stats-bar__val" id="statLow" style="color:var(--color-success)">0</div>
+      <div class="stats-bar__lbl">低風險</div>
+    </div>
+    <div class="stats-bar__item">
+      <div class="stats-bar__val" id="statClosed" style="color:var(--color-text-secondary)">0</div>
+      <div class="stats-bar__lbl">已關閉</div>
+    </div>
+  </div>
+
+  <!-- 篩選工具列 -->
+  <div class="filter-bar" id="filterBar" style="margin-bottom:var(--space-lg);">
+    <span class="text-sm text-secondary">篩選：</span>
+    <button class="filter-chip active" data-level="all">全部</button>
+    <button class="filter-chip" data-level="high">🔴 高風險</button>
+    <button class="filter-chip" data-level="medium">🟡 中風險</button>
+    <button class="filter-chip" data-level="low">🟢 低風險</button>
+    <div style="flex:1;"></div>
+    <select class="inp" id="filterStatus" style="width:130px;">
+      <option value="open">開放中</option>
+      <option value="in-progress">處理中</option>
+      <option value="all">全部狀態</option>
+      <option value="closed">已關閉</option>
+    </select>
+    <select class="inp" id="filterTeam" style="width:130px;">
+      <option value="all">全部子組</option>
+      <option value="media-agent">Media Agent</option>
+      <option value="learnmode">LearnMode</option>
+      <option value="chuangzaoli">創造栗</option>
+      <option value="tv-solution">TV Solution</option>
+      <option value="healthcare">Healthcare</option>
+    </select>
+  </div>
+
+  <!-- 升降級建議 -->
+  <div id="suggestionBanner" style="display:none;margin-bottom:var(--space-lg);"></div>
+
+  <!-- 風險列表 -->
+  <div id="riskList"></div>
+
+</div>
+
+<!-- 新增風險 Modal -->
+<div id="addRiskModal" style="display:none;">
+  <div class="modal__header">
+    <span class="modal__title">新增風險</span>
+    <button class="modal__close" type="button">✕</button>
+  </div>
+  <div class="modal__body">
+    <div class="stack">
+      <div class="inp-grid">
+        <div class="inp-group">
+          <label class="inp-label inp-label--required">風險等級</label>
+          <select class="inp" id="mLevel">
+            <option value="high">🔴 高</option>
+            <option value="medium" selected>🟡 中</option>
+            <option value="low">🟢 低</option>
+          </select>
+        </div>
+        <div class="inp-group">
+          <label class="inp-label">子組</label>
+          <select class="inp" id="mTeam">
+            <option value="media-agent">Media Agent</option>
+            <option value="learnmode">LearnMode</option>
+            <option value="chuangzaoli">創造栗</option>
+            <option value="tv-solution">TV Solution</option>
+            <option value="healthcare">Healthcare</option>
+          </select>
+        </div>
+      </div>
+      <div class="inp-group">
+        <label class="inp-label inp-label--required">風險描述</label>
+        <textarea class="inp" id="mDesc" rows="3" placeholder="描述風險內容及可能影響…"></textarea>
+      </div>
+      <div class="inp-grid">
+        <div class="inp-group">
+          <label class="inp-label">關聯專案</label>
+          <input type="text" class="inp" id="mProject" placeholder="專案名稱">
+        </div>
+        <div class="inp-group">
+          <label class="inp-label">負責人</label>
+          <select class="inp" id="mOwner">
+            <option value="">— 選擇 —</option>
+            <option>Steve Liu</option><option>TC Peng</option><option>Tonny Shen</option>
+            <option>Tom Liu</option><option>Alex Chen</option><option>Michael Wu</option>
+            <option>Dream Lin</option><option>Jenny Huang</option><option>Kevin Chang</option>
+            <option>Lily Tsai</option><option>Ryan Hsu</option>
+          </select>
+        </div>
+      </div>
+      <div class="inp-group">
+        <label class="inp-label">截止日期</label>
+        <input type="date" class="inp" id="mDueDate">
+      </div>
+      <div class="inp-group">
+        <label class="inp-label">因應方案</label>
+        <textarea class="inp" id="mMitigation" rows="2" placeholder="描述已採取或計畫中的因應措施…"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="modal__footer">
+    <button class="btn btn-outline" id="mCancel">取消</button>
+    <button class="btn btn-primary" id="mSave">新增風險</button>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { store }    from './assets/js/store.js';
+import { seedData } from './assets/data/seed.js';
+import { toast, renderBadge, formatDate, generateId, confirm } from './assets/js/ui.js';
+
+seedData();
+
+let filterLevel  = 'all';
+let filterStatus = 'open';
+let filterTeam   = 'all';
+
+function renderAll() {
+  renderStats();
+  renderList();
+  renderSuggestions();
+}
+
+// ── 統計條 ─────────────────────────────────────────────────────
+function renderStats() {
+  const all = store.getAll('risks');
+  document.getElementById('statTotal').textContent  = all.filter(r => r.status !== 'closed').length;
+  document.getElementById('statHigh').textContent   = all.filter(r => r.level === 'high' && r.status !== 'closed').length;
+  document.getElementById('statMed').textContent    = all.filter(r => r.level === 'medium' && r.status !== 'closed').length;
+  document.getElementById('statLow').textContent    = all.filter(r => r.level === 'low' && r.status !== 'closed').length;
+  document.getElementById('statClosed').textContent = all.filter(r => r.status === 'closed').length;
+}
+
+// ── 風險列表 ───────────────────────────────────────────────────
+function renderList() {
+  let risks = store.getAll('risks');
+
+  if (filterLevel  !== 'all')  risks = risks.filter(r => r.level === filterLevel);
+  if (filterStatus !== 'all')  risks = risks.filter(r => r.status === filterStatus);
+  if (filterTeam   !== 'all')  risks = risks.filter(r => r.team === filterTeam);
+
+  // 排序：高→中→低
+  const levelOrder = { high:0, medium:1, low:2 };
+  risks.sort((a,b) => (levelOrder[a.level]??3) - (levelOrder[b.level]??3));
+
+  const el = document.getElementById('riskList');
+
+  if (!risks.length) {
+    el.innerHTML = `<div class="empty-state">
+      <span class="empty-state__icon">✅</span>
+      <p class="empty-state__msg">沒有符合條件的風險</p>
+    </div>`;
+    return;
+  }
+
+  const levelLabel = { high:'🔴 高', medium:'🟡 中', low:'🟢 低' };
+  const statusLabel = { open:'📌 開放', 'in-progress':'🔄 處理中', closed:'✅ 關閉' };
+
+  el.innerHTML = risks.map(r => {
+    const overdue = r.dueDate && r.dueDate < new Date().toISOString().split('T')[0] && r.status !== 'closed';
+    return `
+    <div class="risk-row" data-id="${r.id}" onclick="toggleRiskDetail('${r.id}')">
+      <div class="risk-row__level risk-row__level--${r.level}">${levelLabel[r.level] || r.level}</div>
+      <div class="risk-row__desc">
+        ${r.description.substring(0,80)}${r.description.length>80?'…':''}
+        ${r.project ? `<span class="badge badge-neutral" style="margin-left:4px;">${r.project}</span>` : ''}
+        ${overdue ? `<span class="badge badge-danger" style="margin-left:4px;">逾期</span>` : ''}
+      </div>
+      <div class="risk-row__owner">${r.owner || '—'}</div>
+      <div class="risk-row__date">${r.dueDate ? formatDate(r.dueDate) : '—'}</div>
+      <div class="risk-row__status">
+        <select class="inp" style="padding:3px;font-size:var(--font-size-xs);" data-id="${r.id}" onclick="event.stopPropagation()" onchange="changeStatus('${r.id}', this.value)">
+          <option value="open" ${r.status==='open'?'selected':''}>📌 開放</option>
+          <option value="in-progress" ${r.status==='in-progress'?'selected':''}>🔄 處理中</option>
+          <option value="closed" ${r.status==='closed'?'selected':''}>✅ 關閉</option>
+        </select>
+      </div>
+    </div>
+    <div class="risk-row__detail" id="rdetail-${r.id}" style="display:none;padding:var(--space-md) var(--space-lg);background:var(--color-bg-secondary);border-radius:0 0 var(--radius-md) var(--radius-md);margin-bottom:var(--space-sm);border:1px solid var(--color-border-default);border-top:none;">
+      <div class="stack-sm">
+        <p class="text-sm"><strong>完整描述：</strong>${r.description}</p>
+        ${r.mitigation ? `<p class="text-sm"><strong>因應方案：</strong>${r.mitigation}</p>` : ''}
+        <div style="display:flex;gap:var(--space-sm);align-items:center;">
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','down')">⬆ 降級</button>
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','up')">⬇ 升級</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRisk('${r.id}')" style="margin-left:auto;">🗑 刪除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.toggleRiskDetail = function(id) {
+  const el = document.getElementById(`rdetail-${id}`);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? '' : 'none';
+};
+
+window.changeStatus = function(id, status) {
+  const r = store.getById('risks', id);
+  if (!r) return;
+  store.save('risks', { ...r, status });
+  toast(`風險狀態更新為：${status}`, 'success');
+};
+
+window.upgradeRisk = async function(id, direction) {
+  const r = store.getById('risks', id);
+  if (!r) return;
+  const levels = ['low','medium','high'];
+  const idx = levels.indexOf(r.level);
+  const newIdx = direction === 'up' ? Math.min(idx+1, 2) : Math.max(idx-1, 0);
+  if (newIdx === idx) { toast('已是最高/最低等級', 'info'); return; }
+  const ok = await confirm(`將風險等級從 ${r.level} 改為 ${levels[newIdx]}？`);
+  if (ok) {
+    store.save('risks', { ...r, level: levels[newIdx] });
+    toast('風險等級已更新', 'success');
+  }
+};
+
+window.deleteRisk = async function(id) {
+  const ok = await confirm('確定刪除此風險？此操作無法復原。', '刪除');
+  if (ok) { store.delete('risks', id); toast('已刪除風險', 'success'); }
+};
+
+// ── 升降級建議邏輯 ─────────────────────────────────────────────
+function renderSuggestions() {
+  const risks = store.getAll('risks').filter(r => r.status !== 'closed');
+  const suggestions = generateRiskSuggestions(risks);
+  const el = document.getElementById('suggestionBanner');
+  if (!suggestions.length) { el.style.display = 'none'; return; }
+
+  el.style.display = '';
+  el.innerHTML = `
+    <div style="background:var(--color-warning-bg);border:1px solid var(--color-warning);border-radius:var(--radius-md);padding:var(--space-md) var(--space-lg);">
+      <div style="font-weight:600;margin-bottom:var(--space-sm);">💡 AI 建議</div>
+      ${suggestions.map(s => `<p class="text-sm" style="margin-bottom:4px;">• ${s}</p>`).join('')}
+    </div>`;
+}
+
+function generateRiskSuggestions(risks) {
+  const suggestions = [];
+  const today = new Date().toISOString().split('T')[0];
+
+  // 逾期高風險
+  const overdueHigh = risks.filter(r => r.level === 'high' && r.dueDate && r.dueDate < today);
+  if (overdueHigh.length > 0) {
+    suggestions.push(`有 ${overdueHigh.length} 個高風險項目已逾期，建議立即升級到管理層關注。`);
+  }
+
+  // 長時間 open 的 medium 風險
+  const oldMedium = risks.filter(r => {
+    if (r.level !== 'medium' || r.status !== 'open') return false;
+    const created = new Date(r._createdAt || '2026-01-01');
+    const diff = (new Date() - created) / 86400000;
+    return diff > 14;
+  });
+  if (oldMedium.length > 0) {
+    suggestions.push(`${oldMedium.length} 個中風險超過 14 天未處理，建議考慮升級為高風險或加速因應。`);
+  }
+
+  // 無 mitigation 的高風險
+  const noMit = risks.filter(r => r.level === 'high' && !r.mitigation);
+  if (noMit.length > 0) {
+    suggestions.push(`有 ${noMit.length} 個高風險尚未填寫因應方案，請儘快補充。`);
+  }
+
+  return suggestions;
+}
+
+// ── 篩選事件 ───────────────────────────────────────────────────
+document.getElementById('filterBar').addEventListener('click', e => {
+  const chip = e.target.closest('.filter-chip');
+  if (!chip) return;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  filterLevel = chip.dataset.level;
+  renderList();
+});
+
+document.getElementById('filterStatus').addEventListener('change', function() {
+  filterStatus = this.value;
+  renderList();
+});
+
+document.getElementById('filterTeam').addEventListener('change', function() {
+  filterTeam = this.value;
+  renderList();
+});
+
+// ── 新增風險 Modal ─────────────────────────────────────────────
+import { modal } from './assets/js/ui.js';
+
+document.getElementById('btnAddRisk').addEventListener('click', () => {
+  const html = document.getElementById('addRiskModal').innerHTML;
+  const { close, el } = modal(html);
+
+  el.querySelector('#mCancel').addEventListener('click', close);
+  el.querySelector('#mSave').addEventListener('click', () => {
+    const desc = el.querySelector('#mDesc').value.trim();
+    if (!desc) { toast('請填寫風險描述', 'error'); return; }
+
+    store.save('risks', {
+      id: generateId(),
+      level: el.querySelector('#mLevel').value,
+      team: el.querySelector('#mTeam').value,
+      description: desc,
+      project: el.querySelector('#mProject').value.trim(),
+      owner: el.querySelector('#mOwner').value,
+      dueDate: el.querySelector('#mDueDate').value,
+      mitigation: el.querySelector('#mMitigation').value.trim(),
+      status: 'open',
+      weekStart: new Date().toISOString().split('T')[0],
+    });
+    toast('✅ 風險已新增', 'success');
+    close();
+  });
+});
+
+window.addEventListener('store:updated', renderAll);
+renderAll();
+</script>
+</body>
+</html>
