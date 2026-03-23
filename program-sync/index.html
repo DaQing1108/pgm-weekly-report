@@ -20,7 +20,6 @@
   <div class="navbar__links">
     <a href="index.html"      class="navbar__link active">儀表板</a>
     <a href="input.html"      class="navbar__link">快速輸入</a>
-    <a href="risks.html"      class="navbar__link">風險管理</a>
     <a href="actions.html"    class="navbar__link">Action Items</a>
     <a href="milestones.html" class="navbar__link">里程碑</a>
 
@@ -64,14 +63,25 @@
 
     <!-- 專案列表 -->
     <div class="panel">
-      <div class="panel__header">
+      <div class="panel__header" style="flex-wrap:wrap;gap:var(--space-sm);">
         <span class="panel__title">專案進度總覽</span>
-        <div class="tab-bar" id="statusFilter">
-          <button class="tab-btn active" data-filter="all">全部</button>
-          <button class="tab-btn" data-filter="on-track">🟢 正常</button>
-          <button class="tab-btn" data-filter="at-risk">🟡 風險</button>
-          <button class="tab-btn" data-filter="behind">🔴 落後</button>
-          <button class="tab-btn" data-filter="paused">⏸️ 暫緩</button>
+        <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;margin-left:auto;">
+          <select class="inp" id="teamFilter" style="width:130px;padding:4px 8px;font-size:var(--font-size-sm);">
+            <option value="all">全部子組</option>
+            <option value="media-agent">Media Agent</option>
+            <option value="learnmode">LearnMode</option>
+            <option value="chuangzaoli">創造栗</option>
+            <option value="tv-solution">TV Solution</option>
+            <option value="healthcare">Healthcare</option>
+            <option value="org-mgmt">組織管理</option>
+          </select>
+          <div class="tab-bar" id="statusFilter">
+            <button class="tab-btn active" data-filter="all">全部</button>
+            <button class="tab-btn" data-filter="on-track">🟢 正常</button>
+            <button class="tab-btn" data-filter="at-risk">🟡 風險</button>
+            <button class="tab-btn" data-filter="behind">🔴 落後</button>
+            <button class="tab-btn" data-filter="paused">⏸️ 暫緩</button>
+          </div>
         </div>
       </div>
       <div class="panel__body" id="projectList" style="padding:var(--space-md) var(--space-lg);">
@@ -113,7 +123,6 @@
     <div class="panel">
       <div class="panel__header">
         <span class="panel__title">需決策事項</span>
-        <a href="risks.html" class="btn btn-ghost btn-sm">查看全部 →</a>
       </div>
       <div class="panel__body" id="decisionList" style="padding:var(--space-md) var(--space-lg);">
         <div class="empty-state">
@@ -206,12 +215,14 @@ function renderKPIs() {
 }
 
 // ── 專案列表 ────────────────────────────────────────────────────
-let currentFilter = 'all';
+let currentFilter     = 'all';
+let currentTeamFilter = 'all';
 
 function renderProjects(filter) {
-  currentFilter = filter;
+  if (filter !== undefined) currentFilter = filter;
   const all = store.getAll('projects');
-  const list = filter === 'all' ? all : all.filter(p => p.status === filter);
+  let list = currentFilter === 'all' ? all : all.filter(p => p.status === currentFilter);
+  if (currentTeamFilter !== 'all') list = list.filter(p => p.team === currentTeamFilter);
   const el = document.getElementById('projectList');
   document.getElementById('projectCount').textContent = `${list.length} 個專案`;
 
@@ -301,6 +312,11 @@ document.getElementById('statusFilter').addEventListener('click', e => {
   document.querySelectorAll('#statusFilter .tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderProjects(btn.dataset.filter);
+});
+
+document.getElementById('teamFilter').addEventListener('change', function() {
+  currentTeamFilter = this.value;
+  renderProjects();
 });
 
 // ── store:updated 事件 ─────────────────────────────────────────
