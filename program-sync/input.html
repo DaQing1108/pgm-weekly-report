@@ -63,11 +63,11 @@
               </select>
             </div>
 
-            <!-- 或輸入新專案名稱 -->
+            <!-- 新增專案欄位 -->
             <div class="inp-group" id="newProjGroup" style="display:none;">
               <label class="inp-label">新專案名稱</label>
               <input type="text" class="inp" id="qNewProjName" placeholder="輸入專案名稱">
-              <div class="inp-grid">
+              <div class="inp-grid" style="margin-top:var(--space-sm);">
                 <div class="inp-group">
                   <label class="inp-label">子組</label>
                   <select class="inp" id="qNewTeam">
@@ -81,6 +81,36 @@
                 <div class="inp-group">
                   <label class="inp-label">目標日期</label>
                   <input type="date" class="inp" id="qTargetDate">
+                </div>
+              </div>
+            </div>
+
+            <!-- 既有專案 — 變更基本資料 -->
+            <div id="editProjGroup" style="display:none;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <span class="text-xs text-secondary" style="font-weight:600;letter-spacing:.03em;">專案基本資料</span>
+                <button type="button" id="btnToggleEditProj" class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px;">✏️ 變更</button>
+              </div>
+              <div id="editProjFields" style="display:none;">
+                <div class="inp-group">
+                  <label class="inp-label">專案名稱</label>
+                  <input type="text" class="inp" id="qEditProjName" placeholder="專案名稱">
+                </div>
+                <div class="inp-grid" style="margin-top:var(--space-sm);">
+                  <div class="inp-group">
+                    <label class="inp-label">子組</label>
+                    <select class="inp" id="qEditTeam">
+                      <option value="media-agent">Media Agent</option>
+                      <option value="learnmode">LearnMode</option>
+                      <option value="chuangzaoli">創造栗</option>
+                      <option value="tv-solution">TV Solution</option>
+                      <option value="healthcare">Healthcare</option>
+                    </select>
+                  </div>
+                  <div class="inp-group">
+                    <label class="inp-label">目標日期</label>
+                    <input type="date" class="inp" id="qEditTargetDate">
+                  </div>
                 </div>
               </div>
             </div>
@@ -330,19 +360,34 @@ loadProjectSelect();
 // ── 專案選擇變更 ───────────────────────────────────────────────
 document.getElementById('qProject').addEventListener('change', function() {
   const id = this.value;
-  const newGroup = document.getElementById('newProjGroup');
+  const newGroup  = document.getElementById('newProjGroup');
+  const editGroup = document.getElementById('editProjGroup');
 
   if (id === '__new__') {
-    newGroup.style.display = '';
+    newGroup.style.display  = '';
+    editGroup.style.display = 'none';
     updatePreview(null);
     return;
   }
   newGroup.style.display = 'none';
 
-  if (!id) { updatePreview(null); return; }
+  if (!id) {
+    editGroup.style.display = 'none';
+    updatePreview(null);
+    return;
+  }
+
+  // 顯示既有專案基本資料區
+  editGroup.style.display = '';
+  document.getElementById('editProjFields').style.display = 'none'; // 預設收合
 
   const p = store.getById('projects', id);
   if (!p) return;
+
+  // 預填編輯欄位
+  document.getElementById('qEditProjName').value  = p.name || '';
+  document.getElementById('qEditTeam').value      = p.team || 'media-agent';
+  document.getElementById('qEditTargetDate').value = p.targetDate || '';
 
   document.getElementById('qStatus').value   = p.status;
   document.getElementById('qProgress').value = p.progress ?? 50;
@@ -352,6 +397,15 @@ document.getElementById('qProject').addEventListener('change', function() {
   updateProgressDisplay(p.progress ?? 50);
   window.setProgressMode(p.progressMode || 'auto');
   updatePreview({ ...p, progress: getEffectiveProgress(p.name) });
+});
+
+// ── 變更專案基本資料 toggle ─────────────────────────────────────
+document.getElementById('btnToggleEditProj').addEventListener('click', () => {
+  const fields = document.getElementById('editProjFields');
+  const btn    = document.getElementById('btnToggleEditProj');
+  const open   = fields.style.display === 'none';
+  fields.style.display = open ? '' : 'none';
+  btn.textContent = open ? '▲ 收合' : '✏️ 變更';
 });
 
 // ── 完成率模式切換 ──────────────────────────────────────────────
@@ -477,6 +531,14 @@ document.getElementById('btnSaveQuick').addEventListener('click', () => {
     item = store.getById('projects', projId);
     if (!item) { toast('找不到專案', 'error'); return; }
     const progress = getEffectiveProgress(item.name);
+    // 若使用者展開並編輯了基本資料，一併更新
+    const editFields = document.getElementById('editProjFields');
+    if (editFields && editFields.style.display !== 'none') {
+      const newName = document.getElementById('qEditProjName').value.trim();
+      if (newName) item.name = newName;
+      item.team       = document.getElementById('qEditTeam').value || item.team;
+      item.targetDate = document.getElementById('qEditTargetDate').value || item.targetDate;
+    }
     Object.assign(item, { status, progress, progressMode, owner, weekDone, blockers });
   } else {
     toast('請選擇專案', 'error'); return;
@@ -514,7 +576,8 @@ document.getElementById('btnReset').addEventListener('click', () => {
   document.getElementById('qBlockers').value = '';
   document.getElementById('qRiskLevel').value = '';
   document.getElementById('qRiskDesc').value = '';
-  document.getElementById('newProjGroup').style.display = 'none';
+  document.getElementById('newProjGroup').style.display  = 'none';
+  document.getElementById('editProjGroup').style.display = 'none';
   updateProgressDisplay(50);
   updatePreview(null);
 });
