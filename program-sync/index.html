@@ -110,7 +110,11 @@
     <div class="panel">
       <div class="panel__header" style="display:flex;justify-content:space-between;align-items:center;">
         <span class="panel__title">☁ 歷史週報中心</span>
-        <span class="badge badge--info" id="archiveBadge">載入中…</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="badge badge--info" id="archiveBadge">載入中…</span>
+          <button class="btn btn-primary btn-sm" id="btnImportMd">⬆ 匯入週報</button>
+          <input type="file" id="mdFileInput" accept=".md" style="display:none;">
+        </div>
       </div>
       <div class="panel__body" id="archiveList" style="padding:var(--space-md) var(--space-lg);">
         <div class="empty-state">
@@ -129,7 +133,7 @@
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
 import { toast, renderBadge, formatDate, isOverdue } from './assets/js/ui.js';
-import { initApi, fetchReports, fetchReportContent, downloadUrl } from './assets/js/api.js';
+import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl } from './assets/js/api.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
 
 // ── 自動從後端歷史週報同步真實資料 ────────────────────────────
@@ -333,9 +337,52 @@ async function initArchive() {
   }
 }
 
+// ── 週報匯入（MD 檔案）────────────────────────────────────────
+function initImport() {
+  const btn   = document.getElementById('btnImportMd');
+  const input = document.getElementById('mdFileInput');
+
+  btn.addEventListener('click', () => input.click());
+
+  input.addEventListener('change', async () => {
+    const file = input.files[0];
+    if (!file) return;
+    if (!file.name.endsWith('.md')) {
+      toast('請選擇 .md 格式的週報檔案', 'error'); return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '上傳中…';
+
+    try {
+      const content = await file.text();
+      await saveReport(file.name, content);
+      toast(`✅ 已匯入：${file.name}`, 'success');
+
+      // 重新載入歷史列表
+      await initArchive();
+
+      // 自動同步新資料到 store
+      const parsed = parseHistoricalReport(content, file.name);
+      const counts = syncToStore(parsed, store, { replaceAll: false });
+      if (counts.projects > 0) {
+        toast(`同步 ${counts.projects} 個專案到儀表板`, 'info');
+        renderAll();
+      }
+    } catch (e) {
+      toast(`匯入失敗：${e.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⬆ 匯入週報';
+      input.value = '';
+    }
+  });
+}
+
 // ── 啟動 ───────────────────────────────────────────────────────
 init();
 initArchive();
+initImport();
 </script>
 </body>
 </html>
