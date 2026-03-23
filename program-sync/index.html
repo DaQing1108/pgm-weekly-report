@@ -132,6 +132,7 @@ import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
 import { toast, renderBadge, formatDate, isOverdue } from './assets/js/ui.js';
 import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl } from './assets/js/api.js';
+import { modal } from './assets/js/ui.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
 
 // ── 自動從後端歷史週報同步真實資料 ────────────────────────────
@@ -326,6 +327,7 @@ async function initArchive() {
         </div>
         <div style="display:flex;gap:8px;">
           ${r.date ? `<span class="badge badge--neutral">${r.date}</span>` : ''}
+          <button class="btn btn-outline btn-sm" onclick="openReport('${r.filename}')">📖 閱讀</button>
           <a href="${downloadUrl(r.filename)}" class="btn btn-outline btn-sm" download>⬇ 下載</a>
         </div>
       </div>
@@ -376,6 +378,40 @@ function initImport() {
     }
   });
 }
+
+// ── 線上閱讀週報 ───────────────────────────────────────────────
+let _markedReady = false;
+async function _loadMarked() {
+  if (_markedReady) return;
+  await new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/marked@9/marked.min.js';
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  _markedReady = true;
+}
+
+window.openReport = async function(filename) {
+  try {
+    await _loadMarked();
+    const content = await fetchReportContent(filename);
+    const html = window.marked.parse(content);
+    const title = filename.replace('.md', '');
+
+    modal(`
+      <div class="modal__header">
+        <span class="modal__title">📄 ${title}</span>
+        <button class="modal__close" type="button">✕</button>
+      </div>
+      <div class="modal__body" style="max-height:75vh;overflow-y:auto;padding:var(--space-xl);">
+        <div class="markdown-body" style="font-size:14px;line-height:1.8;">${html}</div>
+      </div>
+    `, { size: 'wide' });
+  } catch (e) {
+    toast(`載入失敗：${e.message}`, 'error');
+  }
+};
 
 // ── 啟動 ───────────────────────────────────────────────────────
 init();
