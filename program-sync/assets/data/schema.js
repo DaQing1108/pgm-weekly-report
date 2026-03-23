@@ -9,6 +9,7 @@ export const TEAMS = [
   { id: 'chuangzaoli',  name: '創造栗',           lead: 'Tonny Shen',  color: '#e4a23c' },
   { id: 'tv-solution',  name: 'TV Solution',     lead: 'Tom Liu',     color: '#9c6fcc' },
   { id: 'healthcare',   name: 'BU2 Healthcare',  lead: 'Tonny Shen',  color: '#d94f4f' },
+  { id: 'org-mgmt',    name: '組織管理',          lead: '',            color: '#6b7280' },
 ];
 
 export const MEMBERS = [

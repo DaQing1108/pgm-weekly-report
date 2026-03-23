@@ -44,6 +44,7 @@
         <option value="chuangzaoli">創造栗</option>
         <option value="tv-solution">TV Solution</option>
         <option value="healthcare">Healthcare</option>
+        <option value="org-mgmt">組織管理</option>
       </select>
       <button class="btn btn-primary" id="btnAddMs">+ 新增里程碑</button>
     </div>
@@ -70,6 +71,7 @@
             <option value="chuangzaoli">創造栗</option>
             <option value="tv-solution">TV Solution</option>
             <option value="healthcare">Healthcare</option>
+            <option value="org-mgmt">組織管理</option>
           </select>
           <button class="btn btn-primary" id="btnSaveMs">新增</button>
         </div>
@@ -123,12 +125,13 @@ _autoSync().then(ok => { if (!ok) seedData(); });
 
 const TEAM_NAMES = {
   'media-agent':'Media Agent','learnmode':'LearnMode',
-  'chuangzaoli':'創造栗','tv-solution':'TV Solution','healthcare':'Healthcare'
+  'chuangzaoli':'創造栗','tv-solution':'TV Solution','healthcare':'Healthcare',
+  'org-mgmt':'組織管理'
 };
 
 const TEAM_COLORS = {
   'media-agent':'#4caf6e','learnmode':'#378add','chuangzaoli':'#e4a23c',
-  'tv-solution':'#9c6fcc','healthcare':'#d94f4f'
+  'tv-solution':'#9c6fcc','healthcare':'#d94f4f','org-mgmt':'#6b7280'
 };
 
 let filterTeam = 'all';
