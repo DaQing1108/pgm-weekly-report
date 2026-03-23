@@ -59,10 +59,10 @@
     </div>
   </div>
 
-  <!-- Main Grid -->
-  <div class="main-grid">
+  <!-- Main Grid：僅專案列表，全寬 -->
+  <div class="main-grid" style="grid-template-columns:1fr;">
 
-    <!-- 左欄：專案列表 -->
+    <!-- 專案列表 -->
     <div class="panel">
       <div class="panel__header">
         <span class="panel__title">專案進度總覽</span>
@@ -85,24 +85,6 @@
       </div>
     </div>
 
-    <!-- 右欄 -->
-    <div class="stack">
-
-      <!-- 需決策事項 -->
-      <div class="panel">
-        <div class="panel__header">
-          <span class="panel__title">需決策事項</span>
-          <a href="risks.html" class="btn btn-ghost btn-sm">查看全部 →</a>
-        </div>
-        <div class="panel__body" id="decisionList" style="padding:var(--space-md) var(--space-lg);">
-          <div class="empty-state">
-            <span class="empty-state__icon">📋</span>
-            <p class="empty-state__msg">無待決策事項</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
   </div>
 
   <!-- V3：歷史週報中心（後端已連線時顯示） -->
@@ -120,6 +102,22 @@
         <div class="empty-state">
           <span class="empty-state__icon">☁</span>
           <p class="empty-state__msg">尚無雲端週報</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 需決策事項（歷史週報下方） -->
+  <div style="margin-top:var(--space-xl);">
+    <div class="panel">
+      <div class="panel__header">
+        <span class="panel__title">需決策事項</span>
+        <a href="risks.html" class="btn btn-ghost btn-sm">查看全部 →</a>
+      </div>
+      <div class="panel__body" id="decisionList" style="padding:var(--space-md) var(--space-lg);">
+        <div class="empty-state">
+          <span class="empty-state__icon">📋</span>
+          <p class="empty-state__msg">無待決策事項</p>
         </div>
       </div>
     </div>
