@@ -161,12 +161,8 @@ function renderPanels() {
     const addForm = `
       <div class="inline-form" style="margin-top:var(--space-sm);">
         <input type="text" class="inp" id="newTask-${cat.id}" placeholder="新增 ${cat.label} 行動…">
-        <select class="inp" id="newOwner-${cat.id}" style="width:110px;">
+        <select class="inp owner-select" id="newOwner-${cat.id}" style="width:110px;">
           <option value="">負責人</option>
-          <option>Steve Liu</option><option>TC Peng</option><option>Tonny Shen</option>
-          <option>Tom Liu</option><option>Alex Chen</option><option>Michael Wu</option>
-          <option>Dream Lin</option><option>Jenny Huang</option><option>Kevin Chang</option>
-          <option>Lily Tsai</option><option>Ryan Hsu</option>
         </select>
         <input type="date" class="inp" id="newDue-${cat.id}" style="width:130px;">
         <button class="btn btn-primary btn-sm" onclick="addAction('${cat.id}')">+</button>
@@ -240,8 +236,20 @@ document.getElementById('btnMarkDone').addEventListener('click', async () => {
   }
 });
 
-window.addEventListener('store:updated', renderAll);
+function populateOwnerSelects() {
+  const members = store.sortBy('members', 'name', 'asc');
+  const opts = '<option value="">負責人</option>' +
+    members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+  document.querySelectorAll('.owner-select').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = opts;
+    sel.value = cur;
+  });
+}
+
+window.addEventListener('store:updated', () => { renderAll(); populateOwnerSelects(); });
 renderAll();
+populateOwnerSelects();
 </script>
 
 <style>

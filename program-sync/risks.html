@@ -136,12 +136,8 @@
         </div>
         <div class="inp-group">
           <label class="inp-label">負責人</label>
-          <select class="inp" id="mOwner">
+          <select class="inp owner-select" id="mOwner">
             <option value="">— 選擇 —</option>
-            <option>Steve Liu</option><option>TC Peng</option><option>Tonny Shen</option>
-            <option>Tom Liu</option><option>Alex Chen</option><option>Michael Wu</option>
-            <option>Dream Lin</option><option>Jenny Huang</option><option>Kevin Chang</option>
-            <option>Lily Tsai</option><option>Ryan Hsu</option>
           </select>
         </div>
       </div>
@@ -369,6 +365,13 @@ import { modal } from './assets/js/ui.js';
 document.getElementById('btnAddRisk').addEventListener('click', () => {
   const html = document.getElementById('addRiskModal').innerHTML;
   const { close, el } = modal(html);
+  // 動態填充成員選單
+  const members = store.sortBy('members', 'name', 'asc');
+  const ownerSel = el.querySelector('#mOwner');
+  if (ownerSel) {
+    ownerSel.innerHTML = '<option value="">— 選擇 —</option>' +
+      members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+  }
 
   el.querySelector('#mCancel').addEventListener('click', close);
   el.querySelector('#mSave').addEventListener('click', () => {
@@ -392,8 +395,20 @@ document.getElementById('btnAddRisk').addEventListener('click', () => {
   });
 });
 
-window.addEventListener('store:updated', renderAll);
+function populateOwnerSelects() {
+  const members = store.sortBy('members', 'name', 'asc');
+  const opts = '<option value="">— 選擇 —</option>' +
+    members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+  document.querySelectorAll('.owner-select').forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = opts;
+    sel.value = cur;
+  });
+}
+
+window.addEventListener('store:updated', () => { renderAll(); populateOwnerSelects(); });
 renderAll();
+populateOwnerSelects();
 </script>
 </body>
 </html>
