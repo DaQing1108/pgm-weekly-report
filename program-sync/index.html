@@ -46,15 +46,15 @@
       <div class="kpi-card__value" id="kpiTotal">—</div>
       <div class="kpi-card__sub" id="kpiTotalSub"></div>
     </div>
-    <div class="kpi-card kpi-warn">
-      <div class="kpi-card__label">高風險項目</div>
+    <div class="kpi-card" id="kpiRisksCard">
+      <div class="kpi-card__label">需關注專案</div>
       <div class="kpi-card__value" id="kpiRisks">—</div>
-      <div class="kpi-card__sub">需要立即關注</div>
+      <div class="kpi-card__sub" id="kpiRisksSub">At Risk + 落後</div>
     </div>
-    <div class="kpi-card kpi-bad">
+    <div class="kpi-card" id="kpiActionsCard">
       <div class="kpi-card__label">逾期 Actions</div>
       <div class="kpi-card__value" id="kpiActions">—</div>
-      <div class="kpi-card__sub">待追蹤</div>
+      <div class="kpi-card__sub" id="kpiActionsSub">待追蹤</div>
     </div>
   </div>
 
@@ -207,8 +207,19 @@ function renderKPIs() {
     `${s.onTrackProjects} 正常 / ${s.atRiskProjects} 風險 / ${s.behindProjects} 落後${s.pausedProjects ? ` / ${s.pausedProjects} 暫緩` : ''}`;
   document.getElementById('kpiTotal').textContent = s.totalProjects;
   document.getElementById('kpiTotalSub').textContent = `${s.behindProjects} 落後 / ${s.pausedProjects} 暫緩`;
-  document.getElementById('kpiRisks').textContent = s.highRisks;
+  // 需關注專案 = at-risk + behind
+  const needAttention = s.atRiskProjects + s.behindProjects;
+  document.getElementById('kpiRisks').textContent = needAttention;
+  document.getElementById('kpiRisksSub').textContent =
+    `${s.atRiskProjects} At Risk / ${s.behindProjects} 落後`;
+  document.getElementById('kpiRisksCard').className =
+    `kpi-card ${needAttention === 0 ? 'kpi-ok' : needAttention <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
+
   document.getElementById('kpiActions').textContent = s.overdueActions;
+  document.getElementById('kpiActionsSub').textContent =
+    s.overdueActions > 0 ? `${s.overdueActions} 項已逾期` : '無逾期項目';
+  document.getElementById('kpiActionsCard').className =
+    `kpi-card ${s.overdueActions === 0 ? 'kpi-ok' : s.overdueActions <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
 
   // 動態顏色
   healthCard.className = `kpi-card ${s.onTrackPct >= 80 ? 'kpi-ok' : s.onTrackPct >= 60 ? 'kpi-warn' : 'kpi-bad'}`;
