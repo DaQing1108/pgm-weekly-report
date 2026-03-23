@@ -69,6 +69,7 @@ export const store = {
   delete(key, id) {
     const list = _get(key).filter(i => i.id !== id);
     _set(key, list);
+    _dispatch(key);
   },
 
   /** 清空整個 key */
