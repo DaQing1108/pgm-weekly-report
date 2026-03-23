@@ -59,6 +59,20 @@
         </div>
       </div>
 
+      <!-- V3：歷史週報同步 -->
+      <div class="panel" id="historyPanel" style="display:none">
+        <div class="panel__header">
+          <span class="panel__title">📂 歷史週報資料</span>
+          <span class="badge badge--info text-xs" id="historyStatus">偵測中…</span>
+        </div>
+        <div class="panel__body stack-sm">
+          <p class="text-secondary text-xs">選擇要載入的歷史週報，AI 生成時將完全參考其內容與格式。</p>
+          <div id="historyList" style="max-height:140px;overflow-y:auto;"></div>
+          <button class="btn btn-outline btn-sm" id="btnSyncHistory">⬇ 同步到本地資料</button>
+          <p class="text-tertiary" id="syncResult" style="font-size:11px;"></p>
+        </div>
+      </div>
+
       <!-- 章節勾選 -->
       <div class="panel">
         <div class="panel__header">
@@ -232,12 +246,78 @@ import { generateReport }          from './assets/js/report.js';
 import { toast, modal, formatDate, renderReviewBadge } from './assets/js/ui.js';
 import { REPORT_SECTIONS }         from './assets/data/schema.js';
 import { toDocx, toPdf }           from './assets/js/export.js';
-import { initApi, saveReport, isBackendAvailable } from './assets/js/api.js';
+import { initApi, saveReport, isBackendAvailable, fetchReports, fetchReportContent } from './assets/js/api.js';
+import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
 
-// 初始化後端連線偵測
-initApi().then(available => {
-  const btn = document.getElementById('btnSaveCloud');
-  if (btn) btn.style.display = available ? '' : 'none';
+// 歷史週報快取
+let _historicalReports = [];   // [{ filename, content }]
+let _selectedHistory   = new Set();
+
+// 初始化後端連線偵測 + 歷史週報面板
+initApi().then(async available => {
+  const saveBtn = document.getElementById('btnSaveCloud');
+  if (saveBtn) saveBtn.style.display = available ? '' : 'none';
+
+  const panel = document.getElementById('historyPanel');
+  if (!panel) return;
+
+  if (!available) {
+    document.getElementById('historyStatus').textContent = '後端未連線';
+    return;
+  }
+
+  panel.style.display = '';
+  try {
+    const reports = await fetchReports();
+    document.getElementById('historyStatus').textContent = `${reports.length} 份可用`;
+    const list = document.getElementById('historyList');
+
+    list.innerHTML = reports.map(r => `
+      <label style="display:flex;align-items:center;gap:6px;padding:4px 0;cursor:pointer;border-bottom:0.5px solid var(--color-border-default);">
+        <input type="checkbox" class="history-chk" value="${r.filename}" checked>
+        <span style="font-size:12px;flex:1;">${r.filename.replace('.md','')}</span>
+        <span class="badge badge--neutral" style="font-size:10px;">${r.date || r.period?.split('–')[0]?.trim() || ''}</span>
+      </label>
+    `).join('');
+
+    // 預載所有報告內容
+    for (const r of reports) {
+      const content = await fetchReportContent(r.filename);
+      _historicalReports.push({ filename: r.filename, content });
+    }
+    // 預設全選
+    _selectedHistory = new Set(reports.map(r => r.filename));
+
+    // 勾選變更
+    list.addEventListener('change', e => {
+      if (e.target.classList.contains('history-chk')) {
+        if (e.target.checked) _selectedHistory.add(e.target.value);
+        else _selectedHistory.delete(e.target.value);
+      }
+    });
+
+  } catch (err) {
+    document.getElementById('historyStatus').textContent = '載入失敗';
+  }
+});
+
+// ── 同步歷史資料到 store ────────────────────────────────────
+document.getElementById('btnSyncHistory')?.addEventListener('click', async () => {
+  const selected = _historicalReports.filter(r => _selectedHistory.has(r.filename));
+  if (selected.length === 0) { toast('請先勾選歷史週報', 'error'); return; }
+
+  let totalCounts = { projects: 0, risks: 0, actions: 0, milestones: 0 };
+
+  // 從最新到最舊依序解析（最新的優先，避免被舊資料覆蓋）
+  for (const r of selected) {
+    const parsed = parseHistoricalReport(r.content, r.filename);
+    const counts = syncToStore(parsed, store, { replaceAll: false });
+    for (const k of Object.keys(counts)) totalCounts[k] += counts[k];
+  }
+
+  const msg = `✅ 已同步：${totalCounts.projects} 個專案、${totalCounts.risks} 筆風險、${totalCounts.actions} 筆行動、${totalCounts.milestones} 個里程碑`;
+  document.getElementById('syncResult').textContent = msg;
+  toast(msg, 'success');
 });
 
 seedData();
@@ -382,9 +462,14 @@ document.getElementById('btnGenerate').addEventListener('click', async () => {
       document.getElementById('streamProgress').style.display = '';
       let chars = 0;
 
+      // 只傳入使用者勾選的歷史週報
+      const selectedHistoryContent = _historicalReports
+        .filter(r => _selectedHistory.has(r.filename));
+
       currentMd = await generateWithAI({
         weekStart, author, sections, tone,
         weekLabel: document.getElementById('weekBadge').textContent,
+        historicalReports: selectedHistoryContent,
         ...buildContext(weekStart),
         onChunk: (chunk, full) => {
           chars += chunk.length;

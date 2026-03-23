@@ -94,7 +94,7 @@ export async function generateReportStream(context, options = {}, callbacks = {}
     return;
   }
 
-  const systemPrompt = buildSystemPrompt('report', options.tone || 'formal');
+  const systemPrompt = buildSystemPrompt('report', options.tone || 'formal', options.historicalReports || []);
   const userPrompt   = buildUserPrompt(context, options);
 
   let fullText   = '';
@@ -222,7 +222,7 @@ export async function regenerateSection(sectionId, context, tone = 'formal') {
  * @param {'report'|'section'} mode
  * @param {string} tone
  */
-export function buildSystemPrompt(mode, tone = 'formal') {
+export function buildSystemPrompt(mode, tone = 'formal', historicalReports = []) {
   const toneInstructions = {
     formal: '使用正式、專業的繁體中文撰寫，語氣客觀中立，適合呈報給上級主管。',
     concise: '使用精簡、要點式的繁體中文，每個項目控制在 2 行以內，突出最重要資訊。',
@@ -245,11 +245,25 @@ export function buildSystemPrompt(mode, tone = 'formal') {
 - 數字要具體，避免模糊描述
 - 保持客觀，不誇大也不遮掩問題`;
 
-  if (mode === 'section') {
-    return base + '\n\n注意：只輸出指定章節內容，不要輸出其他章節。';
+  // 加入歷史週報作為參考資料
+  let historySection = '';
+  if (historicalReports && historicalReports.length > 0) {
+    const refs = historicalReports.slice(0, 2).map((r, i) => {
+      // 每份限制在 3000 字以內避免超出 context
+      const excerpt = r.content.length > 3000
+        ? r.content.substring(0, 3000) + '\n\n[…以下略…]'
+        : r.content;
+      return `### 參考週報 ${i + 1}：${r.filename.replace('.md', '')}\n\n${excerpt}`;
+    }).join('\n\n---\n\n');
+
+    historySection = `\n\n## 重要指示：以下為歷史週報原文，請完全參考其內容、格式、術語、專案名稱、人員名稱與撰寫風格來生成本週週報。歷史資料中的項目若本週有更新，請依最新資料更新；若無新資訊，請延續歷史週報的描述方式。\n\n${refs}`;
   }
 
-  return base + `\n\n週報結構：
+  if (mode === 'section') {
+    return base + historySection + '\n\n注意：只輸出指定章節內容，不要輸出其他章節。';
+  }
+
+  return base + historySection + `\n\n週報結構：
 1. 封面（標題、週次、彙整人）
 2. Executive Summary（整體健康度、重要數字）
 3. 專案進度（依狀態分組）
