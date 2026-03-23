@@ -227,7 +227,17 @@ function renderProjects(filter) {
     'chuangzaoli':'創造栗','tv-solution':'TV Solution','healthcare':'Healthcare'
   };
 
+  const allActions = store.getAll('actions');
+  function effectiveProgress(p) {
+    if (p.progressMode !== 'auto') return p.progress ?? 0;
+    const acts = allActions.filter(a => a.project === p.name);
+    if (acts.length === 0) return p.progress ?? 0;
+    return Math.round(acts.filter(a => a.status === 'done').length / acts.length * 100);
+  }
+
   el.innerHTML = list.map(p => {
+    const pct      = effectiveProgress(p);
+    const isAuto   = p.progressMode === 'auto';
     const barColor = p.status === 'on-track' ? 'var(--color-success)' : p.status === 'at-risk' ? 'var(--color-warning)' : 'var(--color-danger)';
     const overdue  = p.targetDate && isOverdue(p.targetDate);
     return `
@@ -238,15 +248,16 @@ function renderProjects(filter) {
       ${overdue ? '<span class="badge badge-danger text-xs">逾期</span>' : ''}
       <div class="project-row__progress-wrap">
         <div class="project-row__progress-bar">
-          <div class="project-row__progress-fill" style="width:${p.progress}%;background:${barColor}"></div>
+          <div class="project-row__progress-fill" style="width:${pct}%;background:${barColor}"></div>
         </div>
-        <div class="project-row__progress-pct">${p.progress}%</div>
+        <div class="project-row__progress-pct">${pct}%${isAuto ? '<span title="依 Actions 自動計算" style="font-size:10px;margin-left:2px;opacity:.7;">🤖</span>' : ''}</div>
       </div>
     </div>
     <div class="project-row__detail" id="detail-${p.id}">
       ${p.weekDone ? `<p><strong>本週完成：</strong>${p.weekDone}</p>` : ''}
       ${p.blockers  ? `<p><strong>阻塞：</strong><span style="color:var(--color-danger)">${p.blockers}</span></p>` : ''}
-      <p><strong>負責人：</strong>${p.owner || '—'}　<strong>目標日期：</strong>${formatDate(p.targetDate)}</p>
+      <p><strong>負責人：</strong>${p.owner || '—'}　<strong>目標日期：</strong>${formatDate(p.targetDate)}
+      ${isAuto ? `　<span class="text-xs text-secondary">🤖 完成率依 Actions 計算</span>` : ''}</p>
     </div>`;
   }).join('');
 }

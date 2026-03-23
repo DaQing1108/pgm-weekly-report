@@ -117,11 +117,27 @@
             <!-- 完成率 -->
             <div class="inp-group">
               <label class="inp-label">完成率</label>
-              <input type="range" class="inp-range" id="qProgress" min="0" max="100" value="50">
-              <div style="display:flex;justify-content:space-between;font-size:var(--font-size-xs);color:var(--color-text-tertiary);margin-top:4px;">
-                <span>0%</span>
-                <span style="font-weight:700;font-size:var(--font-size-md);color:var(--color-info)" id="progressVal">50%</span>
-                <span>100%</span>
+              <!-- 模式切換 -->
+              <div style="display:flex;gap:6px;margin-bottom:10px;">
+                <button type="button" id="btnAutoMode"   class="btn btn-sm btn-primary" onclick="window.setProgressMode('auto')">🤖 自動計算</button>
+                <button type="button" id="btnManualMode" class="btn btn-sm btn-outline" onclick="window.setProgressMode('manual')">✏️ 手動設定</button>
+              </div>
+              <!-- 自動計算面板 -->
+              <div id="autoProgressWrap">
+                <div style="display:flex;justify-content:space-between;align-items:center;background:var(--color-bg-secondary);border-radius:var(--radius-md);padding:10px 14px;">
+                  <span class="text-sm text-secondary">依 Actions 完成率：</span>
+                  <span id="autoProgressVal" style="font-weight:700;font-size:1.2rem;color:var(--color-info);">—</span>
+                </div>
+                <p class="text-xs" style="color:var(--color-text-tertiary);margin-top:5px;">尚無 Actions 時，以手動設定值作為備用</p>
+              </div>
+              <!-- 手動 slider -->
+              <div id="manualProgressWrap" style="display:none;">
+                <input type="range" class="inp-range" id="qProgress" min="0" max="100" value="50">
+                <div style="display:flex;justify-content:space-between;font-size:var(--font-size-xs);color:var(--color-text-tertiary);margin-top:4px;">
+                  <span>0%</span>
+                  <span style="font-weight:700;font-size:var(--font-size-md);color:var(--color-info)" id="progressVal">50%</span>
+                  <span>100%</span>
+                </div>
               </div>
             </div>
 
@@ -265,7 +281,10 @@ async function _autoSync() {
 import { toast, renderBadge, formatDate, generateId, relativeTime } from './assets/js/ui.js';
 import { parseText } from './assets/js/import.js';
 
-_autoSync().then(ok => { if (!ok) seedData(); });
+_autoSync().then(ok => {
+  if (!ok) seedData();
+  window.setProgressMode('auto');
+});
 
 const TEAM_NAMES = {
   'media-agent':'Media Agent','learnmode':'LearnMode',
@@ -327,13 +346,51 @@ document.getElementById('qProject').addEventListener('change', function() {
   if (!p) return;
 
   document.getElementById('qStatus').value   = p.status;
-  document.getElementById('qProgress').value = p.progress;
+  document.getElementById('qProgress').value = p.progress ?? 50;
   document.getElementById('qOwner').value     = p.owner || '';
   document.getElementById('qWeekDone').value  = p.weekDone || '';
   document.getElementById('qBlockers').value  = p.blockers || '';
-  updateProgressDisplay(p.progress);
-  updatePreview(p);
+  updateProgressDisplay(p.progress ?? 50);
+  window.setProgressMode(p.progressMode || 'auto');
+  updatePreview({ ...p, progress: getEffectiveProgress(p.name) });
 });
+
+// ── 完成率模式切換 ──────────────────────────────────────────────
+let _progressMode = 'auto';
+
+window.setProgressMode = function setProgressMode(mode) {
+  _progressMode = mode;
+  document.getElementById('btnAutoMode').className   = mode === 'auto'   ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline';
+  document.getElementById('btnManualMode').className = mode === 'manual' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline';
+  document.getElementById('autoProgressWrap').style.display   = mode === 'auto'   ? 'block' : 'none';
+  document.getElementById('manualProgressWrap').style.display = mode === 'manual' ? 'block' : 'none';
+  if (mode === 'auto') refreshAutoProgress();
+  // 同步預覽
+  const id = document.getElementById('qProject').value;
+  const p  = (id && id !== '__new__') ? store.getById('projects', id) : null;
+  if (p) updatePreview({ ...p, progress: getEffectiveProgress(p.name), status: document.getElementById('qStatus').value });
+}
+
+function getEffectiveProgress(projName) {
+  if (_progressMode !== 'auto') return parseInt(document.getElementById('qProgress').value);
+  const acts = store.getAll('actions').filter(a => a.project === projName);
+  if (acts.length === 0) return parseInt(document.getElementById('qProgress').value);
+  return Math.round(acts.filter(a => a.status === 'done').length / acts.length * 100);
+}
+
+function refreshAutoProgress() {
+  const id   = document.getElementById('qProject').value;
+  const proj = (id && id !== '__new__') ? store.getById('projects', id) : null;
+  const name = proj ? proj.name : (document.getElementById('qNewProjName')?.value?.trim() || '');
+  if (!name) { document.getElementById('autoProgressVal').textContent = '—'; return; }
+  const acts = store.getAll('actions').filter(a => a.project === name);
+  if (acts.length === 0) {
+    document.getElementById('autoProgressVal').textContent = '尚無 Actions';
+  } else {
+    const pct = Math.round(acts.filter(a => a.status === 'done').length / acts.length * 100);
+    document.getElementById('autoProgressVal').textContent = `${pct}%`;
+  }
+}
 
 // ── 進度條即時更新 ─────────────────────────────────────────────
 document.getElementById('qProgress').addEventListener('input', function() {
@@ -383,7 +440,7 @@ function updatePreview(p) {
       </div>
       <div>
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-          <span class="text-xs text-secondary">完成率</span>
+          <span class="text-xs text-secondary">完成率${_progressMode === 'auto' ? ' 🤖' : ''}</span>
           <span class="font-600" style="color:${barColor}">${p.progress}%</span>
         </div>
         <div class="progress-bar"><div class="progress-bar__fill" style="width:${p.progress}%;background:${barColor}"></div></div>
@@ -395,30 +452,33 @@ function updatePreview(p) {
 
 // ── 儲存 ───────────────────────────────────────────────────────
 document.getElementById('btnSaveQuick').addEventListener('click', () => {
-  const projId = document.getElementById('qProject').value;
-  const status = document.getElementById('qStatus').value;
-  const progress = parseInt(document.getElementById('qProgress').value);
-  const owner = document.getElementById('qOwner').value;
-  const weekDone = document.getElementById('qWeekDone').value.trim();
-  const blockers = document.getElementById('qBlockers').value.trim();
-  const riskLevel = document.getElementById('qRiskLevel').value;
-  const riskDesc = document.getElementById('qRiskDesc').value.trim();
+  const projId      = document.getElementById('qProject').value;
+  const status      = document.getElementById('qStatus').value;
+  const manualProg  = parseInt(document.getElementById('qProgress').value);
+  const progressMode = _progressMode;
+  const owner       = document.getElementById('qOwner').value;
+  const weekDone    = document.getElementById('qWeekDone').value.trim();
+  const blockers    = document.getElementById('qBlockers').value.trim();
+  const riskLevel   = document.getElementById('qRiskLevel').value;
+  const riskDesc    = document.getElementById('qRiskDesc').value.trim();
 
   let item;
   if (projId === '__new__') {
     const name = document.getElementById('qNewProjName').value.trim();
     if (!name) { toast('請輸入專案名稱', 'error'); return; }
+    const progress = getEffectiveProgress(name);
     item = {
       id: generateId(),
       name,
       team: document.getElementById('qNewTeam').value,
       targetDate: document.getElementById('qTargetDate').value,
-      status, progress, owner, weekDone, blockers,
+      status, progress, progressMode, owner, weekDone, blockers,
     };
   } else if (projId) {
     item = store.getById('projects', projId);
     if (!item) { toast('找不到專案', 'error'); return; }
-    Object.assign(item, { status, progress, owner, weekDone, blockers });
+    const progress = getEffectiveProgress(item.name);
+    Object.assign(item, { status, progress, progressMode, owner, weekDone, blockers });
   } else {
     toast('請選擇專案', 'error'); return;
   }
