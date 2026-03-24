@@ -66,7 +66,7 @@
 <script type="module">
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
-import { initApi, fetchReports, fetchReportContent } from './assets/js/api.js';
+import { initApi, fetchReports, fetchReportContent, getState, saveState } from './assets/js/api.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
 
 async function _autoSync() {
@@ -85,8 +85,14 @@ async function _autoSync() {
 }
 import { toast, renderBadge, formatDate, generateId, modal, isOverdue } from './assets/js/ui.js';
 
-seedData();
-_autoSync().then(() => { updateWeekBadge(); });
+(async () => {
+  const remoteState = await getState();
+  if (remoteState) store.importAll(JSON.stringify(remoteState));
+  seedData();
+  await _autoSync();
+  store.startBackendSync(saveState);
+  updateWeekBadge();
+})();
 
 function updateWeekBadge() {
   const label = store.currentWeekLabel();

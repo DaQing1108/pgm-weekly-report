@@ -140,7 +140,7 @@
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
 import { toast, renderBadge, formatDate, isOverdue } from './assets/js/ui.js';
-import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl, deleteReport } from './assets/js/api.js';
+import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl, deleteReport, getState, saveState } from './assets/js/api.js';
 import { modal } from './assets/js/ui.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
 
@@ -173,8 +173,11 @@ async function autoSyncFromHistory() {
 
 // ── 初始化 ─────────────────────────────────────────────────────
 async function init() {
-  seedData();                    // 1. 種子優先（快照 + 專案）
-  await autoSyncFromHistory();   // 2. 僅在空資料時才從後端補充
+  const remoteState = await getState();          // 0. 先從後端載入跨瀏覽器狀態
+  if (remoteState) store.importAll(JSON.stringify(remoteState));
+  seedData();                                     // 1. 補齊快照；若空則補種子
+  await autoSyncFromHistory();                    // 2. 僅在空資料時才從後端補充
+  store.startBackendSync(saveState);             // 3. 啟動同步：store 變更 → 後端
   renderAll();
 }
 

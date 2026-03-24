@@ -119,9 +119,13 @@ import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
 import { toast, formatDate, relativeTime, renderReviewBadge } from './assets/js/ui.js';
 import { REVIEWERS } from './assets/data/schema.js';
+import { getState, saveState } from './assets/js/api.js';
 
-seedData();
-(function() {
+(async () => {
+  const remoteState = await getState();
+  if (remoteState) store.importAll(JSON.stringify(remoteState));
+  seedData();
+  store.startBackendSync(saveState);
   const label = store.currentWeekLabel();
   if (label) document.getElementById('weekBadge').textContent = label;
 })();

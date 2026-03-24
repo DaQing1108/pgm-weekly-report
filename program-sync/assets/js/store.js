@@ -243,6 +243,18 @@ export const store = {
     return snaps.slice(-weeks);
   },
 
+  // 啟動跨瀏覽器後端同步：store:updated 後 2s debounce 推送到後端
+  startBackendSync(saveFn) {
+    let _timer;
+    window.addEventListener('store:updated', () => {
+      clearTimeout(_timer);
+      _timer = setTimeout(() => {
+        saveFn(JSON.parse(this.exportAll()))
+          .catch(e => console.warn('[store] 後端同步失敗:', e));
+      }, 2000);
+    });
+  },
+
   // 從 weekStart 字串推算週次標籤（e.g. '2026-03-23' → 'W12'）
   weekLabel(weekStart) { return _weekLabel(weekStart); },
 

@@ -78,6 +78,32 @@ export async function deleteReport(filename) {
   return await res.json();
 }
 
+// ── 跨瀏覽器狀態同步 ──────────────────────────────────────────
+export async function getState() {
+  try {
+    const res = await fetch(`${API_BASE}/state`, { signal: AbortSignal.timeout(5000) });
+    if (res.status === 404) return null;
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function saveState(data) {
+  try {
+    const res = await fetch(`${API_BASE}/state`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    console.warn('[api] saveState 失敗:', e.message);
+  }
+}
+
 // ── 初始化：頁面載入時自動偵測後端 ────────────────────────────
 export async function initApi() {
   const available = await checkBackend();

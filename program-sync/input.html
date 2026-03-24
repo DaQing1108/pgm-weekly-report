@@ -293,7 +293,7 @@
 <script type="module">
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
-import { initApi, fetchReports, fetchReportContent } from './assets/js/api.js';
+import { initApi, fetchReports, fetchReportContent, getState, saveState } from './assets/js/api.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
 
 async function _autoSync() {
@@ -314,12 +314,16 @@ import { toast, renderBadge, formatDate, generateId, relativeTime, modal, confir
 import { parseText } from './assets/js/import.js';
 import { MEMBERS, TEAMS } from './assets/data/schema.js';
 
-seedData();
-_autoSync().then(() => {
+(async () => {
+  const remoteState = await getState();
+  if (remoteState) store.importAll(JSON.stringify(remoteState));
+  seedData();
+  await _autoSync();
+  store.startBackendSync(saveState);
   window.setProgressMode('auto');
   const label = store.currentWeekLabel();
   if (label) document.getElementById('weekBadge').textContent = label;
-});
+})();
 
 const TEAM_NAMES = {
   'media-agent':'Media Agent','learnmode':'LearnMode',

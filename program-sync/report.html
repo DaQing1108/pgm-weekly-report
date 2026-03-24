@@ -230,7 +230,7 @@ import { generateReport }          from './assets/js/report.js';
 import { toast, modal, formatDate, renderReviewBadge } from './assets/js/ui.js';
 import { REPORT_SECTIONS }         from './assets/data/schema.js';
 import { toDocx, toPdf }           from './assets/js/export.js';
-import { initApi, saveReport, isBackendAvailable, fetchReports, fetchReportContent } from './assets/js/api.js';
+import { initApi, saveReport, isBackendAvailable, fetchReports, fetchReportContent, getState, saveState } from './assets/js/api.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
 
 // 歷史週報快取
@@ -304,8 +304,11 @@ document.getElementById('btnSyncHistory')?.addEventListener('click', async () =>
   toast(msg, 'success');
 });
 
-seedData();
-(function() {
+(async () => {
+  const remoteState = await getState();
+  if (remoteState) store.importAll(JSON.stringify(remoteState));
+  seedData();
+  store.startBackendSync(saveState);
   const label = store.currentWeekLabel();
   if (label) document.getElementById('weekBadge').textContent = label;
 })();

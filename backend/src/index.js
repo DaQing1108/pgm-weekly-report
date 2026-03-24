@@ -10,6 +10,12 @@ const PORT = process.env.PORT || 3001;
 const REPORTS_DIR = process.env.REPORTS_DIR
   || path.join(__dirname, '../reports');
 
+// State file (cross-browser sync)
+const DATA_DIR  = path.join(__dirname, '../data');
+const STATE_FILE = path.join(DATA_DIR, 'state.json');
+if (!fs.existsSync(DATA_DIR))    fs.mkdirSync(DATA_DIR,    { recursive: true });
+if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
+
 // V3: Serve program-sync Vanilla JS app
 const PROGRAM_SYNC = path.join(__dirname, '../../program-sync');
 if (fs.existsSync(PROGRAM_SYNC)) {
@@ -96,6 +102,28 @@ app.delete('/api/reports/:filename', (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ── App State (cross-browser sync) ───────────────────────────
+app.get('/api/state', (req, res) => {
+  if (!fs.existsSync(STATE_FILE)) return res.status(404).json({ error: 'no state' });
+  try {
+    const state = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8'));
+    res.json(state);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/state', (req, res) => {
+  try {
+    const state = req.body;
+    if (!state || typeof state !== 'object') return res.status(400).json({ error: 'invalid state' });
+    fs.writeFileSync(STATE_FILE, JSON.stringify(state), 'utf-8');
+    res.json({ success: true, savedAt: new Date().toISOString() });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
