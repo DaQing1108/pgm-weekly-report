@@ -24,7 +24,6 @@
     <a href="actions.html"    class="navbar__link">Action Items</a>
     <a href="milestones.html" class="navbar__link">里程碑</a>
 
-    <a href="review.html"     class="navbar__link">審核流程</a>
   </div>
   <div class="navbar__actions">
     <button class="btn btn-outline btn-sm" id="btnApiKeyNav">🔑 API Key</button>
@@ -105,20 +104,6 @@
         </div>
       </div>
 
-      <!-- 審核流程 -->
-      <div class="panel">
-        <div class="panel__header">
-          <span class="panel__title">審核流程</span>
-        </div>
-        <div class="panel__body stack-sm">
-          <div style="display:flex;align-items:center;gap:var(--space-sm);">
-            <span class="text-sm">狀態：</span>
-            <span id="reviewStatusBadge" class="review-badge review-badge--draft">Draft</span>
-          </div>
-          <button class="btn btn-outline btn-sm" id="btnSubmitReview">📤 送審</button>
-          <a href="review.html" class="btn btn-ghost btn-sm">→ 審核頁面</a>
-        </div>
-      </div>
 
     </div>
 
@@ -630,20 +615,6 @@ document.getElementById('btnSaveCloud')?.addEventListener('click', async () => {
   }
 });
 
-// ── 送審 ───────────────────────────────────────────────────────
-document.getElementById('btnSubmitReview').addEventListener('click', () => {
-  if (!currentMd) { toast('請先生成週報', 'error'); return; }
-  const weekStart = document.getElementById('weekSelect').value;
-  const draft = store.getLatestDraft(weekStart);
-  if (draft) {
-    store.save('drafts', { ...draft, reviewStatus: 'in-review' });
-    document.getElementById('reviewStatusBadge').className = 'review-badge review-badge--in-review';
-    document.getElementById('reviewStatusBadge').textContent = 'In Review';
-    toast('📤 已送審，等待核准', 'success');
-  } else {
-    toast('請先儲存草稿', 'error');
-  }
-});
 
 // mdSource 同步到 preview
 document.getElementById('mdSource').addEventListener('input', function() {
