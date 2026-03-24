@@ -15,7 +15,7 @@
     <div class="navbar__logo-icon">P</div>
     <span>P&amp;D CENTER</span>
   </a>
-  <span class="navbar__week-badge">W11</span>
+  <span class="navbar__week-badge" id="weekBadge">W11</span>
   <div class="navbar__links">
     <a href="index.html"      class="navbar__link">儀表板</a>
     <a href="input.html"      class="navbar__link">快速輸入</a>
@@ -86,7 +86,12 @@ async function _autoSync() {
 }
 import { toast, renderBadge, formatDate, generateId, modal, isOverdue } from './assets/js/ui.js';
 
-_autoSync().then(ok => { if (!ok) seedData(); });
+_autoSync().then(ok => { if (!ok) seedData(); updateWeekBadge(); });
+
+function updateWeekBadge() {
+  const snaps = store.trendData(1);
+  if (snaps.length > 0) document.getElementById('weekBadge').textContent = snaps[0].weekLabel || 'W11';
+}
 
 const CATEGORIES = [
   { id: 'technical', label: '⚙️ 技術',  color: 'var(--color-info)'    },

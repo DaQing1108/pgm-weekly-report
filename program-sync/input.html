@@ -318,6 +318,8 @@ import { MEMBERS, TEAMS } from './assets/data/schema.js';
 _autoSync().then(ok => {
   if (!ok) seedData();
   window.setProgressMode('auto');
+  const snaps = store.trendData(1);
+  if (snaps.length > 0) document.getElementById('weekBadge').textContent = snaps[0].weekLabel || 'W11';
 });
 
 const TEAM_NAMES = {
