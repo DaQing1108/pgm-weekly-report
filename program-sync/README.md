@@ -135,7 +135,7 @@ program-sync/
     │
     └── data/
         ├── schema.js        # 靜態參考資料（Teams/Members/Catalog）
-        └── seed.js          # 初始種子資料（12專案/10Actions/6里程碑）
+        └── seed.js          # 初始種子資料（14專案/10Actions/6里程碑/4週快照 W09~W12）
 
 backend/
 ├── src/

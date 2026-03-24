@@ -5,8 +5,8 @@
 
 import { store } from '../js/store.js';
 
-// 基準週：2026/03/16 週
-const WEEK_START = '2026-03-16';
+// 基準週：2026/03/23 週（W12）
+const WEEK_START = '2026-03-23';
 
 export function seedData() {
   // 若已有資料，不重複填入
@@ -428,7 +428,7 @@ export function seedData() {
     },
   ];
 
-  // ── 3 週歷史快照（W09~W11）────────────────────────────────────
+  // ── 4 週歷史快照（W09~W12）────────────────────────────────────
   const weeklySnapshots = [
     {
       id: 'snap-w6',
@@ -486,6 +486,26 @@ export function seedData() {
       totalActions: 10,
       teamHealth: {
         'media-agent': 78, 'learnmode': 70, 'chuangzaoli': 80, 'tv-solution': 82, 'healthcare': 62
+      },
+      reviewStatus: 'approved',
+      snapshotBy: 'Kevin Chang',
+    },
+    {
+      id: 'snap-w9',
+      weekStart: '2026-03-23',
+      weekLabel: 'W12',
+      onTrackPct: 75,
+      atRiskCount: 2,
+      behindCount: 1,
+      highRisks: 2,
+      mediumRisks: 2,
+      lowRisks: 1,
+      totalProjects: 14,
+      overdueActions: 1,
+      completedActions: 9,
+      totalActions: 11,
+      teamHealth: {
+        'media-agent': 80, 'learnmode': 72, 'chuangzaoli': 75, 'tv-solution': 83, 'healthcare': 65
       },
       reviewStatus: 'draft',
       snapshotBy: 'Kevin Chang',
