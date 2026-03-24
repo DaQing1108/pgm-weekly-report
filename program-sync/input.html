@@ -315,8 +315,8 @@ import { toast, renderBadge, formatDate, generateId, relativeTime, modal, confir
 import { parseText } from './assets/js/import.js';
 import { MEMBERS, TEAMS } from './assets/data/schema.js';
 
-_autoSync().then(ok => {
-  if (!ok) seedData();
+_autoSync().then(() => {
+  seedData();
   window.setProgressMode('auto');
   const label = store.currentWeekLabel();
   if (label) document.getElementById('weekBadge').textContent = label;

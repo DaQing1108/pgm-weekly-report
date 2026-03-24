@@ -120,7 +120,7 @@ async function _autoSync() {
 }
 import { toast, formatDate, generateId } from './assets/js/ui.js';
 
-_autoSync().then(ok => { if (!ok) seedData(); updateWeekBadge(); });
+_autoSync().then(() => { seedData(); updateWeekBadge(); });
 
 function updateWeekBadge() {
   const label = store.currentWeekLabel();

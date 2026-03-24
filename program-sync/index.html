@@ -176,7 +176,7 @@ async function autoSyncFromHistory() {
 // ── 初始化 ─────────────────────────────────────────────────────
 async function init() {
   const synced = await autoSyncFromHistory();
-  if (!synced) seedData(); // 無後端或同步失敗時才用種子資料
+  seedData(); // 補齊快照（及無後端時的完整種子資料）
   renderAll();
 }
 

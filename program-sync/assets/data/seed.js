@@ -9,7 +9,17 @@ import { store } from '../js/store.js';
 const WEEK_START = '2026-03-23';
 
 export function seedData() {
-  // 若已有資料，不重複填入
+  // ── 快照：永遠補齊（_autoSync 不種快照，需保證一定存在）──────
+  if (store.getAll('snapshots').length === 0) {
+    [
+      { id:'snap-w6', weekStart:'2026-03-02', weekLabel:'W09', onTrackPct:88, atRiskCount:1, behindCount:1, highRisks:2, mediumRisks:3, lowRisks:2, totalProjects:12, overdueActions:1, completedActions:15, totalActions:14, teamHealth:{'media-agent':90,'learnmode':85,'chuangzaoli':88,'tv-solution':87,'healthcare':78}, reviewStatus:'approved', snapshotBy:'Kevin Chang' },
+      { id:'snap-w7', weekStart:'2026-03-09', weekLabel:'W10', onTrackPct:83, atRiskCount:2, behindCount:1, highRisks:3, mediumRisks:3, lowRisks:1, totalProjects:12, overdueActions:2, completedActions:12, totalActions:13, teamHealth:{'media-agent':85,'learnmode':80,'chuangzaoli':84,'tv-solution':85,'healthcare':74}, reviewStatus:'approved', snapshotBy:'Kevin Chang' },
+      { id:'snap-w8', weekStart:'2026-03-16', weekLabel:'W11', onTrackPct:75, atRiskCount:2, behindCount:1, highRisks:3, mediumRisks:2, lowRisks:1, totalProjects:12, overdueActions:2, completedActions:8,  totalActions:10, teamHealth:{'media-agent':78,'learnmode':70,'chuangzaoli':80,'tv-solution':82,'healthcare':62}, reviewStatus:'approved', snapshotBy:'Kevin Chang' },
+      { id:'snap-w9', weekStart:'2026-03-23', weekLabel:'W12', onTrackPct:75, atRiskCount:2, behindCount:1, highRisks:2, mediumRisks:2, lowRisks:1, totalProjects:14, overdueActions:1, completedActions:9,  totalActions:11, teamHealth:{'media-agent':80,'learnmode':72,'chuangzaoli':75,'tv-solution':83,'healthcare':65}, reviewStatus:'draft',     snapshotBy:'Kevin Chang' },
+    ].forEach(s => store.save('snapshots', s));
+  }
+
+  // 若已有專案資料，其餘不重複填入
   if (store.getAll('projects').length > 0) return;
 
   // ── 12 個專案（9 green / 2 yellow / 1 red）────────────────────
@@ -428,102 +438,16 @@ export function seedData() {
     },
   ];
 
-  // ── 4 週歷史快照（W09~W12）────────────────────────────────────
-  const weeklySnapshots = [
-    {
-      id: 'snap-w6',
-      weekStart: '2026-03-02',
-      weekLabel: 'W09',
-      onTrackPct: 88,
-      atRiskCount: 1,
-      behindCount: 1,
-      highRisks: 2,
-      mediumRisks: 3,
-      lowRisks: 2,
-      totalProjects: 12,
-      overdueActions: 1,
-      completedActions: 15,
-      totalActions: 14,
-      teamHealth: {
-        'media-agent': 90, 'learnmode': 85, 'chuangzaoli': 88, 'tv-solution': 87, 'healthcare': 78
-      },
-      reviewStatus: 'approved',
-      snapshotBy: 'Kevin Chang',
-    },
-    {
-      id: 'snap-w7',
-      weekStart: '2026-03-09',
-      weekLabel: 'W10',
-      onTrackPct: 83,
-      atRiskCount: 2,
-      behindCount: 1,
-      highRisks: 3,
-      mediumRisks: 3,
-      lowRisks: 1,
-      totalProjects: 12,
-      overdueActions: 2,
-      completedActions: 12,
-      totalActions: 13,
-      teamHealth: {
-        'media-agent': 85, 'learnmode': 80, 'chuangzaoli': 84, 'tv-solution': 85, 'healthcare': 74
-      },
-      reviewStatus: 'approved',
-      snapshotBy: 'Kevin Chang',
-    },
-    {
-      id: 'snap-w8',
-      weekStart: '2026-03-16',
-      weekLabel: 'W11',
-      onTrackPct: 75,
-      atRiskCount: 2,
-      behindCount: 1,
-      highRisks: 3,
-      mediumRisks: 2,
-      lowRisks: 1,
-      totalProjects: 12,
-      overdueActions: 2,
-      completedActions: 8,
-      totalActions: 10,
-      teamHealth: {
-        'media-agent': 78, 'learnmode': 70, 'chuangzaoli': 80, 'tv-solution': 82, 'healthcare': 62
-      },
-      reviewStatus: 'approved',
-      snapshotBy: 'Kevin Chang',
-    },
-    {
-      id: 'snap-w9',
-      weekStart: '2026-03-23',
-      weekLabel: 'W12',
-      onTrackPct: 75,
-      atRiskCount: 2,
-      behindCount: 1,
-      highRisks: 2,
-      mediumRisks: 2,
-      lowRisks: 1,
-      totalProjects: 14,
-      overdueActions: 1,
-      completedActions: 9,
-      totalActions: 11,
-      teamHealth: {
-        'media-agent': 80, 'learnmode': 72, 'chuangzaoli': 75, 'tv-solution': 83, 'healthcare': 65
-      },
-      reviewStatus: 'draft',
-      snapshotBy: 'Kevin Chang',
-    },
-  ];
-
   // 寫入 store
   projects.forEach(p => store.save('projects', p));
   risks.forEach(r => store.save('risks', r));
   actions.forEach(a => store.save('actions', a));
   milestones.forEach(m => store.save('milestones', m));
-  weeklySnapshots.forEach(s => store.save('snapshots', s));
 
   console.log('[seed] 資料初始化完成：', {
     projects: projects.length,
     risks: risks.length,
     actions: actions.length,
     milestones: milestones.length,
-    snapshots: weeklySnapshots.length,
   });
 }
