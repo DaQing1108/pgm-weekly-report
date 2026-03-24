@@ -243,6 +243,18 @@ export const store = {
     return snaps.slice(-weeks);
   },
 
+  // 從 weekStart 字串推算週次標籤（e.g. '2026-03-23' → 'W12'）
+  weekLabel(weekStart) { return _weekLabel(weekStart); },
+
+  // 推算目前資料中最新的週次標籤（快照優先，次則 projects.weekStart）
+  currentWeekLabel() {
+    const snaps = this.trendData(1);
+    if (snaps.length > 0) return snaps[0].weekLabel;
+    const projects = this.getAll('projects');
+    const latest = projects.map(p => p.weekStart).filter(Boolean).sort().slice(-1)[0];
+    return latest ? _weekLabel(latest) : null;
+  },
+
   // ── API Key 管理 ─────────────────────────────────────────────
 
   getApiKey() {

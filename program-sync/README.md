@@ -603,6 +603,15 @@ store.newDraftVersion(weekStart, markdownContent)   // 建立新草稿版本
 store.getLatestDraft(weekStart)                     // 取得最新草稿
 ```
 
+**週次工具**
+
+```javascript
+store.weekLabel('2026-03-23')   // 從 weekStart 字串推算週次 → 'W12'
+store.currentWeekLabel()        // 最新週次標籤（快照優先，無快照則從 projects.weekStart 推算）
+```
+
+> `currentWeekLabel()` 用於各頁面 Navbar 週次 badge，當 `_autoSync()` 從後端載入資料（不執行 seedData）時仍能正確顯示週次。
+
 **事件系統**
 
 每次 `store.save()` 或 `store.delete()` 都會觸發：
