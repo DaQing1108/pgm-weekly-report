@@ -151,9 +151,8 @@ async function autoSyncFromHistory() {
     const available = await initApi();
     if (!available) return false;
 
-    // 若已有歷史資料則跳過
-    const hasReal = store.getAll('projects').some(p => p._source === 'history');
-    if (hasReal) return false;
+    // 若已有任何專案資料則跳過（種子或用戶資料優先）
+    if (store.getAll('projects').length > 0) return false;
 
     const reports = await fetchReports();
     if (reports.length === 0) return false;
@@ -175,8 +174,8 @@ async function autoSyncFromHistory() {
 
 // ── 初始化 ─────────────────────────────────────────────────────
 async function init() {
-  const synced = await autoSyncFromHistory();
-  seedData(); // 補齊快照（及無後端時的完整種子資料）
+  seedData();                    // 1. 種子優先（快照 + 專案）
+  await autoSyncFromHistory();   // 2. 僅在空資料時才從後端補充
   renderAll();
 }
 

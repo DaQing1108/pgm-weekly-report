@@ -301,7 +301,7 @@ async function _autoSync() {
   try {
     const ok = await initApi();
     if (!ok) return false;
-    if (store.getAll("projects").some(p => p._source === "history")) return false;
+    if (store.getAll("projects").length > 0) return false;
     const rpts = await fetchReports();
     if (!rpts.length) return false;
     for (let i = 0; i < Math.min(2, rpts.length); i++) {
@@ -315,8 +315,8 @@ import { toast, renderBadge, formatDate, generateId, relativeTime, modal, confir
 import { parseText } from './assets/js/import.js';
 import { MEMBERS, TEAMS } from './assets/data/schema.js';
 
+seedData();
 _autoSync().then(() => {
-  seedData();
   window.setProgressMode('auto');
   const label = store.currentWeekLabel();
   if (label) document.getElementById('weekBadge').textContent = label;

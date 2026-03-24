@@ -108,7 +108,7 @@ async function _autoSync() {
   try {
     const ok = await initApi();
     if (!ok) return false;
-    if (store.getAll("projects").some(p => p._source === "history")) return false;
+    if (store.getAll("projects").length > 0) return false;
     const rpts = await fetchReports();
     if (!rpts.length) return false;
     for (let i = 0; i < Math.min(2, rpts.length); i++) {
@@ -120,7 +120,8 @@ async function _autoSync() {
 }
 import { toast, formatDate, generateId } from './assets/js/ui.js';
 
-_autoSync().then(() => { seedData(); updateWeekBadge(); });
+seedData();
+_autoSync().then(() => { updateWeekBadge(); });
 
 function updateWeekBadge() {
   const label = store.currentWeekLabel();
