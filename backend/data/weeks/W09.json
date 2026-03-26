@@ -1,0 +1,399 @@
+{
+  "weekStart": "2026-02-23",
+  "snapshots": [
+    {
+      "id": "snap-w09",
+      "weekStart": "2026-02-23",
+      "weekLabel": "W09",
+      "onTrackPct": 83,
+      "atRiskCount": 2,
+      "behindCount": 0,
+      "highRisks": 2,
+      "mediumRisks": 3,
+      "lowRisks": 0,
+      "totalProjects": 12,
+      "overdueActions": 0,
+      "completedActions": 0,
+      "totalActions": 8,
+      "teamHealth": {
+        "media-agent": 80,
+        "learnmode": 75,
+        "chuangzaoli": 72,
+        "tv-solution": 70,
+        "healthcare": 65
+      },
+      "reviewStatus": "approved",
+      "snapshotBy": "Alex Liao"
+    }
+  ],
+  "projects": [
+    {
+      "id": "p001",
+      "name": "Olapedia 1.0 開發 & STT Demo 準備",
+      "team": "media-agent",
+      "status": "on-track",
+      "progress": 35,
+      "owner": "Steve Liu",
+      "weekDone": "識別新聞部 vs 節目部需求斷點；確立音源分流優化邏輯評估；Show Muscle 策略確立（3/31 Demo 目標 92% 辨識率）",
+      "blockers": "TVBS Demo 場次待確認；上海 STT 接口對接細節未完成",
+      "targetDate": "2026-03-31",
+      "category": "Platform",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p002",
+      "name": "媒體資料入庫 & 音源分流技術研發",
+      "team": "media-agent",
+      "status": "on-track",
+      "progress": 40,
+      "owner": "Steve Liu",
+      "weekDone": "台北 3,500 小時廣播影片入庫；上海 2,000 小時 NewTVBS 資料入庫；空音頻（20%）RCA 啟動",
+      "blockers": "空音頻 RCA 結果未出前 ASR 優化方向待定",
+      "targetDate": "2026-03-31",
+      "category": "AI/ML",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p003",
+      "name": "SEL & 小栗方 Pro 硬體開發",
+      "team": "chuangzaoli",
+      "status": "at-risk",
+      "progress": 20,
+      "owner": "Bruce Zhong",
+      "weekDone": "ESP32 硬體選型評估啟動；超聲波異常阻塞點識別",
+      "blockers": "超聲波擴展板驅動異常暫停量產；驅動修復完成前嚴禁大規模排產；Pixetto 2,400 顆庫存跌價風險（~10 萬美金）",
+      "targetDate": "2026-03-15",
+      "category": "Hardware",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p004",
+      "name": "LLM 安全內容過濾 & AIPC 支援",
+      "team": "chuangzaoli",
+      "status": "on-track",
+      "progress": 45,
+      "owner": "Tonny Shen",
+      "weekDone": "26Q1 人力大幅回升（CN 17.1mm）；LLM Sensitive Content Block 開發進行中；AIPC 專案支援中",
+      "blockers": "",
+      "targetDate": "2026-03-31",
+      "category": "AI/ML",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p005",
+      "name": "Pixetto 庫存轉化（標案/新竹）",
+      "team": "chuangzaoli",
+      "status": "at-risk",
+      "progress": 10,
+      "owner": "Robert",
+      "weekDone": "透過標案與新竹專案緊急轉化方案規劃；自行備料評估啟動",
+      "blockers": "超聲波驅動未修復，量產暫停影響庫存消化節奏",
+      "targetDate": "2026-06-30",
+      "category": "Supply Chain",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p006",
+      "name": "AI 人力效能轉型（AI 特攻隊成立）",
+      "team": "chuangzaoli",
+      "status": "on-track",
+      "progress": 5,
+      "owner": "Eddy Lin",
+      "weekDone": "教育部門扁平化 AI 特攻隊正式成立（Eddy 擔任協調人）；6 月前釋放 1/3 人力目標確立；Cursor/Gemini Pro 文檔自動化評估啟動",
+      "blockers": "",
+      "targetDate": "2026-06-30",
+      "category": "Process",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p007",
+      "name": "教育 AI 課程轉譯（108 課綱）",
+      "team": "learnmode",
+      "status": "on-track",
+      "progress": 15,
+      "owner": "Sean Peng",
+      "weekDone": "計畫利用大陸 Eva 課程資產轉譯 107 門 AI 課程；私立學校銷售通路（代理商/政府標案/研學中心）定位",
+      "blockers": "Sean 健康狀況（腿部）影響執行力；Gemini Pro Token 消耗偏高",
+      "targetDate": "2026-03-31",
+      "category": "Content",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p008",
+      "name": "小栗子 Light（SEL）台灣首發準備",
+      "team": "learnmode",
+      "status": "on-track",
+      "progress": 20,
+      "owner": "Kevin Liu",
+      "weekDone": "5/2 台灣首發確認；Loss-Leader 硬體策略確立；「硬體+課程+系統」套裝方案定位",
+      "blockers": "SEL 產品邊界內部分歧，需 4 月底前定調",
+      "targetDate": "2026-05-02",
+      "category": "Product",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p009",
+      "name": "桃園母親節活動（5/2）",
+      "team": "learnmode",
+      "status": "on-track",
+      "progress": 8,
+      "owner": "黎博",
+      "weekDone": "活動日期鎖定 5/2（規避 5/3 教會活動）；100+ AI Agents Persona 模擬測試定位；政商對接橋樑策略確立",
+      "blockers": "經費待秘書處確認",
+      "targetDate": "2026-05-02",
+      "category": "Marketing",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p010",
+      "name": "V3 無人駕駛 ROI 評估",
+      "team": "learnmode",
+      "status": "on-track",
+      "progress": 8,
+      "owner": "Kevin Liu",
+      "weekDone": "財務紅線設定：47% 毛利率或降低 20% 開發成本",
+      "blockers": "ROI 報告截止 3/15；若不達標則停止開發",
+      "targetDate": "2026-03-15",
+      "category": "Product",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p011",
+      "name": "私立學校通路開發計畫",
+      "team": "learnmode",
+      "status": "on-track",
+      "progress": 10,
+      "owner": "StevenCH",
+      "weekDone": "下週提交復興、再興等私立學校商業推廣計畫與定價方案",
+      "blockers": "",
+      "targetDate": "2026-03-31",
+      "category": "Business",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "p012",
+      "name": "MagicView RD 移交準備",
+      "team": "tv-solution",
+      "status": "on-track",
+      "progress": 8,
+      "owner": "Tom Liu",
+      "weekDone": "移交準備啟動；授權費 License Server 保留在本方",
+      "blockers": "",
+      "targetDate": "2026-03-31",
+      "category": "Delivery",
+      "weekStart": "2026-02-23"
+    }
+  ],
+  "risks": [
+    {
+      "id": "r001",
+      "level": "high",
+      "description": "超聲波擴展板驅動異常：量產暫停，Pixetto 2,400 顆庫存跌價損失約 10 萬美金",
+      "project": "SEL & 小栗方 Pro 硬體開發",
+      "team": "chuangzaoli",
+      "owner": "Bruce Zhong",
+      "dueDate": "2026-03-02",
+      "status": "in-progress",
+      "mitigation": "Bruce/RD 3/3 前完成驅動修復並通過測試；評估零件自行備料方案",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "r002",
+      "level": "high",
+      "description": "Pixetto 庫存跌價：超聲波異常暫停量產，2,400 顆庫存積壓，10 萬美金沉沒成本風險",
+      "project": "Pixetto 庫存轉化（標案/新竹）",
+      "team": "chuangzaoli",
+      "owner": "Robert",
+      "dueDate": "2026-03-25",
+      "status": "in-progress",
+      "mitigation": "透過標案與新竹專案緊急轉化；Robert 評估零件自行備料",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "r003",
+      "level": "medium",
+      "description": "Gemini Pro Token 消耗極高：AI 特攻隊若無 RD 介入整合，技術穩定性與成本效益存疑",
+      "project": "教育 AI 課程轉譯（108 課綱）",
+      "team": "learnmode",
+      "owner": "Sean Peng",
+      "dueDate": "2026-03-16",
+      "status": "open",
+      "mitigation": "持續觀察 Token 成本效益比；RD 評估整合可行性",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "r004",
+      "level": "medium",
+      "description": "FTE 鞭梢效應：25Q4 銳減至 10.83 FTE 後 26Q1 急速回升至 17.50，執行銜接與 Onboarding 風險",
+      "project": "AI 人力效能轉型（AI 特攻隊成立）",
+      "team": "chuangzaoli",
+      "owner": "Eddy Lin",
+      "dueDate": "2026-03-25",
+      "status": "open",
+      "mitigation": "人力報告已揭露趨勢，管理層確認人力配置節奏",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "r005",
+      "level": "medium",
+      "description": "計算機大賽舊系統代碼：技術所有權不清，維護成本高，需 AI 反向工程重建",
+      "project": "AI 人力效能轉型（AI 特攻隊成立）",
+      "team": "chuangzaoli",
+      "owner": "Jack Liu",
+      "dueDate": "2026-03-09",
+      "status": "open",
+      "mitigation": "Jack Liu 評估可行性；不可用則棄用",
+      "weekStart": "2026-02-23"
+    }
+  ],
+  "actions": [
+    {
+      "id": "a001",
+      "category": "technical",
+      "task": "小栗方 Pro 超聲波驅動修復完成，通過測試後恢復量產",
+      "owner": "Bruce Zhong",
+      "dueDate": "2026-03-03",
+      "status": "in-progress",
+      "project": "SEL & 小栗方 Pro 硬體開發",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "a002",
+      "category": "technical",
+      "task": "ESP32 硬體選型確認與 API 接口適配評估",
+      "owner": "Bruce Zhong",
+      "dueDate": "2026-03-05",
+      "status": "in-progress",
+      "project": "SEL & 小栗方 Pro 硬體開發",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "a003",
+      "category": "technical",
+      "task": "TVBS STT 音源分流優化邏輯評估完成",
+      "owner": "Steve Liu",
+      "dueDate": "2026-03-09",
+      "status": "in-progress",
+      "project": "Olapedia 1.0 開發 & STT Demo 準備",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "a004",
+      "category": "technical",
+      "task": "AI 特攻隊文檔自動化生成機制建立（Cursor/Gemini Pro）",
+      "owner": "Sean Peng",
+      "dueDate": "2026-03-09",
+      "status": "in-progress",
+      "project": "教育 AI 課程轉譯（108 課綱）",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "a005",
+      "category": "business",
+      "task": "AI 課程商業推廣計畫與定價方案提交（復興、再興等私校）",
+      "owner": "StevenCH",
+      "dueDate": "2026-03-02",
+      "status": "in-progress",
+      "project": "私立學校通路開發計畫",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "a006",
+      "category": "resource",
+      "task": "TV 專案人力認列清單提交（數據透明度改善）",
+      "owner": "Alex Liao",
+      "dueDate": "2026-03-03",
+      "status": "in-progress",
+      "project": "媒體資料入庫 & 音源分流技術研發",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "a007",
+      "category": "resource",
+      "task": "Pixetto 庫存轉化：推進標案與新竹專案，評估零件備料",
+      "owner": "Robert",
+      "dueDate": "2026-03-25",
+      "status": "in-progress",
+      "project": "Pixetto 庫存轉化（標案/新竹）",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "a008",
+      "category": "business",
+      "task": "桃園母親節活動場地與政府窗口協調確認（5/2 檔期）",
+      "owner": "黎博",
+      "dueDate": "2026-03-09",
+      "status": "in-progress",
+      "project": "桃園母親節活動（5/2）",
+      "weekStart": "2026-02-23"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "m001",
+      "name": "小栗方 Pro 超聲波驅動修復完成",
+      "date": "2026-03-03",
+      "team": "chuangzaoli",
+      "project": "SEL & 小栗方 Pro 硬體開發",
+      "status": "upcoming",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "m002",
+      "name": "AI 課程商業推廣計畫提交",
+      "date": "2026-03-02",
+      "team": "learnmode",
+      "project": "私立學校通路開發計畫",
+      "status": "upcoming",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "m003",
+      "name": "Olapedia 1.0 打包交付，確認 TVBS Demo 場次",
+      "date": "2026-03-07",
+      "team": "media-agent",
+      "project": "Olapedia 1.0 開發 & STT Demo 準備",
+      "status": "upcoming",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "m004",
+      "name": "V3 無人駕駛 ROI 報告（Go/No-Go）",
+      "date": "2026-03-15",
+      "team": "learnmode",
+      "project": "V3 無人駕駛 ROI 評估",
+      "status": "upcoming",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "m005",
+      "name": "SEL Demo 課程完成（5 篇教案）",
+      "date": "2026-03-27",
+      "team": "learnmode",
+      "project": "小栗子 Light（SEL）台灣首發準備",
+      "status": "upcoming",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "m006",
+      "name": "TVBS AI Meeting Demo（STT 92% 目標）",
+      "date": "2026-03-31",
+      "team": "media-agent",
+      "project": "Olapedia 1.0 開發 & STT Demo 準備",
+      "status": "upcoming",
+      "weekStart": "2026-02-23"
+    },
+    {
+      "id": "m007",
+      "name": "小栗子 Light（SEL）台灣首發",
+      "date": "2026-05-02",
+      "team": "chuangzaoli",
+      "project": "小栗子 Light（SEL）台灣首發準備",
+      "status": "upcoming",
+      "weekStart": "2026-02-23"
+    }
+  ],
+  "drafts": [],
+  "_savedAt": "2026-03-26T05:47:08.674Z",
+  "_version": "2.0"
+}
