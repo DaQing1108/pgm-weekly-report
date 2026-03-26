@@ -208,21 +208,22 @@ async function autoSyncFromHistory() {
 
 // ── 初始化 ─────────────────────────────────────────────────────
 async function init() {
-  const remoteState = await getState();          // 0. 先從後端載入跨瀏覽器狀態
-  if (remoteState) store.importAll(JSON.stringify(remoteState));
-  seedData();                                     // 1. 補齊快照；若空則補種子
-  await autoSyncFromHistory();                    // 2. 僅在空資料時才從後端補充
-  store.startBackendSync(saveState);             // 3. 啟動同步：store 變更 → 後端
+  await initApi();
+  seedData();                  // store 維護用，不影響顯示
 
-  // 4. 自動歸檔本週至 /api/weeks/:weekLabel
-  const curLabel = store.currentWeekLabel();
-  if (curLabel) {
-    const curState = JSON.parse(store.exportAll());
-    saveWeekState(curLabel, curState).catch(() => {});
+  // 從 /api/weeks 取最新週次，作為所有瀏覽器的統一預設畫面
+  const weeks = await listWeeks();
+  if (weeks.length > 0) {
+    const latestLabel = weeks[0].weekLabel;      // 已依 weekLabel 降冪排列
+    const data = await getWeekState(latestLabel);
+    if (data) {
+      _viewState    = data;
+      _viewingLabel = latestLabel;
+    }
   }
 
   renderAll();
-  await renderWeekNav();                          // 5. 渲染週次選擇器
+  await renderWeekNav();
 }
 
 // ── 渲染全部 ───────────────────────────────────────────────────
@@ -235,7 +236,7 @@ function renderAll() {
 
 // ── 週次 badge ──────────────────────────────────────────────────
 function updateWeekBadge() {
-  const label = store.currentWeekLabel();
+  const label = _viewingLabel || store.currentWeekLabel();
   if (label) document.getElementById('weekBadge').textContent = label;
 }
 
@@ -399,32 +400,28 @@ async function renderWeekNav() {
   const weeks = await listWeeks();
   if (weeks.length === 0) return;
 
-  const navBar  = document.getElementById('weekNavBar');
-  const sel     = document.getElementById('weekSelect');
-  const meta    = document.getElementById('weekNavMeta');
-  const curLabel = store.currentWeekLabel();
+  const navBar     = document.getElementById('weekNavBar');
+  const sel        = document.getElementById('weekSelect');
+  const meta       = document.getElementById('weekNavMeta');
+  const latestLabel = weeks[0].weekLabel;           // API 最新週次，與 localStorage 無關
 
   navBar.style.display = 'flex';
 
-  // 組裝 option 清單（最新在最上方）
-  sel.innerHTML = weeks.map(w => {
-    const isCurrent = w.weekLabel === curLabel;
-    const label = isCurrent ? `${w.weekLabel}（本週）` : w.weekLabel;
-    return `<option value="${w.weekLabel}" ${w.weekLabel === (_viewingLabel || curLabel) ? 'selected' : ''}>${label}</option>`;
+  // 組裝 option 清單（最新在最上方，標示「最新」）
+  sel.innerHTML = weeks.map((w, i) => {
+    const label = i === 0 ? `${w.weekLabel}（最新）` : w.weekLabel;
+    const selected = w.weekLabel === (_viewingLabel || latestLabel) ? 'selected' : '';
+    return `<option value="${w.weekLabel}" ${selected}>${label}</option>`;
   }).join('');
 
   // 顯示目前選定週次的摘要
-  const cur = weeks.find(w => w.weekLabel === (_viewingLabel || curLabel)) || weeks[0];
+  const cur = weeks.find(w => w.weekLabel === (_viewingLabel || latestLabel)) || weeks[0];
   if (cur) meta.textContent = `${cur.projectCount} 個專案 ｜ 健康度 ${cur.onTrackPct}%`;
 }
 
-// ── 切換至歷史週次 ──────────────────────────────────────────────
+// ── 切換週次 ────────────────────────────────────────────────────
 window.loadWeekView = async function(weekLabel) {
-  const curLabel = store.currentWeekLabel();
-
-  // 點選本週 → 回到本週
-  if (weekLabel === curLabel && _viewState === null) return;
-  if (weekLabel === curLabel) { returnToCurrentWeek(); return; }
+  if (weekLabel === _viewingLabel) return;   // 已在此週，不重載
 
   const data = await getWeekState(weekLabel);
   if (!data) { toast(`找不到 ${weekLabel} 的歷史資料`, 'error'); return; }
@@ -432,38 +429,43 @@ window.loadWeekView = async function(weekLabel) {
   _viewState    = data;
   _viewingLabel = weekLabel;
 
-  // 找對應快照的 weekStart 顯示期間
+  // 判斷是否為「最新週次」（API weeks[0]）
+  const weeks = await listWeeks();
+  const isLatest = weeks.length > 0 && weekLabel === weeks[0].weekLabel;
+
   const snap = (data.snapshots || []).find(s => s.weekLabel === weekLabel)
              || (data.snapshots || []).slice(-1)[0];
-  const period = snap?.weekStart
-    ? `${snap.weekStart.slice(5).replace('-','/')} 週`
-    : weekLabel;
 
-  document.getElementById('historyBanner').style.display = 'flex';
-  document.getElementById('historyBannerText').textContent =
-    `${weekLabel}（${period}）— ${(data.projects||[]).length} 個專案 | 唯讀`;
+  // 最新週次：隱藏 banner；歷史週次：顯示 banner
+  const banner = document.getElementById('historyBanner');
+  if (isLatest) {
+    banner.style.display = 'none';
+    document.querySelector('a[href="input.html"]')?.style.removeProperty('display');
+  } else {
+    const period = snap?.weekStart
+      ? `${snap.weekStart.slice(5).replace('-','/')} 週`
+      : weekLabel;
+    banner.style.display = 'flex';
+    document.getElementById('historyBannerText').textContent =
+      `${weekLabel}（${period}）— ${(data.projects||[]).length} 個專案 | 唯讀`;
+    document.querySelector('a[href="input.html"]')?.style.setProperty('display','none');
+  }
 
-  // 同步更新下拉選單選項與摘要
+  // 同步下拉選單與摘要
   const sel = document.getElementById('weekSelect');
   if (sel) sel.value = weekLabel;
   const metaEl = document.getElementById('weekNavMeta');
-  if (metaEl) metaEl.textContent = `${(data.projects||[]).length} 個專案 ｜ 健康度 ${snap?.onTrackPct ?? '—'}%`;
-
-  // 歷史模式隱藏編輯入口
-  document.querySelector('a[href="input.html"]')?.style.setProperty('display','none');
+  if (metaEl) metaEl.textContent =
+    `${(data.projects||[]).length} 個專案 ｜ 健康度 ${snap?.onTrackPct ?? '—'}%`;
 
   renderAll();
   renderWeekNav();
 };
 
-// ── 回到本週 ────────────────────────────────────────────────────
-window.returnToCurrentWeek = function() {
-  _viewState    = null;
-  _viewingLabel = null;
-  document.getElementById('historyBanner').style.display = 'none';
-  document.querySelector('a[href="input.html"]')?.style.removeProperty('display');
-  renderAll();
-  renderWeekNav();
+// ── 回到最新週次 ─────────────────────────────────────────────────
+window.returnToCurrentWeek = async function() {
+  const weeks = await listWeeks();
+  if (weeks.length > 0) await loadWeekView(weeks[0].weekLabel);
 };
 
 // ── store:updated 事件 ─────────────────────────────────────────
