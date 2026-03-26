@@ -37,9 +37,10 @@
   </div>
 
   <!-- 模式切換 -->
-  <div class="tab-bar" id="modeTab" style="max-width:320px;margin-bottom:var(--space-xl);">
+  <div class="tab-bar" id="modeTab" style="max-width:480px;margin-bottom:var(--space-xl);">
     <button class="tab-btn active" data-mode="quick">🎯 快速更新</button>
     <button class="tab-btn" data-mode="batch">📋 批次貼入</button>
+    <button class="tab-btn" data-mode="archive">📥 週報歸檔</button>
   </div>
 
   <!-- ── 快速更新模式 ──────────────────────────────────────── -->
@@ -286,6 +287,72 @@
     </div>
   </div>
 
+  <!-- ── 週報歸檔模式 ──────────────────────────────────────── -->
+  <div id="modeArchive" style="display:none;">
+    <div class="main-grid">
+
+      <!-- 左：上傳 + 操作 -->
+      <div class="stack">
+        <div class="panel">
+          <div class="panel__header">
+            <span class="panel__title">上傳週報 Markdown</span>
+          </div>
+          <div class="panel__body" style="padding:var(--space-md);">
+            <div class="stack">
+
+              <!-- Dropzone -->
+              <div id="archiveDropzone" style="border:2px dashed var(--color-border-default);border-radius:var(--radius-md);padding:var(--space-xl);text-align:center;cursor:pointer;transition:border-color .2s;" onclick="document.getElementById('archiveFile').click()">
+                <div style="font-size:2rem;margin-bottom:var(--space-sm);">📄</div>
+                <p class="text-secondary text-sm">拖曳 .md 週報至此，或點擊選擇</p>
+                <p class="text-xs text-secondary" style="margin-top:4px;">例：Pgm_Weekly_Report_260403.md</p>
+                <input type="file" id="archiveFile" accept=".md" style="display:none;">
+              </div>
+
+              <!-- 解析結果摘要 -->
+              <div id="archiveMeta" style="display:none;background:var(--color-bg-secondary);border-radius:var(--radius-md);padding:var(--space-md);">
+                <div id="archiveMetaContent"></div>
+              </div>
+
+              <!-- 操作按鈕 -->
+              <div id="archiveActions" style="display:none;flex-direction:column;gap:var(--space-sm);">
+                <button class="btn btn-primary" id="btnArchiveConfirm">✅ 確認歸檔（上傳 + 下載 JSON）</button>
+                <button class="btn btn-outline btn-sm" id="btnArchiveDownload">⬇️ 僅下載 JSON</button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Git 指令提示 -->
+        <div id="archiveGitHint" style="display:none;" class="panel">
+          <div class="panel__header">
+            <span class="panel__title">🔧 最後一步：提交到 Git</span>
+          </div>
+          <div class="panel__body" style="padding:var(--space-md);">
+            <p class="text-sm text-secondary" style="margin-bottom:var(--space-sm);">將下載的 JSON 放入 <code>backend/data/weeks/</code> 後執行：</p>
+            <pre id="archiveGitCmd" style="background:var(--color-bg-secondary);padding:var(--space-md);border-radius:var(--radius-sm);font-size:12px;overflow-x:auto;line-height:1.6;"></pre>
+            <button class="btn btn-outline btn-sm" id="btnCopyGitCmd" style="margin-top:var(--space-sm);">📋 複製指令</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右：解析預覽 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">解析預覽</span>
+          <span class="text-xs text-secondary" id="archivePreviewCount"></span>
+        </div>
+        <div class="panel__body" id="archivePreview" style="padding:var(--space-md);">
+          <div class="empty-state">
+            <span class="empty-state__icon">📥</span>
+            <p class="empty-state__msg">上傳週報後顯示解析結果<br>可確認資料無誤後再歸檔</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
@@ -293,7 +360,7 @@
 <script type="module">
 import { store }   from './assets/js/store.js';
 import { appInit } from './assets/js/app-init.js';
-import { fetchReports, fetchReportContent } from './assets/js/api.js';
+import { fetchReports, fetchReportContent, saveWeekState } from './assets/js/api.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
 import { toast, renderBadge, formatDate, generateId, relativeTime, modal, confirm as uiConfirm } from './assets/js/ui.js';
 import { parseText } from './assets/js/import.js';
@@ -317,8 +384,152 @@ document.getElementById('modeTab').addEventListener('click', e => {
   document.querySelectorAll('#modeTab .tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   const mode = btn.dataset.mode;
-  document.getElementById('modeQuick').style.display = mode === 'quick' ? '' : 'none';
-  document.getElementById('modeBatch').style.display = mode === 'batch' ? '' : 'none';
+  document.getElementById('modeQuick').style.display   = mode === 'quick'   ? '' : 'none';
+  document.getElementById('modeBatch').style.display   = mode === 'batch'   ? '' : 'none';
+  document.getElementById('modeArchive').style.display = mode === 'archive' ? '' : 'none';
+});
+
+// ── 週報歸檔 ───────────────────────────────────────────────────
+let _parsedReport    = null;
+let _archiveWeekLabel = null;
+
+// 拖曳支援
+const _dropzone = document.getElementById('archiveDropzone');
+_dropzone.addEventListener('dragover',  e => { e.preventDefault(); _dropzone.style.borderColor = 'var(--color-info)'; });
+_dropzone.addEventListener('dragleave', () => { _dropzone.style.borderColor = 'var(--color-border-default)'; });
+_dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  _dropzone.style.borderColor = 'var(--color-border-default)';
+  const file = e.dataTransfer.files[0];
+  if (file?.name.endsWith('.md')) _handleReportFile(file);
+  else toast('請選擇 .md 格式的週報檔案', 'error');
+});
+
+// 選擇檔案
+document.getElementById('archiveFile').addEventListener('change', function () {
+  if (this.files[0]) _handleReportFile(this.files[0]);
+});
+
+function _handleReportFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const md     = e.target.result;
+    const parsed = parseHistoricalReport(md, file.name);
+    _parsedReport     = parsed;
+    _archiveWeekLabel = parsed.meta.weekStart ? store.weekLabel(parsed.meta.weekStart) : null;
+
+    // 顯示摘要列
+    const label = _archiveWeekLabel || '（無法識別）';
+    document.getElementById('archiveMetaContent').innerHTML = `
+      <div style="display:flex;gap:var(--space-xl);flex-wrap:wrap;">
+        <div><div class="text-xs text-secondary">識別週次</div><div class="font-600" style="font-size:1.1rem;">${label}</div></div>
+        <div><div class="text-xs text-secondary">週期</div><div class="font-600">${parsed.meta.period || '—'}</div></div>
+        <div><div class="text-xs text-secondary">彙整人</div><div class="font-600">${parsed.meta.author || '—'}</div></div>
+        <div><div class="text-xs text-secondary">檔案</div><div class="text-sm">${file.name}</div></div>
+      </div>`;
+    document.getElementById('archiveMeta').style.display    = '';
+    document.getElementById('archiveActions').style.display = 'flex';
+    document.getElementById('archiveGitHint').style.display = 'none';
+
+    // 顯示解析預覽
+    _renderArchivePreview(parsed);
+    toast(`已解析 ${file.name}，請確認後歸檔`, 'info');
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function _renderArchivePreview(parsed) {
+  const { projects = [], risks = [], actions = [], milestones = [] } = parsed;
+  const total = projects.length + risks.length + actions.length + milestones.length;
+  document.getElementById('archivePreviewCount').textContent = `共 ${total} 筆`;
+
+  const sections = [
+    { label: '📁 專案',     items: projects,   getText: i => `${i.name}（${i.owner || '—'}）`,    badge: i => i.status },
+    { label: '⚠️ 風險',    items: risks,      getText: i => i.description,                          badge: i => i.level  },
+    { label: '✅ Actions', items: actions,    getText: i => `${i.task}（${i.owner || '—'}）`,        badge: i => i.status },
+    { label: '📅 里程碑',  items: milestones, getText: i => `${i.name}（${i.date || '—'}）`,        badge: () => null    },
+  ];
+
+  let html = '';
+  sections.forEach(sec => {
+    if (!sec.items.length) return;
+    html += `<div class="section-heading">${sec.label} <span class="badge badge-neutral">${sec.items.length}</span></div>`;
+    sec.items.forEach(item => {
+      const text  = sec.getText(item);
+      const b     = sec.badge(item);
+      html += `<div style="display:flex;align-items:center;gap:var(--space-sm);padding:5px var(--space-sm);border-radius:var(--radius-sm);margin-bottom:3px;border:1px solid var(--color-border-default);background:var(--color-bg-primary);">
+        <span class="text-sm flex-1">${text.substring(0, 80)}${text.length > 80 ? '…' : ''}</span>
+        ${b ? renderBadge(b) : ''}
+      </div>`;
+    });
+  });
+
+  if (!html) html = '<p class="text-secondary text-sm">⚠️ 未解析到資料，請確認週報格式是否符合標準模板</p>';
+  document.getElementById('archivePreview').innerHTML = html;
+}
+
+// 確認歸檔
+document.getElementById('btnArchiveConfirm').addEventListener('click', async () => {
+  if (!_parsedReport)     { toast('請先上傳週報', 'error'); return; }
+  if (!_archiveWeekLabel) { toast('無法識別週次，請確認週報的「報告週期」欄位', 'error'); return; }
+
+  const btn = document.getElementById('btnArchiveConfirm');
+  btn.disabled = true;
+  btn.textContent = '歸檔中…';
+
+  try {
+    // 1. 載入解析資料到 store（覆蓋）
+    syncToStore(_parsedReport, store, { replaceAll: true });
+
+    // 2. 取出完整 state
+    const stateData = JSON.parse(store.exportAll());
+
+    // 3. 上傳到後端 /api/weeks/:weekLabel
+    await saveWeekState(_archiveWeekLabel, stateData);
+
+    // 4. 同時下載 JSON（讓使用者 git commit）
+    _downloadWeekJson(_archiveWeekLabel, stateData);
+
+    // 5. 顯示 git 指令
+    _showGitHint(_archiveWeekLabel);
+
+    toast(`✅ ${_archiveWeekLabel} 歸檔完成！JSON 已下載，請執行 git push`, 'success');
+  } catch (err) {
+    toast(`歸檔失敗：${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✅ 確認歸檔（上傳 + 下載 JSON）';
+  }
+});
+
+// 僅下載
+document.getElementById('btnArchiveDownload').addEventListener('click', () => {
+  if (!_parsedReport)     { toast('請先上傳週報', 'error'); return; }
+  if (!_archiveWeekLabel) { toast('無法識別週次', 'error'); return; }
+  syncToStore(_parsedReport, store, { replaceAll: true });
+  const stateData = JSON.parse(store.exportAll());
+  _downloadWeekJson(_archiveWeekLabel, stateData);
+  _showGitHint(_archiveWeekLabel);
+  toast(`⬇️ ${_archiveWeekLabel}.json 已下載`, 'info');
+});
+
+function _downloadWeekJson(label, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: `${label}.json` });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function _showGitHint(label) {
+  document.getElementById('archiveGitCmd').textContent =
+    `cp ~/Downloads/${label}.json backend/data/weeks/\ngit add backend/data/weeks/${label}.json\ngit commit -m "Archive ${label} dashboard data"\ngit push origin main`;
+  document.getElementById('archiveGitHint').style.display = '';
+}
+
+document.getElementById('btnCopyGitCmd').addEventListener('click', () => {
+  const cmd = document.getElementById('archiveGitCmd').textContent;
+  navigator.clipboard.writeText(cmd).then(() => toast('指令已複製', 'success'));
 });
 
 // ── 載入專案下拉 ───────────────────────────────────────────────
