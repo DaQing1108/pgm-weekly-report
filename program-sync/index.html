@@ -34,10 +34,11 @@
 <div class="page-container">
 
   <!-- 週次歷史選擇器 -->
-  <div id="weekNavBar" style="display:none;margin-bottom:var(--space-md);background:var(--color-surface);border:1px solid var(--color-border-default);border-radius:var(--radius-md);padding:10px var(--space-lg);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;">週次：</span>
-    <div id="weekBtns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
-    <span style="font-size:11px;color:var(--color-text-tertiary);margin-left:auto;white-space:nowrap;">點選切換歷史週次</span>
+  <div id="weekNavBar" style="display:none;margin-bottom:var(--space-md);background:var(--color-surface);border:1px solid var(--color-border-default);border-radius:var(--radius-md);padding:10px var(--space-lg);display:flex;align-items:center;gap:10px;">
+    <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;">查看週次：</span>
+    <select id="weekSelect" class="inp" style="width:160px;padding:4px 8px;font-size:var(--font-size-sm);" onchange="loadWeekView(this.value)">
+    </select>
+    <span id="weekNavMeta" style="font-size:11px;color:var(--color-text-tertiary);"></span>
   </div>
 
   <!-- 歷史瀏覽 banner -->
@@ -398,26 +399,23 @@ async function renderWeekNav() {
   const weeks = await listWeeks();
   if (weeks.length === 0) return;
 
-  const navBar = document.getElementById('weekNavBar');
-  const btnContainer = document.getElementById('weekBtns');
+  const navBar  = document.getElementById('weekNavBar');
+  const sel     = document.getElementById('weekSelect');
+  const meta    = document.getElementById('weekNavMeta');
   const curLabel = store.currentWeekLabel();
 
   navBar.style.display = 'flex';
 
-  btnContainer.innerHTML = weeks.map(w => {
+  // 組裝 option 清單（最新在最上方）
+  sel.innerHTML = weeks.map(w => {
     const isCurrent = w.weekLabel === curLabel;
-    const isViewing = w.weekLabel === _viewingLabel;
-    const style = isViewing
-      ? 'background:var(--color-primary);color:#fff;border-color:var(--color-primary);'
-      : isCurrent
-        ? 'background:var(--color-success);color:#fff;border-color:var(--color-success);'
-        : '';
-    const label = isCurrent ? `${w.weekLabel} ✦` : w.weekLabel;
-    return `<button class="btn btn-outline btn-sm"
-      style="font-size:11px;padding:3px 10px;${style}"
-      title="${w.projectCount} 個專案 | 健康度 ${w.onTrackPct}%"
-      onclick="loadWeekView('${w.weekLabel}')">${label}</button>`;
+    const label = isCurrent ? `${w.weekLabel}（本週）` : w.weekLabel;
+    return `<option value="${w.weekLabel}" ${w.weekLabel === (_viewingLabel || curLabel) ? 'selected' : ''}>${label}</option>`;
   }).join('');
+
+  // 顯示目前選定週次的摘要
+  const cur = weeks.find(w => w.weekLabel === (_viewingLabel || curLabel)) || weeks[0];
+  if (cur) meta.textContent = `${cur.projectCount} 個專案 ｜ 健康度 ${cur.onTrackPct}%`;
 }
 
 // ── 切換至歷史週次 ──────────────────────────────────────────────
@@ -444,6 +442,12 @@ window.loadWeekView = async function(weekLabel) {
   document.getElementById('historyBanner').style.display = 'flex';
   document.getElementById('historyBannerText').textContent =
     `${weekLabel}（${period}）— ${(data.projects||[]).length} 個專案 | 唯讀`;
+
+  // 同步更新下拉選單選項與摘要
+  const sel = document.getElementById('weekSelect');
+  if (sel) sel.value = weekLabel;
+  const metaEl = document.getElementById('weekNavMeta');
+  if (metaEl) metaEl.textContent = `${(data.projects||[]).length} 個專案 ｜ 健康度 ${snap?.onTrackPct ?? '—'}%`;
 
   // 歷史模式隱藏編輯入口
   document.querySelector('a[href="input.html"]')?.style.setProperty('display','none');
