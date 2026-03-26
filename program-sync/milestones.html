@@ -100,31 +100,24 @@
 <script type="module">
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
-import { initApi, fetchReports, fetchReportContent, getState, saveState } from './assets/js/api.js';
-import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
-
-async function _autoSync() {
-  try {
-    const ok = await initApi();
-    if (!ok) return false;
-    if (store.getAll("projects").length > 0) return false;
-    const rpts = await fetchReports();
-    if (!rpts.length) return false;
-    for (let i = 0; i < Math.min(2, rpts.length); i++) {
-      const c = await fetchReportContent(rpts[i].filename);
-      syncToStore(parseHistoricalReport(c, rpts[i].filename), store, { replaceAll: i === 0 });
-    }
-    return true;
-  } catch { return false; }
-}
+import { initApi, listWeeks, getWeekState, saveWeekState } from './assets/js/api.js';
 import { toast, formatDate, generateId } from './assets/js/ui.js';
 
+let _latestWeekLabel = null;
+
 (async () => {
-  const remoteState = await getState();
-  if (remoteState) store.importAll(JSON.stringify(remoteState));
+  await initApi();
+  const weeks = await listWeeks();
+  if (weeks.length > 0) {
+    _latestWeekLabel = weeks[0].weekLabel;
+    const data = await getWeekState(_latestWeekLabel);
+    if (data) store.importAll(JSON.stringify(data));   // 觸發 store:updated → renderAll
+  }
   seedData();
-  await _autoSync();
-  store.startBackendSync(saveState);
+  store.startBackendSync(stateJson => {
+    // 編輯後同步回最新週次歸檔（確保下次任一瀏覽器載入時資料一致）
+    if (_latestWeekLabel) saveWeekState(_latestWeekLabel, JSON.parse(stateJson));
+  });
   updateWeekBadge();
 })();
 
