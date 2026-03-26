@@ -209,7 +209,6 @@ async function autoSyncFromHistory() {
 // ── 初始化 ─────────────────────────────────────────────────────
 async function init() {
   await initApi();
-  seedData();                  // store 維護用，不影響顯示
 
   // 從 /api/weeks 取最新週次，作為所有瀏覽器的統一預設畫面
   const weeks = await listWeeks();
@@ -221,6 +220,9 @@ async function init() {
       _viewingLabel = latestLabel;
     }
   }
+
+  // 後端無資料時才 seed（避免種子快照污染 store）
+  if (!_viewState) seedData();
 
   renderAll();
   await renderWeekNav();

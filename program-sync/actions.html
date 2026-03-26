@@ -64,33 +64,11 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script type="module">
-import { store }    from './assets/js/store.js';
-import { seedData } from './assets/data/seed.js';
-import { initApi, listWeeks, getWeekState, saveWeekState } from './assets/js/api.js';
+import { store }   from './assets/js/store.js';
+import { appInit } from './assets/js/app-init.js';
 import { toast, renderBadge, formatDate, generateId, modal, isOverdue } from './assets/js/ui.js';
 
-let _latestWeekLabel = null;
-
-(async () => {
-  await initApi();
-  const weeks = await listWeeks();
-  if (weeks.length > 0) {
-    _latestWeekLabel = weeks[0].weekLabel;
-    const data = await getWeekState(_latestWeekLabel);
-    if (data) store.importAll(JSON.stringify(data));   // 觸發 store:updated → renderAll
-  }
-  seedData();
-  store.startBackendSync(stateJson => {
-    // 編輯後同步回最新週次歸檔（確保下次任一瀏覽器載入時資料一致）
-    if (_latestWeekLabel) saveWeekState(_latestWeekLabel, JSON.parse(stateJson));
-  });
-  updateWeekBadge();
-})();
-
-function updateWeekBadge() {
-  const label = store.currentWeekLabel();
-  if (label) document.getElementById('weekBadge').textContent = label;
-}
+(async () => { await appInit(); })();
 
 const CATEGORIES = [
   { id: 'technical', label: '⚙️ 技術',  color: 'var(--color-info)'    },
