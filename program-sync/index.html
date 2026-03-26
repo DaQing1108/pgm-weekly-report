@@ -256,7 +256,6 @@ function renderKPIs() {
     paused     = 0;
     total      = snap.totalProjects || 0;
     onTrack    = total - atRisk - behind;
-    overdue    = snap.overdueActions || 0;
     needAttn   = atRisk + behind;
   } else {
     // 本週模式：從 store 即時計算
@@ -267,9 +266,13 @@ function renderKPIs() {
     behind     = s.behindProjects;
     paused     = s.pausedProjects;
     total      = s.totalProjects;
-    overdue    = s.overdueActions;
     needAttn   = atRisk + behind;
   }
+
+  // 逾期 Actions：永遠依今日日期即時計算，不使用快照預存值
+  const _today = new Date().toISOString().split('T')[0];
+  const _actions = _viewState ? (_viewState.actions || []) : store.getAll('actions');
+  overdue = _actions.filter(a => a.dueDate && a.dueDate < _today && a.status !== 'done').length;
 
   document.getElementById('kpiHealth').textContent    = `${onTrackPct}%`;
   document.getElementById('kpiHealthSub').textContent =
