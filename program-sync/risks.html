@@ -161,34 +161,11 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script type="module">
-import { store }    from './assets/js/store.js';
-import { seedData } from './assets/data/seed.js';
-import { initApi, fetchReports, fetchReportContent, getState, saveState } from './assets/js/api.js';
-import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
-
-async function _autoSync() {
-  try {
-    const ok = await initApi();
-    if (!ok) return false;
-    if (store.getAll("projects").length > 0) return false;
-    const rpts = await fetchReports();
-    if (!rpts.length) return false;
-    for (let i = 0; i < Math.min(2, rpts.length); i++) {
-      const c = await fetchReportContent(rpts[i].filename);
-      syncToStore(parseHistoricalReport(c, rpts[i].filename), store, { replaceAll: i === 0 });
-    }
-    return true;
-  } catch { return false; }
-}
+import { store }   from './assets/js/store.js';
+import { appInit } from './assets/js/app-init.js';
 import { toast, renderBadge, formatDate, generateId, confirm } from './assets/js/ui.js';
 
-(async () => {
-  const remoteState = await getState();
-  if (remoteState) store.importAll(JSON.stringify(remoteState));
-  seedData();
-  await _autoSync();
-  store.startBackendSync(saveState);
-})();
+(async () => { await appInit(); })();
 
 let filterLevel  = 'all';
 let filterStatus = 'open';
