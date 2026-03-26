@@ -33,6 +33,22 @@
 <!-- ── Page ────────────────────────────────────────────────── -->
 <div class="page-container">
 
+  <!-- 週次歷史選擇器 -->
+  <div id="weekNavBar" style="display:none;margin-bottom:var(--space-md);background:var(--color-surface);border:1px solid var(--color-border-default);border-radius:var(--radius-md);padding:10px var(--space-lg);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;">週次：</span>
+    <div id="weekBtns" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    <span style="font-size:11px;color:var(--color-text-tertiary);margin-left:auto;white-space:nowrap;">點選切換歷史週次</span>
+  </div>
+
+  <!-- 歷史瀏覽 banner -->
+  <div id="historyBanner" style="display:none;margin-bottom:var(--space-md);background:#fff8e6;border:1px solid #f0b429;border-radius:var(--radius-md);padding:10px var(--space-lg);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <div>
+      <span style="font-size:13px;font-weight:600;color:#b45309;">📅 歷史瀏覽模式</span>
+      <span id="historyBannerText" style="font-size:12px;color:#92400e;margin-left:8px;"></span>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="returnToCurrentWeek()">↩ 回到本週</button>
+  </div>
+
   <!-- KPI Row -->
   <div class="kpi-row" id="kpiRow">
     <div class="kpi-card kpi-ok">
@@ -140,9 +156,27 @@
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
 import { toast, renderBadge, formatDate, isOverdue } from './assets/js/ui.js';
-import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl, deleteReport, getState, saveState } from './assets/js/api.js';
+import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl, deleteReport, getState, saveState, listWeeks, getWeekState, saveWeekState } from './assets/js/api.js';
 import { modal } from './assets/js/ui.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
+
+// ── 歷史週次瀏覽狀態 ────────────────────────────────────────────
+let _viewState   = null;  // null = 本週；object = 歷史週次資料
+let _viewingLabel = null; // 目前瀏覽的週次標籤
+
+// ── 從 viewState 或 store 取得顯示資料 ─────────────────────────
+function _displayProjects() {
+  return _viewState ? (_viewState.projects || []) : store.getAll('projects');
+}
+function _displayRisks() {
+  return _viewState ? (_viewState.risks || []) : store.getAll('risks');
+}
+function _displaySnap() {
+  if (!_viewState) return null;
+  return (_viewState.snapshots || []).find(s => s.weekLabel === _viewingLabel)
+      || (_viewState.snapshots || []).slice(-1)[0]
+      || null;
+}
 
 // ── 自動從後端歷史週報同步真實資料 ────────────────────────────
 async function autoSyncFromHistory() {
@@ -178,7 +212,16 @@ async function init() {
   seedData();                                     // 1. 補齊快照；若空則補種子
   await autoSyncFromHistory();                    // 2. 僅在空資料時才從後端補充
   store.startBackendSync(saveState);             // 3. 啟動同步：store 變更 → 後端
+
+  // 4. 自動歸檔本週至 /api/weeks/:weekLabel
+  const curLabel = store.currentWeekLabel();
+  if (curLabel) {
+    const curState = JSON.parse(store.exportAll());
+    saveWeekState(curLabel, curState).catch(() => {});
+  }
+
   renderAll();
+  await renderWeekNav();                          // 5. 渲染週次選擇器
 }
 
 // ── 渲染全部 ───────────────────────────────────────────────────
@@ -197,31 +240,51 @@ function updateWeekBadge() {
 
 // ── KPI ─────────────────────────────────────────────────────────
 function renderKPIs() {
-  const s = store.stats();
-  const healthEl = document.getElementById('kpiHealth');
+  const healthEl   = document.getElementById('kpiHealth');
   const healthCard = healthEl.closest('.kpi-card');
 
-  document.getElementById('kpiHealth').textContent = `${s.onTrackPct}%`;
+  let onTrackPct, onTrack, atRisk, behind, paused, total, needAttn, overdue;
+
+  const snap = _displaySnap();
+  if (snap) {
+    // 歷史模式：從快照取 KPI
+    onTrackPct = snap.onTrackPct || 0;
+    atRisk     = snap.atRiskCount || 0;
+    behind     = snap.behindCount || 0;
+    paused     = 0;
+    total      = snap.totalProjects || 0;
+    onTrack    = total - atRisk - behind;
+    overdue    = snap.overdueActions || 0;
+    needAttn   = atRisk + behind;
+  } else {
+    // 本週模式：從 store 即時計算
+    const s  = store.stats();
+    onTrackPct = s.onTrackPct;
+    onTrack    = s.onTrackProjects;
+    atRisk     = s.atRiskProjects;
+    behind     = s.behindProjects;
+    paused     = s.pausedProjects;
+    total      = s.totalProjects;
+    overdue    = s.overdueActions;
+    needAttn   = atRisk + behind;
+  }
+
+  document.getElementById('kpiHealth').textContent    = `${onTrackPct}%`;
   document.getElementById('kpiHealthSub').textContent =
-    `${s.onTrackProjects} 正常 / ${s.atRiskProjects} 風險 / ${s.behindProjects} 落後${s.pausedProjects ? ` / ${s.pausedProjects} 暫緩` : ''}`;
-  document.getElementById('kpiTotal').textContent = s.totalProjects;
-  document.getElementById('kpiTotalSub').textContent = `${s.behindProjects} 落後 / ${s.pausedProjects} 暫緩`;
-  // 需關注專案 = at-risk + behind
-  const needAttention = s.atRiskProjects + s.behindProjects;
-  document.getElementById('kpiRisks').textContent = needAttention;
-  document.getElementById('kpiRisksSub').textContent =
-    `${s.atRiskProjects} At Risk / ${s.behindProjects} 落後`;
-  document.getElementById('kpiRisksCard').className =
-    `kpi-card ${needAttention === 0 ? 'kpi-ok' : needAttention <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
-
-  document.getElementById('kpiActions').textContent = s.overdueActions;
+    `${onTrack} 正常 / ${atRisk} 風險 / ${behind} 落後${paused ? ` / ${paused} 暫緩` : ''}`;
+  document.getElementById('kpiTotal').textContent     = total;
+  document.getElementById('kpiTotalSub').textContent  = `${behind} 落後 / ${paused} 暫緩`;
+  document.getElementById('kpiRisks').textContent     = needAttn;
+  document.getElementById('kpiRisksSub').textContent  = `${atRisk} At Risk / ${behind} 落後`;
+  document.getElementById('kpiRisksCard').className   =
+    `kpi-card ${needAttn === 0 ? 'kpi-ok' : needAttn <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
+  document.getElementById('kpiActions').textContent   = overdue;
   document.getElementById('kpiActionsSub').textContent =
-    s.overdueActions > 0 ? `${s.overdueActions} 項已逾期` : '無逾期項目';
+    overdue > 0 ? `${overdue} 項已逾期` : '無逾期項目';
   document.getElementById('kpiActionsCard').className =
-    `kpi-card ${s.overdueActions === 0 ? 'kpi-ok' : s.overdueActions <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
-
-  // 動態顏色
-  healthCard.className = `kpi-card ${s.onTrackPct >= 80 ? 'kpi-ok' : s.onTrackPct >= 60 ? 'kpi-warn' : 'kpi-bad'}`;
+    `kpi-card ${overdue === 0 ? 'kpi-ok' : overdue <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
+  healthCard.className =
+    `kpi-card ${onTrackPct >= 80 ? 'kpi-ok' : onTrackPct >= 60 ? 'kpi-warn' : 'kpi-bad'}`;
 }
 
 // ── 專案列表 ────────────────────────────────────────────────────
@@ -230,7 +293,7 @@ let currentTeamFilter = 'all';
 
 function renderProjects(filter) {
   if (filter !== undefined) currentFilter = filter;
-  const all = store.getAll('projects');
+  const all = _displayProjects();
   let list = currentFilter === 'all' ? all : all.filter(p => p.status === currentFilter);
   if (currentTeamFilter !== 'all') list = list.filter(p => p.team === currentTeamFilter);
   const el = document.getElementById('projectList');
@@ -250,7 +313,7 @@ function renderProjects(filter) {
     'org-mgmt':'組織管理'
   };
 
-  const allActions = store.getAll('actions');
+  const allActions = _viewState ? (_viewState.actions || []) : store.getAll('actions');
   function effectiveProgress(p) {
     if (p.progressMode !== 'auto') return p.progress ?? 0;
     const acts = allActions.filter(a => a.project === p.name);
@@ -292,7 +355,8 @@ window.toggleDetail = function(id) {
 
 // ── 需決策事項 ──────────────────────────────────────────────────
 function renderDecisions() {
-  const risks = store.query('risks', r => r.level === 'high' && r.status !== 'closed');
+  const allRisks = _displayRisks();
+  const risks = allRisks.filter(r => r.level === 'high' && r.status !== 'closed');
   const el = document.getElementById('decisionList');
 
   if (risks.length === 0) {
@@ -329,8 +393,79 @@ document.getElementById('teamFilter').addEventListener('change', function() {
   renderProjects();
 });
 
+// ── 週次選擇器 ─────────────────────────────────────────────────
+async function renderWeekNav() {
+  const weeks = await listWeeks();
+  if (weeks.length === 0) return;
+
+  const navBar = document.getElementById('weekNavBar');
+  const btnContainer = document.getElementById('weekBtns');
+  const curLabel = store.currentWeekLabel();
+
+  navBar.style.display = 'flex';
+
+  btnContainer.innerHTML = weeks.map(w => {
+    const isCurrent = w.weekLabel === curLabel;
+    const isViewing = w.weekLabel === _viewingLabel;
+    const style = isViewing
+      ? 'background:var(--color-primary);color:#fff;border-color:var(--color-primary);'
+      : isCurrent
+        ? 'background:var(--color-success);color:#fff;border-color:var(--color-success);'
+        : '';
+    const label = isCurrent ? `${w.weekLabel} ✦` : w.weekLabel;
+    return `<button class="btn btn-outline btn-sm"
+      style="font-size:11px;padding:3px 10px;${style}"
+      title="${w.projectCount} 個專案 | 健康度 ${w.onTrackPct}%"
+      onclick="loadWeekView('${w.weekLabel}')">${label}</button>`;
+  }).join('');
+}
+
+// ── 切換至歷史週次 ──────────────────────────────────────────────
+window.loadWeekView = async function(weekLabel) {
+  const curLabel = store.currentWeekLabel();
+
+  // 點選本週 → 回到本週
+  if (weekLabel === curLabel && _viewState === null) return;
+  if (weekLabel === curLabel) { returnToCurrentWeek(); return; }
+
+  const data = await getWeekState(weekLabel);
+  if (!data) { toast(`找不到 ${weekLabel} 的歷史資料`, 'error'); return; }
+
+  _viewState    = data;
+  _viewingLabel = weekLabel;
+
+  // 找對應快照的 weekStart 顯示期間
+  const snap = (data.snapshots || []).find(s => s.weekLabel === weekLabel)
+             || (data.snapshots || []).slice(-1)[0];
+  const period = snap?.weekStart
+    ? `${snap.weekStart.slice(5).replace('-','/')} 週`
+    : weekLabel;
+
+  document.getElementById('historyBanner').style.display = 'flex';
+  document.getElementById('historyBannerText').textContent =
+    `${weekLabel}（${period}）— ${(data.projects||[]).length} 個專案 | 唯讀`;
+
+  // 歷史模式隱藏編輯入口
+  document.querySelector('a[href="input.html"]')?.style.setProperty('display','none');
+
+  renderAll();
+  renderWeekNav();
+};
+
+// ── 回到本週 ────────────────────────────────────────────────────
+window.returnToCurrentWeek = function() {
+  _viewState    = null;
+  _viewingLabel = null;
+  document.getElementById('historyBanner').style.display = 'none';
+  document.querySelector('a[href="input.html"]')?.style.removeProperty('display');
+  renderAll();
+  renderWeekNav();
+};
+
 // ── store:updated 事件 ─────────────────────────────────────────
-window.addEventListener('store:updated', () => renderAll());
+window.addEventListener('store:updated', () => {
+  if (!_viewState) renderAll();  // 歷史瀏覽中不因 store 更新而重繪
+});
 
 // ── API Key 按鈕 ───────────────────────────────────────────────
 document.getElementById('btnApiKey').addEventListener('click', () => {

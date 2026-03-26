@@ -104,6 +104,38 @@ export async function saveState(data) {
   }
 }
 
+// ── 週次歸檔（per-week persistent archive）────────────────────
+export async function listWeeks() {
+  try {
+    const res = await fetch(`${API_BASE}/weeks`, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch { return []; }
+}
+
+export async function getWeekState(weekLabel) {
+  try {
+    const res = await fetch(`${API_BASE}/weeks/${encodeURIComponent(weekLabel)}`,
+      { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch { return null; }
+}
+
+export async function saveWeekState(weekLabel, data) {
+  try {
+    const res = await fetch(`${API_BASE}/weeks/${encodeURIComponent(weekLabel)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    console.warn('[api] saveWeekState 失敗:', e.message);
+  }
+}
+
 // ── 初始化：頁面載入時自動偵測後端 ────────────────────────────
 export async function initApi() {
   const available = await checkBackend();

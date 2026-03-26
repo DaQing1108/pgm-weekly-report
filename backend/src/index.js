@@ -127,6 +127,52 @@ app.post('/api/state', (req, res) => {
   }
 });
 
+// ── Per-week state archive (persistent via git) ───────────────
+const WEEKS_DIR = path.join(__dirname, '../data/weeks');
+if (!fs.existsSync(WEEKS_DIR)) fs.mkdirSync(WEEKS_DIR, { recursive: true });
+
+app.get('/api/weeks', (req, res) => {
+  try {
+    const files = fs.readdirSync(WEEKS_DIR).filter(f => f.endsWith('.json'));
+    const weeks = files.map(f => {
+      const weekLabel = f.replace('.json', '');
+      try {
+        const data = JSON.parse(fs.readFileSync(path.join(WEEKS_DIR, f), 'utf8'));
+        const snap = (data.snapshots || []).find(s => s.weekLabel === weekLabel)
+                   || (data.snapshots || []).slice(-1)[0] || {};
+        return {
+          weekLabel,
+          weekStart:    snap.weekStart    || data.weekStart || '',
+          projectCount: (data.projects    || []).length,
+          onTrackPct:   snap.onTrackPct   || 0,
+          atRiskCount:  snap.atRiskCount  || 0,
+          savedAt:      data._savedAt     || ''
+        };
+      } catch {
+        return { weekLabel, weekStart: '', projectCount: 0, onTrackPct: 0, atRiskCount: 0, savedAt: '' };
+      }
+    }).sort((a, b) => b.weekLabel.localeCompare(a.weekLabel));
+    res.json(weeks);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/weeks/:weekLabel', (req, res) => {
+  const safe = req.params.weekLabel.replace(/[^a-zA-Z0-9\-]/g, '');
+  const file = path.join(WEEKS_DIR, `${safe}.json`);
+  if (!fs.existsSync(file)) return res.status(404).json({ error: 'Week not found' });
+  try { res.json(JSON.parse(fs.readFileSync(file, 'utf8'))); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/weeks/:weekLabel', (req, res) => {
+  const safe = req.params.weekLabel.replace(/[^a-zA-Z0-9\-]/g, '');
+  const file = path.join(WEEKS_DIR, `${safe}.json`);
+  try {
+    fs.writeFileSync(file, JSON.stringify({ ...req.body, _savedAt: new Date().toISOString() }, null, 2), 'utf8');
+    res.json({ success: true, weekLabel: safe });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── /read — for NotebookLM / crawlers ────────────────────────
 app.get('/read', (req, res) => {
   const files = fs.readdirSync(REPORTS_DIR)
