@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>審核流程 — P&D Program Sync</title>
+  <title>Review — P&D Program Sync</title>
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/layout.css">
@@ -116,19 +116,11 @@
 
 <script type="module">
 import { store }    from './assets/js/store.js';
-import { seedData } from './assets/data/seed.js';
+import { appInit } from './assets/js/app-init.js';
 import { toast, formatDate, relativeTime, renderReviewBadge } from './assets/js/ui.js';
 import { REVIEWERS } from './assets/data/schema.js';
-import { getState, saveState } from './assets/js/api.js';
 
-(async () => {
-  const remoteState = await getState();
-  if (remoteState) store.importAll(JSON.stringify(remoteState));
-  seedData();
-  store.startBackendSync(saveState);
-  const label = store.currentWeekLabel();
-  if (label) document.getElementById('weekBadge').textContent = label;
-})();
+(async () => { await appInit(); })();
 
 let currentWeekStart = null;
 let currentDraft     = null;

@@ -21,40 +21,103 @@ import { initApi, listWeeks, getWeekState, saveWeekState } from './api.js';
  *
  * @returns {Promise<string|null>} 最新週次標籤（如 'W13'），後端不可用時為 null
  */
+const SESSION_WEEK_KEY = 'pgm_viewWeek';
+
+// ── Loading overlay ──────────────────────────────────────────────
+function _showLoader() {
+  if (document.getElementById('_appLoader')) return;
+  const el = document.createElement('div');
+  el.id = '_appLoader';
+  el.innerHTML = `<div style="
+    position:fixed;inset:0;z-index:9999;
+    background:var(--color-bg-primary,#fff);
+    display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:12px;
+    transition:opacity .25s;
+  ">
+    <div style="width:32px;height:32px;border:3px solid var(--color-border-default,#ddd);
+      border-top-color:var(--color-info,#378add);border-radius:50%;
+      animation:_spin .7s linear infinite;"></div>
+    <span style="font-size:13px;color:var(--color-text-secondary,#888);">載入資料中…</span>
+  </div>
+  <style>@keyframes _spin{to{transform:rotate(360deg)}}</style>`;
+  document.body.appendChild(el);
+}
+
+function _hideLoader() {
+  const el = document.getElementById('_appLoader');
+  if (!el) return;
+  el.firstElementChild.style.opacity = '0';
+  setTimeout(() => el.remove(), 260);
+}
+
 export async function appInit() {
+  _showLoader();
   // 1. 偵測後端
   await initApi();
 
-  // 2. 取最新週次 JSON（git 持久，跨部署存活）
+  // 2. 取所有週次清單
   const weeks = await listWeeks();
-  let latestWeekLabel = null;
+  let latestWeekLabel = weeks.length > 0 ? weeks[0].weekLabel : null;
   let loadedFromServer = false;
 
-  if (weeks.length > 0) {
-    latestWeekLabel = weeks[0].weekLabel;
-    const data = await getWeekState(latestWeekLabel);
+  // 3. 跨頁 context：Dashboard 切到歷史週次時，其他頁面同步顯示該週
+  const sessionWeek = sessionStorage.getItem(SESSION_WEEK_KEY);
+  const targetLabel  = (sessionWeek && weeks.find(w => w.weekLabel === sessionWeek))
+    ? sessionWeek
+    : latestWeekLabel;
+
+  if (targetLabel) {
+    const data = await getWeekState(targetLabel);
     if (data) {
-      store.importAll(JSON.stringify(data)); // 觸發 store:updated → 各頁 renderAll
+      store.importAll(JSON.stringify(data));
       loadedFromServer = true;
     }
   }
 
-  // 3. 後端無資料才用種子（guard 在 seedData 內部：有 projects 就跳過）
-  if (!loadedFromServer) {
-    seedData();
-  }
+  // 4. 後端無資料才用種子
+  if (!loadedFromServer) seedData();
 
-  // 4. 任何編輯 → 2s debounce → 寫回週次 JSON
-  //    注意：startBackendSync 傳入的參數已是 parsed object，不可再 JSON.parse
+  // 5. 編輯回寫目標週次（歷史週次也可編輯，寫回對應 JSON）
   store.startBackendSync(stateObj => {
-    if (!latestWeekLabel) return Promise.resolve();
-    return saveWeekState(latestWeekLabel, stateObj);
+    if (!targetLabel) return Promise.resolve();
+    return saveWeekState(targetLabel, stateObj);
   });
 
-  // 5. 更新 navbar 週次徽章
-  _syncWeekBadge(latestWeekLabel);
+  // 6. navbar 徽章顯示當前瀏覽週次
+  _syncWeekBadge(targetLabel);
 
-  return latestWeekLabel;
+  // 7. 若顯示的是歷史週次，插入提示 banner
+  if (targetLabel && targetLabel !== latestWeekLabel) {
+    _showHistoryBanner(targetLabel, latestWeekLabel);
+  }
+
+  // 8. 移除 loading overlay
+  _hideLoader();
+
+  return targetLabel;
+}
+
+/** Dashboard 切週時呼叫，讓其他頁面跟著切 */
+export function setSessionWeek(weekLabel) {
+  if (weekLabel) sessionStorage.setItem(SESSION_WEEK_KEY, weekLabel);
+  else           sessionStorage.removeItem(SESSION_WEEK_KEY);
+}
+
+function _showHistoryBanner(viewing, latest) {
+  // 避免重複插入
+  if (document.getElementById('appInitHistoryBanner')) return;
+  const nav = document.querySelector('.navbar');
+  if (!nav) return;
+  const bar = document.createElement('div');
+  bar.id = 'appInitHistoryBanner';
+  bar.style.cssText = 'background:var(--color-warning-bg,#fff8e1);border-bottom:1px solid var(--color-warning,#e4a23c);padding:6px 24px;font-size:12px;display:flex;align-items:center;gap:12px;';
+  bar.innerHTML = `<span>📅 歷史瀏覽模式：${viewing}</span>
+    <button onclick="import('./assets/js/app-init.js').then(m=>{m.setSessionWeek(null);location.reload();})"
+      style="background:none;border:1px solid currentColor;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;">
+      ↩ 回到 ${latest}
+    </button>`;
+  nav.insertAdjacentElement('afterend', bar);
 }
 
 function _syncWeekBadge(overrideLabel) {

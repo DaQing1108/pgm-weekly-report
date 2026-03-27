@@ -7,16 +7,40 @@
  * 從歷史週報 Markdown 解析結構化資料
  * @param {string} md - 週報 Markdown 原文
  * @param {string} filename - 檔名（用於推斷日期）
- * @returns {{ meta, projects, risks, actions, milestones }}
+ * @returns {{ meta, projects, risks, actions, milestones, warnings }}
  */
 export function parseHistoricalReport(md, filename = '') {
-  return {
+  const result = {
     meta:       _parseMeta(md, filename),
     projects:   _parseProjects(md),
     risks:      _parseRisks(md),
     actions:    _parseActions(md),
     milestones: _parseMilestones(md),
+    warnings:   [],
   };
+  result.warnings = _validate(result);
+  return result;
+}
+
+/**
+ * 驗證解析結果，回傳警告訊息陣列
+ * @param {{ meta, projects, risks, actions, milestones }} parsed
+ * @returns {string[]}
+ */
+function _validate({ meta, projects, risks, actions, milestones }) {
+  const w = [];
+  if (!meta.weekStart)
+    w.push('⚠️ 無法識別「報告週期」，週次自動偵測失敗，請手動填入週次覆寫欄位');
+  if (projects.length === 0)
+    w.push('⚠️ 未解析到任何專案，請確認週報包含「## 專案進度總覽」章節');
+  if (projects.length > 0 && projects.every(p => !p.owner))
+    w.push('ℹ️ 所有專案皆無 owner，owner 欄位可能未填寫');
+  if (actions.length === 0)
+    w.push('ℹ️ 未解析到 Action Items，請確認週報包含「## 行動項目」或「## Action Items」章節');
+  const noStatus = projects.filter(p => !['on-track','at-risk','behind','paused'].includes(p.status));
+  if (noStatus.length > 0)
+    w.push(`ℹ️ ${noStatus.length} 個專案狀態無法識別（將預設為 on-track）：${noStatus.map(p=>p.name).join('、')}`);
+  return w;
 }
 
 // ── 元資料解析 ────────────────────────────────────────────────

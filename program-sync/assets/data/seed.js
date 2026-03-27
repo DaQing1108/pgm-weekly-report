@@ -5,17 +5,19 @@
 
 import { store } from '../js/store.js';
 
-// 基準週：2026/03/23 週（W12）
-const WEEK_START = '2026-03-23';
+// 基準週：2026/03/30 週（W13 → W14 過渡期）
+const WEEK_START = '2026-03-30';
 
 export function seedData() {
   // ── 快照：永遠補齊（_autoSync 不種快照，需保證一定存在）──────
+  // 注意：快照標籤需與 backend/data/weeks/ 的真實週次一致
   if (store.getAll('snapshots').length === 0) {
     [
-      { id:'snap-w6', weekStart:'2026-03-02', weekLabel:'W09', onTrackPct:88, atRiskCount:1, behindCount:1, highRisks:2, mediumRisks:3, lowRisks:2, totalProjects:12, overdueActions:1, completedActions:15, totalActions:14, teamHealth:{'media-agent':90,'learnmode':85,'chuangzaoli':88,'tv-solution':87,'healthcare':78}, reviewStatus:'approved', snapshotBy:'Kevin Chang' },
-      { id:'snap-w7', weekStart:'2026-03-09', weekLabel:'W10', onTrackPct:83, atRiskCount:2, behindCount:1, highRisks:3, mediumRisks:3, lowRisks:1, totalProjects:12, overdueActions:2, completedActions:12, totalActions:13, teamHealth:{'media-agent':85,'learnmode':80,'chuangzaoli':84,'tv-solution':85,'healthcare':74}, reviewStatus:'approved', snapshotBy:'Kevin Chang' },
-      { id:'snap-w8', weekStart:'2026-03-16', weekLabel:'W11', onTrackPct:75, atRiskCount:2, behindCount:1, highRisks:3, mediumRisks:2, lowRisks:1, totalProjects:12, overdueActions:2, completedActions:8,  totalActions:10, teamHealth:{'media-agent':78,'learnmode':70,'chuangzaoli':80,'tv-solution':82,'healthcare':62}, reviewStatus:'approved', snapshotBy:'Kevin Chang' },
-      { id:'snap-w9', weekStart:'2026-03-23', weekLabel:'W12', onTrackPct:75, atRiskCount:2, behindCount:1, highRisks:2, mediumRisks:2, lowRisks:1, totalProjects:14, overdueActions:1, completedActions:9,  totalActions:11, teamHealth:{'media-agent':80,'learnmode':72,'chuangzaoli':75,'tv-solution':83,'healthcare':65}, reviewStatus:'draft',     snapshotBy:'Kevin Chang' },
+      { id:'snap-w6', weekStart:'2026-02-23', weekLabel:'W09', onTrackPct:83, atRiskCount:2, behindCount:0, highRisks:1, mediumRisks:3, lowRisks:1, totalProjects:12, overdueActions:0, completedActions:8,  totalActions:8,  teamHealth:{'media-agent':88,'learnmode':82,'chuangzaoli':85,'tv-solution':80,'healthcare':78}, reviewStatus:'approved', snapshotBy:'Kevin Chang' },
+      { id:'snap-w7', weekStart:'2026-03-02', weekLabel:'W10', onTrackPct:83, atRiskCount:2, behindCount:0, highRisks:2, mediumRisks:4, lowRisks:1, totalProjects:12, overdueActions:0, completedActions:10, totalActions:10, teamHealth:{'media-agent':85,'learnmode':80,'chuangzaoli':84,'tv-solution':85,'healthcare':74}, reviewStatus:'approved', snapshotBy:'Kevin Chang' },
+      { id:'snap-w8', weekStart:'2026-03-09', weekLabel:'W11', onTrackPct:75, atRiskCount:2, behindCount:0, highRisks:2, mediumRisks:3, lowRisks:1, totalProjects:12, overdueActions:0, completedActions:8,  totalActions:10, teamHealth:{'media-agent':78,'learnmode':70,'chuangzaoli':80,'tv-solution':82,'healthcare':62}, reviewStatus:'approved', snapshotBy:'Kevin Chang' },
+      { id:'snap-w9', weekStart:'2026-03-16', weekLabel:'W12', onTrackPct:69, atRiskCount:3, behindCount:0, highRisks:2, mediumRisks:4, lowRisks:1, totalProjects:13, overdueActions:0, completedActions:9,  totalActions:10, teamHealth:{'media-agent':80,'learnmode':72,'chuangzaoli':75,'tv-solution':83,'healthcare':65}, reviewStatus:'approved', snapshotBy:'Kevin Chang' },
+      { id:'snap-w10',weekStart:'2026-03-30', weekLabel:'W13', onTrackPct:69, atRiskCount:3, behindCount:1, highRisks:3, mediumRisks:4, lowRisks:1, totalProjects:13, overdueActions:0, completedActions:0,  totalActions:10, teamHealth:{'media-agent':82,'learnmode':74,'chuangzaoli':76,'tv-solution':85,'healthcare':60}, reviewStatus:'draft',    snapshotBy:'Kevin Chang' },
     ].forEach(s => store.save('snapshots', s));
   }
 

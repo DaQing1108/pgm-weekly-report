@@ -157,7 +157,8 @@
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
 import { toast, renderBadge, formatDate, isOverdue } from './assets/js/ui.js';
-import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl, deleteReport, getState, saveState, listWeeks, getWeekState, saveWeekState } from './assets/js/api.js';
+import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl, deleteReport, listWeeks, getWeekState, saveWeekState } from './assets/js/api.js';
+import { setSessionWeek } from './assets/js/app-init.js';
 import { modal } from './assets/js/ui.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
 
@@ -438,6 +439,9 @@ window.loadWeekView = async function(weekLabel) {
   const weeks = await listWeeks();
   const isLatest = weeks.length > 0 && weekLabel === weeks[0].weekLabel;
 
+  // 同步跨頁 sessionStorage：其他頁面 (actions/milestones/input) 切到同一週次
+  setSessionWeek(isLatest ? null : weekLabel);
+
   const snap = (data.snapshots || []).find(s => s.weekLabel === weekLabel)
              || (data.snapshots || []).slice(-1)[0];
 
@@ -469,6 +473,7 @@ window.loadWeekView = async function(weekLabel) {
 
 // ── 回到最新週次 ─────────────────────────────────────────────────
 window.returnToCurrentWeek = async function() {
+  setSessionWeek(null);
   const weeks = await listWeeks();
   if (weeks.length > 0) await loadWeekView(weeks[0].weekLabel);
 };

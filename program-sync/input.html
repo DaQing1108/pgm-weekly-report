@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>快速輸入 — P&D Program Sync</title>
+  <title>Quick Input — P&D Program Sync</title>
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/layout.css">
@@ -311,6 +311,12 @@
               <!-- 解析結果摘要 -->
               <div id="archiveMeta" style="display:none;background:var(--color-bg-secondary);border-radius:var(--radius-md);padding:var(--space-md);">
                 <div id="archiveMetaContent"></div>
+                <div style="margin-top:var(--space-md);display:flex;align-items:center;gap:var(--space-sm);">
+                  <label class="inp-label" style="white-space:nowrap;margin:0;font-size:var(--font-size-sm);">週次覆寫：</label>
+                  <input type="text" id="archiveWeekOverride" class="inp"
+                    placeholder="自動偵測失敗時手動輸入，例：W14"
+                    style="flex:1;font-size:var(--font-size-sm);padding:4px 8px;">
+                </div>
               </div>
 
               <!-- 操作按鈕 -->
@@ -427,6 +433,7 @@ function _handleReportFile(file) {
         <div><div class="text-xs text-secondary">彙整人</div><div class="font-600">${parsed.meta.author || '—'}</div></div>
         <div><div class="text-xs text-secondary">檔案</div><div class="text-sm">${file.name}</div></div>
       </div>`;
+    document.getElementById('archiveWeekOverride').value    = _archiveWeekLabel || '';
     document.getElementById('archiveMeta').style.display    = '';
     document.getElementById('archiveActions').style.display = 'flex';
     document.getElementById('archiveGitHint').style.display = 'none';
@@ -439,9 +446,9 @@ function _handleReportFile(file) {
 }
 
 function _renderArchivePreview(parsed) {
-  const { projects = [], risks = [], actions = [], milestones = [] } = parsed;
+  const { projects = [], risks = [], actions = [], milestones = [], warnings = [] } = parsed;
   const total = projects.length + risks.length + actions.length + milestones.length;
-  document.getElementById('archivePreviewCount').textContent = `共 ${total} 筆`;
+  document.getElementById('archivePreviewCount').textContent = `共 ${total} 筆${warnings.length ? ` ⚠️${warnings.length}` : ''}`;
 
   const sections = [
     { label: '📁 專案',     items: projects,   getText: i => `${i.name}（${i.owner || '—'}）`,    badge: i => i.status },
@@ -465,19 +472,43 @@ function _renderArchivePreview(parsed) {
   });
 
   if (!html) html = '<p class="text-secondary text-sm">⚠️ 未解析到資料，請確認週報格式是否符合標準模板</p>';
+
+  // 驗證警告顯示在最上方
+  if (warnings.length > 0) {
+    const warnHtml = warnings.map(w =>
+      `<div style="padding:6px 10px;margin-bottom:4px;border-radius:var(--radius-sm);background:var(--color-warning-bg,#fff8e1);border-left:3px solid var(--color-warning,#e4a23c);font-size:12px;">${w}</div>`
+    ).join('');
+    html = warnHtml + html;
+  }
+
   document.getElementById('archivePreview').innerHTML = html;
 }
 
+// override 輸入即時更新 _archiveWeekLabel
+document.getElementById('archiveWeekOverride').addEventListener('input', function () {
+  const v = this.value.trim().toUpperCase();
+  if (v) _archiveWeekLabel = v;
+});
+
 // 確認歸檔
 document.getElementById('btnArchiveConfirm').addEventListener('click', async () => {
-  if (!_parsedReport)     { toast('請先上傳週報', 'error'); return; }
-  if (!_archiveWeekLabel) { toast('無法識別週次，請確認週報的「報告週期」欄位', 'error'); return; }
+  if (!_parsedReport) { toast('請先上傳週報', 'error'); return; }
+  // 讀取 override 欄位（允許手動修正）
+  const override = document.getElementById('archiveWeekOverride').value.trim().toUpperCase();
+  if (override) _archiveWeekLabel = override;
+  if (!_archiveWeekLabel) { toast('無法識別週次，請在「週次覆寫」欄位手動輸入（例：W14）', 'error'); return; }
 
   const btn = document.getElementById('btnArchiveConfirm');
   btn.disabled = true;
   btn.textContent = '歸檔中…';
 
   try {
+    // 0. 先儲存當前最新週次，避免 replaceAll 覆蓋現有資料
+    const _currentLabel = store.currentWeekLabel();
+    if (_currentLabel && _currentLabel !== _archiveWeekLabel) {
+      await saveWeekState(_currentLabel, JSON.parse(store.exportAll())).catch(() => {});
+    }
+
     // 1. 載入解析資料到 store（覆蓋）
     syncToStore(_parsedReport, store, { replaceAll: true });
 
