@@ -62,9 +62,14 @@ export async function appInit() {
   let loadedFromServer = false;
 
   // 3. 跨頁 context：Dashboard 切到歷史週次時，其他頁面同步顯示該週
+  //    若 sessionStorage 存的週次等於最新週（表示未曾主動切換歷史），自動清除
   const sessionWeek = sessionStorage.getItem(SESSION_WEEK_KEY);
-  const targetLabel  = (sessionWeek && weeks.find(w => w.weekLabel === sessionWeek))
-    ? sessionWeek
+  if (sessionWeek && sessionWeek === latestWeekLabel) {
+    sessionStorage.removeItem(SESSION_WEEK_KEY);
+  }
+  const effectiveSession = sessionStorage.getItem(SESSION_WEEK_KEY);
+  const targetLabel = (effectiveSession && weeks.find(w => w.weekLabel === effectiveSession))
+    ? effectiveSession
     : latestWeekLabel;
 
   if (targetLabel) {
