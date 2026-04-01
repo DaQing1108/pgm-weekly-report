@@ -20,8 +20,10 @@
   <div class="navbar__links">
     <a href="index.html"      class="navbar__link active">Dashboard</a>
     <a href="input.html"      class="navbar__link">Quick Input</a>
+    <a href="risks.html"      class="navbar__link">Risks</a>
     <a href="actions.html"    class="navbar__link">Action Items</a>
     <a href="milestones.html" class="navbar__link">Milestones</a>
+    <a href="review.html"     class="navbar__link">Review</a>
 
   </div>
   <div class="navbar__actions">
@@ -485,7 +487,6 @@ window.addEventListener('store:updated', () => {
 
 // ── API Key 按鈕 ───────────────────────────────────────────────
 document.getElementById('btnApiKey').addEventListener('click', () => {
-  const { modal } = { modal: window._ui?.modal };
   // 簡化：導引到 report.html
   window.location.href = 'report.html#apikey';
 });

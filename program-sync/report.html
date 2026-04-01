@@ -19,11 +19,12 @@
   </a>
   <span class="navbar__week-badge" id="weekBadge">W11</span>
   <div class="navbar__links">
-    <a href="index.html"      class="navbar__link">儀表板</a>
-    <a href="input.html"      class="navbar__link">快速輸入</a>
+    <a href="index.html"      class="navbar__link">Dashboard</a>
+    <a href="input.html"      class="navbar__link">Quick Input</a>
+    <a href="risks.html"      class="navbar__link">Risks</a>
     <a href="actions.html"    class="navbar__link">Action Items</a>
-    <a href="milestones.html" class="navbar__link">里程碑</a>
-
+    <a href="milestones.html" class="navbar__link">Milestones</a>
+    <a href="review.html"     class="navbar__link">Review</a>
   </div>
   <div class="navbar__actions">
     <button class="btn btn-outline btn-sm" id="btnApiKeyNav">🔑 API Key</button>
@@ -45,9 +46,7 @@
           <div class="inp-group">
             <label class="inp-label">週次</label>
             <select class="inp" id="weekSelect">
-              <option value="2026-03-16">W11 — 2026/03/16</option>
-              <option value="2026-03-09">W10 — 2026/03/09</option>
-              <option value="2026-03-02">W09 — 2026/03/02</option>
+              <option value="">— 載入中 —</option>
             </select>
           </div>
           <div class="inp-group">
@@ -230,7 +229,7 @@ import { generateReport }          from './assets/js/report.js';
 import { toast, modal, formatDate, renderReviewBadge } from './assets/js/ui.js';
 import { REPORT_SECTIONS }         from './assets/data/schema.js';
 import { toDocx, toPdf }           from './assets/js/export.js';
-import { initApi, saveReport, isBackendAvailable, fetchReports, fetchReportContent } from './assets/js/api.js';
+import { initApi, saveReport, isBackendAvailable, fetchReports, fetchReportContent, listWeeks } from './assets/js/api.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
 
 // 歷史週報快取
@@ -304,7 +303,19 @@ document.getElementById('btnSyncHistory')?.addEventListener('click', async () =>
   toast(msg, 'success');
 });
 
-(async () => { await appInit(); })();
+(async () => {
+  await appInit();
+  // 動態填充週次下拉（從後端取最新清單）
+  const weeks = await listWeeks();
+  const sel = document.getElementById('weekSelect');
+  if (weeks.length > 0) {
+    sel.innerHTML = weeks.map(w =>
+      `<option value="${w.weekStart}">${w.weekLabel} — ${w.weekStart.slice(5).replace('-','/')}</option>`
+    ).join('');
+  } else {
+    sel.innerHTML = '<option value="">— 後端未連線 —</option>';
+  }
+})();
 
 let currentMd = '';
 let currentTab = 'preview';

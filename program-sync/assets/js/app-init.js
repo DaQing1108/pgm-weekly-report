@@ -117,8 +117,9 @@ function _showHistoryBanner(viewing, latest) {
   const bar = document.createElement('div');
   bar.id = 'appInitHistoryBanner';
   bar.style.cssText = 'background:var(--color-warning-bg,#fff8e1);border-bottom:1px solid var(--color-warning,#e4a23c);padding:6px 24px;font-size:12px;display:flex;align-items:center;gap:12px;';
+  window._appInitReturnLatest = () => { sessionStorage.removeItem(SESSION_WEEK_KEY); location.reload(); };
   bar.innerHTML = `<span>📅 歷史瀏覽模式：${viewing}</span>
-    <button onclick="import('./assets/js/app-init.js').then(m=>{m.setSessionWeek(null);location.reload();})"
+    <button onclick="window._appInitReturnLatest()"
       style="background:none;border:1px solid currentColor;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;">
       ↩ 回到 ${latest}
     </button>`;
