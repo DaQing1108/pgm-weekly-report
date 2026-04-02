@@ -13,7 +13,7 @@
 
 import { store }    from './store.js';
 import { seedData } from '../data/seed.js';
-import { initApi, listWeeks, getWeekState, saveWeekState } from './api.js';
+import { initApi, listWeeks, getWeekState, saveWeekState, isBackendAvailable } from './api.js';
 
 /**
  * 所有編輯頁面共用初始化：
@@ -95,12 +95,15 @@ export async function appInit() {
   // 6b. 讓子頁面可知道是否處於歷史唯讀模式
   window._appInitIsHistoryMode = !!(targetLabel && latestWeekLabel && targetLabel !== latestWeekLabel);
 
-  // 7. 若顯示的是歷史週次，插入提示 banner
+  // 7. 後端離線提示
+  if (!isBackendAvailable()) _showOfflineBanner();
+
+  // 8. 若顯示的是歷史週次，插入提示 banner
   if (targetLabel && targetLabel !== latestWeekLabel) {
     _showHistoryBanner(targetLabel, latestWeekLabel);
   }
 
-  // 8. 移除 loading overlay
+  // 9. 移除 loading overlay
   _hideLoader();
 
   return targetLabel;
@@ -110,6 +113,17 @@ export async function appInit() {
 export function setSessionWeek(weekLabel) {
   if (weekLabel) sessionStorage.setItem(SESSION_WEEK_KEY, weekLabel);
   else           sessionStorage.removeItem(SESSION_WEEK_KEY);
+}
+
+function _showOfflineBanner() {
+  if (document.getElementById('appInitOfflineBanner')) return;
+  const nav = document.querySelector('.navbar');
+  if (!nav) return;
+  const bar = document.createElement('div');
+  bar.id = 'appInitOfflineBanner';
+  bar.style.cssText = 'background:var(--color-danger-bg,#fdecea);border-bottom:1px solid var(--color-danger,#d94f4f);padding:4px 24px;font-size:12px;display:flex;align-items:center;gap:8px;color:var(--color-danger,#d94f4f);';
+  bar.innerHTML = `<span>⚠ 後端離線</span><span style="color:var(--color-text-secondary,#888);font-size:11px;">— 資料僅存於本機 localStorage，切換頁面後不保留</span>`;
+  nav.insertAdjacentElement('afterend', bar);
 }
 
 function _showHistoryBanner(viewing, latest) {

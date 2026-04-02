@@ -277,10 +277,17 @@ function renderKPIs() {
     needAttn   = atRisk + behind;
   }
 
-  // 逾期 Actions：永遠依今日日期即時計算，不使用快照預存值
-  const _today = new Date().toISOString().split('T')[0];
-  const _actions = _viewState ? (_viewState.actions || []) : store.getAll('actions');
-  overdue = _actions.filter(a => a.dueDate && a.dueDate < _today && a.status !== 'done').length;
+  // 逾期 Actions：
+  //   歷史模式優先 → 用快照預存 overdueActions（與當時一致）
+  //   快照無此欄位  → 以快照 weekStart 為基準日計算（而非今日）
+  //   本週模式      → 依今日日期即時計算
+  if (snap && snap.overdueActions !== undefined) {
+    overdue = snap.overdueActions;
+  } else {
+    const _refDate = snap?.weekStart ?? new Date().toISOString().split('T')[0];
+    const _actions = _viewState ? (_viewState.actions || []) : store.getAll('actions');
+    overdue = _actions.filter(a => a.dueDate && a.dueDate < _refDate && a.status !== 'done').length;
+  }
 
   document.getElementById('kpiHealth').textContent    = `${onTrackPct}%`;
   document.getElementById('kpiHealthSub').textContent =

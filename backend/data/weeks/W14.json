@@ -694,7 +694,13 @@
       "overdueActions": 1,
       "completedActions": 15,
       "totalActions": 14,
-      "teamHealth": { "media-agent": 90, "learnmode": 85, "chuangzaoli": 88, "tv-solution": 87, "healthcare": 78 },
+      "teamHealth": {
+        "media-agent": 90,
+        "learnmode": 85,
+        "chuangzaoli": 88,
+        "tv-solution": 87,
+        "healthcare": 78
+      },
       "reviewStatus": "approved",
       "snapshotBy": "Kevin Chang"
     },
@@ -712,7 +718,13 @@
       "overdueActions": 2,
       "completedActions": 12,
       "totalActions": 13,
-      "teamHealth": { "media-agent": 85, "learnmode": 80, "chuangzaoli": 84, "tv-solution": 85, "healthcare": 74 },
+      "teamHealth": {
+        "media-agent": 85,
+        "learnmode": 80,
+        "chuangzaoli": 84,
+        "tv-solution": 85,
+        "healthcare": 74
+      },
       "reviewStatus": "approved",
       "snapshotBy": "Kevin Chang"
     },
@@ -730,7 +742,13 @@
       "overdueActions": 2,
       "completedActions": 8,
       "totalActions": 10,
-      "teamHealth": { "media-agent": 78, "learnmode": 70, "chuangzaoli": 80, "tv-solution": 82, "healthcare": 62 },
+      "teamHealth": {
+        "media-agent": 78,
+        "learnmode": 70,
+        "chuangzaoli": 80,
+        "tv-solution": 82,
+        "healthcare": 62
+      },
       "reviewStatus": "approved",
       "snapshotBy": "Kevin Chang"
     },
@@ -748,13 +766,19 @@
       "overdueActions": 1,
       "completedActions": 9,
       "totalActions": 11,
-      "teamHealth": { "media-agent": 80, "learnmode": 72, "chuangzaoli": 75, "tv-solution": 83, "healthcare": 65 },
+      "teamHealth": {
+        "media-agent": 80,
+        "learnmode": 72,
+        "chuangzaoli": 75,
+        "tv-solution": 83,
+        "healthcare": 65
+      },
       "reviewStatus": "approved",
       "snapshotBy": "Alex Liao"
     },
     {
       "id": "snap-w10",
-      "weekStart": "2026-03-30",
+      "weekStart": "2026-03-23",
       "weekLabel": "W13",
       "onTrackPct": 69,
       "atRiskCount": 4,
@@ -766,7 +790,13 @@
       "overdueActions": 2,
       "completedActions": 6,
       "totalActions": 12,
-      "teamHealth": { "media-agent": 82, "learnmode": 65, "chuangzaoli": 58, "tv-solution": 90, "healthcare": 65 },
+      "teamHealth": {
+        "media-agent": 82,
+        "learnmode": 65,
+        "chuangzaoli": 58,
+        "tv-solution": 90,
+        "healthcare": 65
+      },
       "reviewStatus": "approved",
       "snapshotBy": "Alex Liao"
     },
@@ -784,7 +814,13 @@
       "overdueActions": 1,
       "completedActions": 3,
       "totalActions": 24,
-      "teamHealth": { "media-agent": 88, "learnmode": 68, "chuangzaoli": 55, "tv-solution": 90, "healthcare": 65 },
+      "teamHealth": {
+        "media-agent": 88,
+        "learnmode": 68,
+        "chuangzaoli": 55,
+        "tv-solution": 90,
+        "healthcare": 65
+      },
       "reviewStatus": "draft",
       "snapshotBy": "Alex Liao"
     }
