@@ -30,6 +30,15 @@
   </div>
 </nav>
 
+<!-- 週次選擇器 -->
+<div id="weekSelectorStrip" style="background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:6px 24px;display:flex;align-items:center;gap:12px;font-size:13px;">
+  <span style="color:var(--color-text-secondary);">週次：</span>
+  <select class="inp" id="weekSelect" style="width:180px;padding:4px 8px;font-size:13px;">
+    <option value="">— 載入中 —</option>
+  </select>
+  <span id="historyBadge" style="display:none;background:var(--color-warning-bg,#fff8e1);border:1px solid var(--color-warning,#e4a23c);border-radius:4px;padding:2px 8px;font-size:12px;">📅 歷史瀏覽（唯讀）</span>
+</div>
+
 <div class="page-container">
   <div class="page-header">
     <div class="page-header__left">
@@ -67,10 +76,34 @@
 
 <script type="module">
 import { store }   from './assets/js/store.js';
-import { appInit } from './assets/js/app-init.js';
+import { appInit, setSessionWeek } from './assets/js/app-init.js';
+import { listWeeks } from './assets/js/api.js';
 import { toast, renderBadge, formatDate, generateId, modal, isOverdue } from './assets/js/ui.js';
 
-(async () => { await appInit(); })();
+(async () => {
+  const currentLabel = await appInit();
+  // ── 週次選擇器 ──────────────────────────────────────────────
+  const weeks = await listWeeks();
+  const sel = document.getElementById('weekSelect');
+  if (weeks.length > 0) {
+    sel.innerHTML = weeks.map(w =>
+      `<option value="${w.weekLabel}" ${w.weekLabel === currentLabel ? 'selected' : ''}>${w.weekLabel} — ${w.weekStart.slice(5).replace('-','/')}</option>`
+    ).join('');
+    sel.addEventListener('change', function() {
+      const val = this.value;
+      if (!val) return;
+      setSessionWeek(val === weeks[0].weekLabel ? null : val);
+      location.reload();
+    });
+  } else {
+    sel.innerHTML = '<option value="">— 後端未連線 —</option>';
+  }
+  // ── 歷史唯讀模式 ────────────────────────────────────────────
+  if (window._appInitIsHistoryMode) {
+    document.getElementById('historyBadge').style.display = '';
+    document.body.classList.add('is-history-readonly');
+  }
+})();
 
 const CATEGORIES = [
   { id: 'technical', label: '⚙️ 技術',  color: 'var(--color-info)'    },
@@ -325,6 +358,10 @@ populateOwnerSelects();
 
 <style>
 .text-danger { color: var(--color-danger); }
+/* 歷史週唯讀模式 */
+body.is-history-readonly #btnMarkDone,
+body.is-history-readonly .inline-form,
+body.is-history-readonly .btn-ghost { opacity:.35; pointer-events:none; cursor:not-allowed; }
 </style>
 </body>
 </html>

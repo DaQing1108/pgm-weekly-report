@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "V3 Full Stack",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["backend/src/index.js"],
+      "runtimeExecutable": "/usr/local/bin/node",
+      "runtimeArgs": ["/Users/daqingliao/Documents/Claude Contxet/Claude_Outputs/Pgm_Weekly_Report/backend/src/index.js"],
       "port": 3001
     }
   ]

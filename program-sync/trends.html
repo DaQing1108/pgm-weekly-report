@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>趨勢分析 — P&D Program Sync</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar__logo">
+    <div class="navbar__logo-icon">P</div>
+    <span>P&amp;D CENTER</span>
+  </a>
+  <span class="navbar__week-badge" id="weekBadge">–</span>
+  <div class="navbar__links">
+    <a href="index.html"      class="navbar__link">Dashboard</a>
+    <a href="input.html"      class="navbar__link">Quick Input</a>
+    <a href="risks.html"      class="navbar__link">Risks</a>
+    <a href="actions.html"    class="navbar__link">Action Items</a>
+    <a href="milestones.html" class="navbar__link">Milestones</a>
+    <a href="review.html"     class="navbar__link">Review</a>
+  </div>
+  <div class="navbar__actions">
+    <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+  </div>
+</nav>
+
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-header__title">趨勢分析</h1>
+      <p class="page-header__sub">跨週次專案健康度、風險與行動項目趨勢</p>
+    </div>
+    <div class="page-header__right">
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-outline btn-sm range-btn active" data-range="4">4 週</button>
+        <button class="btn btn-outline btn-sm range-btn" data-range="8">8 週</button>
+        <button class="btn btn-outline btn-sm range-btn" data-range="12">12 週</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 載入中 -->
+  <div id="trendsLoading" style="text-align:center;padding:64px 0;color:var(--color-text-secondary);">
+    <div style="font-size:40px;margin-bottom:12px;">📊</div>
+    <p>載入趨勢資料中…</p>
+  </div>
+
+  <!-- 無資料 -->
+  <div id="noDataState" style="display:none;text-align:center;padding:64px 0;color:var(--color-text-secondary);">
+    <div style="font-size:48px;margin-bottom:12px;">📭</div>
+    <p class="font-600">尚無跨週快照資料</p>
+    <p class="text-sm" style="margin-top:4px;">請在 Review 頁面核准週報後，系統會自動建立快照</p>
+  </div>
+
+  <!-- 本週 vs 上週 KPI 對比 -->
+  <div id="kpiRow" style="display:none;margin-bottom:var(--space-xl);">
+    <div class="section-heading">本週 vs 上週</div>
+    <div class="stats-bar" id="kpiCards"></div>
+  </div>
+
+  <!-- 圖表區 -->
+  <div id="chartsSection" style="display:none;">
+    <div class="main-grid" style="margin-bottom:var(--space-xl);">
+      <!-- 健康度折線圖 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">🟢 整體健康度趨勢</span>
+          <span class="text-xs text-secondary">On Track %</span>
+        </div>
+        <div class="panel__body" style="padding:var(--space-lg);">
+          <canvas id="chartHealth" height="220"></canvas>
+        </div>
+      </div>
+      <!-- 風險堆疊長條圖 -->
+      <div class="panel">
+        <div class="panel__header">
+          <span class="panel__title">🔴 風險分佈趨勢</span>
+          <span class="text-xs text-secondary">High / Medium / Low</span>
+        </div>
+        <div class="panel__body" style="padding:var(--space-lg);">
+          <canvas id="chartRisk" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action 完成率（全寬） -->
+    <div class="panel" style="margin-bottom:var(--space-xl);">
+      <div class="panel__header">
+        <span class="panel__title">✅ Action 完成率趨勢</span>
+        <span class="text-xs text-secondary">完成率 % / 逾期數</span>
+      </div>
+      <div class="panel__body" style="padding:var(--space-lg);">
+        <canvas id="chartActions" height="130"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 週次快照明細表 -->
+  <div class="panel" id="snapshotPanel" style="display:none;">
+    <div class="panel__header">
+      <span class="panel__title">📋 週次快照明細</span>
+    </div>
+    <div class="panel__body" id="snapshotTable" style="padding:var(--space-md) var(--space-lg);overflow-x:auto;"></div>
+  </div>
+</div>
+
+<script type="module">
+import { appInit } from './assets/js/app-init.js';
+import { listWeeks, getWeekState } from './assets/js/api.js';
+
+let _range = 4;
+let _allSnapshots = []; // [{ weekLabel, weekStart, snap }]
+let _chartHealth = null, _chartRisk = null, _chartActions = null;
+
+(async () => {
+  await appInit();
+  await loadTrends();
+})();
+
+// ── 資料載入 ────────────────────────────────────────────────────
+async function loadTrends() {
+  document.getElementById('trendsLoading').style.display   = '';
+  document.getElementById('chartsSection').style.display   = 'none';
+  document.getElementById('kpiRow').style.display          = 'none';
+  document.getElementById('snapshotPanel').style.display   = 'none';
+  document.getElementById('noDataState').style.display     = 'none';
+
+  const weeks = await listWeeks();
+  if (!weeks.length) {
+    document.getElementById('trendsLoading').style.display = 'none';
+    document.getElementById('noDataState').style.display   = '';
+    return;
+  }
+
+  // 並行取得每週快照
+  _allSnapshots = [];
+  await Promise.allSettled(
+    weeks.map(async (w) => {
+      const data = await getWeekState(w.weekLabel);
+      if (!data?.snapshots?.length) return;
+      // 取該週最新快照
+      const snap = data.snapshots[data.snapshots.length - 1];
+      _allSnapshots.push({ weekLabel: w.weekLabel, weekStart: w.weekStart, snap });
+    })
+  );
+
+  // 依週次標籤排序（W01→W14）
+  _allSnapshots.sort((a, b) => a.weekLabel.localeCompare(b.weekLabel));
+
+  document.getElementById('trendsLoading').style.display = 'none';
+
+  if (!_allSnapshots.length) {
+    document.getElementById('noDataState').style.display = '';
+    return;
+  }
+
+  renderAll();
+}
+
+function getVisible() {
+  return _allSnapshots.slice(-_range);
+}
+
+function renderAll() {
+  const visible = getVisible();
+  if (!visible.length) return;
+  renderKPI(visible);
+  renderCharts(visible);
+  renderSnapshotTable(visible);
+  document.getElementById('kpiRow').style.display        = '';
+  document.getElementById('chartsSection').style.display = '';
+  document.getElementById('snapshotPanel').style.display = '';
+}
+
+// ── 本週 vs 上週 KPI ────────────────────────────────────────────
+function renderKPI(snapshots) {
+  const curr = snapshots[snapshots.length - 1]?.snap || {};
+  const prev = snapshots.length >= 2 ? snapshots[snapshots.length - 2]?.snap : null;
+
+  function diffBadge(key, goodUp) {
+    if (!prev) return '';
+    const delta = (curr[key] ?? 0) - (prev[key] ?? 0);
+    if (delta === 0) return `<span style="color:var(--color-text-secondary);font-size:11px;"> — 持平</span>`;
+    const isGood = goodUp ? delta > 0 : delta < 0;
+    const color = isGood ? 'var(--color-success)' : 'var(--color-danger)';
+    return `<span style="color:${color};font-size:11px;"> ${delta > 0 ? '▲' : '▼'}${Math.abs(delta)}</span>`;
+  }
+
+  const kpis = [
+    { label: '健康度',       val: `${curr.onTrackPct ?? '—'}%`, key: 'onTrackPct',     goodUp: true  },
+    { label: '高風險',        val: curr.highRisks     ?? '—',   key: 'highRisks',       goodUp: false },
+    { label: '中風險',        val: curr.mediumRisks   ?? '—',   key: 'mediumRisks',     goodUp: false },
+    { label: '逾期 Actions', val: curr.overdueActions ?? '—',  key: 'overdueActions',  goodUp: false },
+  ];
+
+  document.getElementById('kpiCards').innerHTML = kpis.map(k => `
+    <div class="stats-bar__item">
+      <div class="stats-bar__val">${k.val}${diffBadge(k.key, k.goodUp)}</div>
+      <div class="stats-bar__lbl">${k.label}</div>
+    </div>`
+  ).join('');
+}
+
+// ── 圖表 ────────────────────────────────────────────────────────
+async function renderCharts(snapshots) {
+  if (!window.Chart) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  const labels     = snapshots.map(s => s.weekLabel);
+  const healthData = snapshots.map(s => s.snap.onTrackPct ?? null);
+  const highData   = snapshots.map(s => s.snap.highRisks   ?? 0);
+  const medData    = snapshots.map(s => s.snap.mediumRisks  ?? 0);
+  const lowData    = snapshots.map(s => s.snap.lowRisks     ?? 0);
+  const actionRate = snapshots.map(s => {
+    const total = s.snap.totalActions || 0;
+    const done  = s.snap.completedActions || 0;
+    return total ? Math.round(done / total * 100) : null;
+  });
+  const overdueData = snapshots.map(s => s.snap.overdueActions ?? 0);
+
+  // 健康度折線
+  if (_chartHealth) _chartHealth.destroy();
+  _chartHealth = new Chart(document.getElementById('chartHealth'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'On Track %',
+        data: healthData,
+        borderColor: '#4caf6e',
+        backgroundColor: 'rgba(76,175,110,0.1)',
+        pointRadius: 6,
+        pointBackgroundColor: healthData.map(v =>
+          v == null ? '#aaa' : v >= 80 ? '#4caf6e' : v >= 60 ? '#e4a23c' : '#d94f4f'
+        ),
+        tension: 0.3,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // 風險堆疊長條
+  if (_chartRisk) _chartRisk.destroy();
+  _chartRisk = new Chart(document.getElementById('chartRisk'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: '高風險', data: highData, backgroundColor: '#d94f4f' },
+        { label: '中風險', data: medData,  backgroundColor: '#e4a23c' },
+        { label: '低風險', data: lowData,  backgroundColor: '#4caf6e' },
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: { x: { stacked: true }, y: { stacked: true, ticks: { stepSize: 1 } } },
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  // Action 完成率 + 逾期數雙軸
+  if (_chartActions) _chartActions.destroy();
+  _chartActions = new Chart(document.getElementById('chartActions'), {
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'line',
+          label: '完成率 %',
+          data: actionRate,
+          borderColor: '#378add',
+          backgroundColor: 'rgba(55,138,221,0.1)',
+          tension: 0.3,
+          fill: true,
+          yAxisID: 'y',
+        },
+        {
+          type: 'bar',
+          label: '逾期數',
+          data: overdueData,
+          backgroundColor: 'rgba(217,79,79,0.45)',
+          yAxisID: 'y2',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y:  { position: 'left',  min: 0, max: 100, ticks: { callback: v => v + '%' } },
+        y2: { position: 'right', min: 0, grid: { drawOnChartArea: false }, ticks: { stepSize: 1 } },
+      },
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+}
+
+// ── 快照明細表 ──────────────────────────────────────────────────
+function renderSnapshotTable(snapshots) {
+  const rows = [...snapshots].reverse().map(s => {
+    const snap = s.snap;
+    const h = snap.onTrackPct;
+    const hColor = h == null ? 'var(--color-text-secondary)'
+                 : h >= 80  ? 'var(--color-success)'
+                 : h >= 60  ? 'var(--color-warning)'
+                 : 'var(--color-danger)';
+    return `<tr>
+      <td style="font-weight:600;">${s.weekLabel}</td>
+      <td>${s.weekStart || '—'}</td>
+      <td style="color:${hColor};font-weight:600;">${h != null ? h + '%' : '—'}</td>
+      <td>${snap.totalProjects ?? '—'}</td>
+      <td style="color:var(--color-danger);">${snap.highRisks ?? '—'}</td>
+      <td style="color:var(--color-warning);">${snap.mediumRisks ?? '—'}</td>
+      <td>${snap.overdueActions ?? '—'}</td>
+      <td>${snap.completedActions ?? '—'} / ${snap.totalActions ?? '—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('snapshotTable').innerHTML = `
+    <table class="trends-table">
+      <thead>
+        <tr>
+          <th>週次</th><th>週起始</th><th>健康度</th><th>專案數</th>
+          <th>高風險</th><th>中風險</th><th>逾期 Actions</th><th>Action 完成</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── 週次範圍切換 ────────────────────────────────────────────────
+document.querySelectorAll('.range-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    _range = parseInt(this.dataset.range);
+    renderAll();
+  });
+});
+</script>
+
+<style>
+.range-btn.active { background:var(--color-info,#378add); color:#fff; border-color:var(--color-info,#378add); }
+.trends-table { width:100%; border-collapse:collapse; font-size:13px; }
+.trends-table th, .trends-table td { padding:8px 12px; border-bottom:1px solid var(--color-border-default); text-align:left; }
+.trends-table thead tr { background:var(--color-bg-secondary); }
+.trends-table tbody tr:hover { background:var(--color-bg-secondary); }
+</style>
+</body>
+</html>

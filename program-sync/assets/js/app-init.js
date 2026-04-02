@@ -92,6 +92,9 @@ export async function appInit() {
   // 6. navbar 徽章顯示當前瀏覽週次
   _syncWeekBadge(targetLabel);
 
+  // 6b. 讓子頁面可知道是否處於歷史唯讀模式
+  window._appInitIsHistoryMode = !!(targetLabel && latestWeekLabel && targetLabel !== latestWeekLabel);
+
   // 7. 若顯示的是歷史週次，插入提示 banner
   if (targetLabel && targetLabel !== latestWeekLabel) {
     _showHistoryBanner(targetLabel, latestWeekLabel);
