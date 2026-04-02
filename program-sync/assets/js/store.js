@@ -244,7 +244,10 @@ export const store = {
   },
 
   // 啟動跨瀏覽器後端同步：store:updated 後 2s debounce 推送到後端
+  // guard 確保每個頁面只掛一個 listener，避免多次呼叫累積重複寫入
   startBackendSync(saveFn) {
+    if (this._syncStarted) return;
+    this._syncStarted = true;
     let _timer;
     window.addEventListener('store:updated', () => {
       clearTimeout(_timer);
