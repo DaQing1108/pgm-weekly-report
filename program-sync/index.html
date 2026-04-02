@@ -222,6 +222,9 @@ async function init() {
       _viewState    = data;
       _viewingLabel = latestLabel;
     }
+    // Dashboard 預設顯示最新週，同步清除跨頁 sessionStorage
+    // 避免其他頁面因殘留舊 session 載入過期週次
+    setSessionWeek(null);
   }
 
   // 後端無資料時才 seed（避免種子快照污染 store）
