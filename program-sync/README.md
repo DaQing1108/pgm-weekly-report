@@ -123,6 +123,7 @@ program-sync/
 ├── milestones.html      # 里程碑時間軸（週次選擇器 + 歷史唯讀）
 ├── risks.html           # 風險管理（週次選擇器 + 歷史唯讀）
 ├── trends.html          # 趨勢分析（Chart.js 跨週折線/長條圖）
+├── resources.html       # 人力資源管理（季度總覽 / 業務分配 / 趨勢 CRUD）
 ├── report.html          # 週報生成（三欄佈局）
 ├── review.html          # 審核流程（Stepper）
 ├── README.md            # 本文件
@@ -485,7 +486,30 @@ railway.json             # Railway 部署設定
 
 ---
 
-### 5.7 週報生成（report.html）
+### 5.7 人力資源管理（resources.html）
+
+**資料來源**：Resource_Summary_25Q1–26Q2，涵蓋 6 季度 / 5 條產品線 / 3 個地區分配表
+
+**三個 Tab**
+
+| Tab | 說明 |
+|-----|------|
+| 📊 季度總覽 | 依季度篩選，顯示各產品線 CN/TW/JP/Total 人月與 MBO 目標表格 |
+| 📋 業務分配 | 24H2 / 25H1 / 25H2 三個期間的地區 FTE 分配（AI Learning / VED / 電視台 / Media Agent） |
+| 📈 人力趨勢 | 跨季人月投入矩陣（▲▼ 差值標籤）+ 趨勢觀察文字 |
+
+**CRUD 操作**
+- **新增**：點擊右上角「+ 新增條目」，Modal 含自動計算 Total（CN + TW + JP）
+- **編輯**：✏️ 開啟相同 Modal，修改後儲存
+- **刪除**：✕ 確認後刪除
+
+**資料儲存**：`localStorage.pgm_resources_entries`（季度條目）、`localStorage.pgm_resources_charges`（業務分配）
+
+**種子資料**：首次載入自動填入 30 筆季度條目 + 12 筆業務分配（來自 Resource_Summary_25Q1_26Q2.docx）
+
+---
+
+### 5.8 週報生成（report.html）
 
 **三欄佈局**
 

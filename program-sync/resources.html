@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>人力資源 — P&D Program Sync</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar__logo">
+    <div class="navbar__logo-icon">P</div>
+    <span>P&amp;D CENTER</span>
+  </a>
+  <span class="navbar__week-badge" id="weekBadge">–</span>
+  <div class="navbar__links">
+    <a href="index.html"      class="navbar__link">Dashboard</a>
+    <a href="input.html"      class="navbar__link">Quick Input</a>
+    <a href="risks.html"      class="navbar__link">Risks</a>
+    <a href="actions.html"    class="navbar__link">Action Items</a>
+    <a href="milestones.html" class="navbar__link">Milestones</a>
+    <a href="review.html"     class="navbar__link">Review</a>
+    <a href="resources.html"  class="navbar__link active">Resources</a>
+  </div>
+  <div class="navbar__actions">
+    <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+  </div>
+</nav>
+
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-header__title">人力資源管理</h1>
+      <p class="page-header__sub">研發部門 Resource Allocation — 2025Q1 ~ 2026Q2</p>
+    </div>
+    <div class="page-header__right">
+      <button class="btn btn-primary" id="btnAdd">+ 新增條目</button>
+    </div>
+  </div>
+
+  <!-- Tab 導航 -->
+  <div style="display:flex;gap:0;margin-bottom:var(--space-xl);border-bottom:2px solid var(--color-border-default);">
+    <button class="res-tab active" data-tab="quarterly">📊 季度總覽</button>
+    <button class="res-tab" data-tab="business">📋 業務分配</button>
+    <button class="res-tab" data-tab="trends">📈 人力趨勢</button>
+  </div>
+
+  <!-- ── Tab 1：季度總覽 ───────────────────────────────────── -->
+  <div id="tab-quarterly">
+    <div style="display:flex;gap:6px;margin-bottom:var(--space-lg);flex-wrap:wrap;" id="quarterChips"></div>
+    <div class="stats-bar" id="quarterKPI" style="margin-bottom:var(--space-xl);"></div>
+    <div class="panel">
+      <div class="panel__body" style="padding:0;overflow-x:auto;">
+        <table class="res-table">
+          <thead>
+            <tr>
+              <th>產品線</th>
+              <th class="num">CN (mm)</th>
+              <th class="num">TW (mm)</th>
+              <th class="num">JP (mm)</th>
+              <th class="num">Total (mm)</th>
+              <th>MBO 目標</th>
+              <th>備註</th>
+              <th style="width:76px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="quarterlyBody"></tbody>
+          <tfoot id="quarterlyFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tab 2：業務分配 ───────────────────────────────────── -->
+  <div id="tab-business" style="display:none">
+    <div style="display:flex;gap:6px;margin-bottom:var(--space-lg);" id="periodChips"></div>
+    <p class="text-sm text-secondary" id="periodDesc" style="margin-bottom:var(--space-lg);"></p>
+    <div class="panel">
+      <div class="panel__body" style="padding:0;overflow-x:auto;">
+        <table class="res-table">
+          <thead id="businessHead"></thead>
+          <tbody id="businessBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tab 3：人力趨勢 ───────────────────────────────────── -->
+  <div id="tab-trends" style="display:none">
+    <div class="panel" style="margin-bottom:var(--space-xl);">
+      <div class="panel__header">
+        <span class="panel__title">跨季人月投入趨勢（25Q1 – 26Q2）</span>
+        <span class="text-xs text-secondary">▲▼ 較上季變動</span>
+      </div>
+      <div class="panel__body" style="padding:0;overflow-x:auto;">
+        <table class="res-table" id="trendsTable"></table>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel__header"><span class="panel__title">趨勢觀察</span></div>
+      <div class="panel__body" id="trendsNotes" style="padding:var(--space-lg);"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { appInit } from './assets/js/app-init.js';
+import { toast, modal } from './assets/js/ui.js';
+
+// ── 儲存層 ───────────────────────────────────────────────────────
+const R_KEY = 'pgm_resources_entries';
+const B_KEY = 'pgm_resources_charges';
+const getEntries  = () => JSON.parse(localStorage.getItem(R_KEY) || '[]');
+const saveEntries = a  => localStorage.setItem(R_KEY, JSON.stringify(a));
+const getCharges  = () => JSON.parse(localStorage.getItem(B_KEY) || '[]');
+const saveCharges = a  => localStorage.setItem(B_KEY, JSON.stringify(a));
+
+// ── 常數 ─────────────────────────────────────────────────────────
+const QUARTERS     = ['25Q1','25Q2','25Q3','25Q4','26Q1','26Q2'];
+const PRODUCT_LINES= ['任我行','創造栗','智能體＋大模型','LearnMode','TV Solution','Media Agent','BU2 Healthcare'];
+const PL_ORDER     = Object.fromEntries(PRODUCT_LINES.map((p,i)=>[p,i]));
+const PERIODS      = ['24H2','25H1','25H2'];
+
+const PERIOD_META = {
+  '24H2': { desc:'2024 下半年 — 以地區為單位的人力業務分配（FTE）',
+    cols:['AI Learning RD Center','Charge VED','Charge TVBS','Charge AI Learning RD'],
+    keys:['aiLearning','ved','tvProject','charged'] },
+  '25H1': { desc:'2025 上半年（實際）— 以地區為單位的人力業務分配（FTE）',
+    cols:['AI Learning RD Center','VED','電視台專案','Media Agent'],
+    keys:['aiLearning','ved','tvProject','mediaAgent'] },
+  '25H2': { desc:'2025 下半年（預測基準）— 同時適用於 26Q1–Q2 封面基準值',
+    cols:['AI Learning RD Center','VED','電視台專案','Media Agent','BU2 Healthcare'],
+    keys:['aiLearning','ved','tvProject','mediaAgent','bu2'] },
+};
+
+// ── 種子資料 ──────────────────────────────────────────────────────
+const SEED_ENTRIES = [
+  // ── 25Q1 ──
+  {id:'re001',quarter:'25Q1',productLine:'任我行',cn:23,tw:0,jp:0,total:23,
+    mbo:'1. 金磚大賽支持\n2. 平台功能需求 4.0\n3. 實訓台\n4. 產品演示、部署、培訓和客戶支持',remark:''},
+  {id:'re002',quarter:'25Q1',productLine:'創造栗',cn:15.5,tw:4.5,jp:10,total:30,
+    mbo:'1. 小栗方PRO產品及套裝\n2. Edge端實現\n3. 圖文生成3D模型（簡版）\n4. 人工智慧教學與實踐平台\n5. 威栗雲維護運維客製美工\n6. 小栗方一代、8880小車\n7. 日本&台灣市場',remark:'含JP 10mm'},
+  {id:'re003',quarter:'25Q1',productLine:'智能體＋大模型',cn:7.5,tw:0,jp:0,total:7.5,
+    mbo:'1. 大模型/智能體開發\n2. 數字人\n3. 短視頻生成',remark:''},
+  {id:'re004',quarter:'25Q1',productLine:'LearnMode',cn:0,tw:8.9,jp:0,total:8.9,
+    mbo:'1. 學習吧AI寫作優化\n2. 企業版新功能優化\n3. 學習吧訂單系統優化\n4. 小型語言模型（SLM）系統驗證\n5. AI模擬提問系統POC\n6. AI教育詩辨識模型計畫',remark:''},
+  {id:'re005',quarter:'25Q1',productLine:'TV Solution',cn:30,tw:19,jp:0,total:49,
+    mbo:'1. OpenNews\n2. OpenSchedule\n3. OpenCapture\n4. OpenCommand\n5. OpenMAM',remark:''},
+  // ── 25Q2 ──
+  {id:'re006',quarter:'25Q2',productLine:'任我行',cn:1,tw:0,jp:0,total:1,
+    mbo:'Headway maintain',remark:''},
+  {id:'re007',quarter:'25Q2',productLine:'創造栗',cn:10.75,tw:1.25,jp:0,total:12,
+    mbo:'1. 小栗方PRO產品及套裝\n2. 網站與平面設計/雲端後台運維\n3. 威栗雲高中人工智能試驗學習平台\n4. 威栗雲海外版\n5. 設備端/平台 日文/繁体化\n6. 威栗雲海外版大模型',remark:''},
+  {id:'re008',quarter:'25Q2',productLine:'智能體＋大模型',cn:3.5,tw:0,jp:0,total:3.5,
+    mbo:'【創造栗-功能客製化】大模型/智能體',remark:''},
+  {id:'re009',quarter:'25Q2',productLine:'LearnMode',cn:0,tw:0.22,jp:0,total:0.22,
+    mbo:'1. Learnmode System and Function Maintenance\n2. Learnmode - Provide speech model training',remark:'原Q2客語 4mm 改列 Q3'},
+  {id:'re010',quarter:'25Q2',productLine:'TV Solution',cn:33,tw:24,jp:0,total:57,
+    mbo:'1. Open MAM\n2. Open News\n3. Open IO / Open Capture\n4. Open Manager/Schedule\n5. Open Command',remark:''},
+  {id:'re011',quarter:'25Q2',productLine:'Media Agent',cn:49.4,tw:0,jp:0,total:49.4,
+    mbo:'1. 人臉片庫檢索\n2. 人臉片庫進階檢索\n3. 視頻類智能體 misc\n4. 數字人\n5. 短視頻生成',remark:'Q2 重點：應用開發與檢索實現；Sally 6月請產假'},
+  // ── 25Q3 ──
+  {id:'re012',quarter:'25Q3',productLine:'創造栗',cn:14.5,tw:0.5,jp:0,total:15,
+    mbo:'1. 小栗方Pro 產品及套裝\n2. 小栗方Pro 大模型/智能體\n3. 威栗雲國際版',remark:''},
+  {id:'re013',quarter:'25Q3',productLine:'LearnMode',cn:0,tw:1.32,jp:0,total:1.32,
+    mbo:'1. Learnmode System and Function Maintenance\n2. Learnmode - Provide speech model training',remark:'0.32+(1) 學習吧、加分吧寫作小優化'},
+  {id:'re014',quarter:'25Q3',productLine:'TV Solution',cn:34.5,tw:21,jp:0,total:55.5,
+    mbo:'1. OpenIO WebUI development\n2. Open MAM\n3. Open News\n4. Open Command',remark:'Sally 產假兩個月，Q3 1mm'},
+  {id:'re015',quarter:'25Q3',productLine:'Media Agent',cn:44,tw:1.5,jp:0,total:45.5,
+    mbo:'1. 片庫多模態標註調研及架構\n2. 視頻內容 ASR 提取標註\n3. Misc - 拍打/聽打/版權/聲音克隆等模型算法調研\n4. 人臉/場景片庫檢索算法擴展及優化',remark:'⚠️ 超時 0.32MM'},
+  // ── 25Q4 ──
+  {id:'re016',quarter:'25Q4',productLine:'創造栗',cn:7.93,tw:0.5,jp:0,total:8.43,
+    mbo:'1. IdealLi Global\n2. 小栗方Pro 產品及套裝（IDE / 擴展板 / 運維）\n3. LLM/Agent 平台移植到 AIPC（TBD）',remark:''},
+  {id:'re017',quarter:'25Q4',productLine:'LearnMode',cn:0,tw:2.4,jp:0,total:2.4,
+    mbo:'1. Learnmode System and Function Maintenance\n2. Research and Technical Evaluation of Learning Platform Project',remark:'0.4+(2)'},
+  {id:'re018',quarter:'25Q4',productLine:'TV Solution',cn:34.5,tw:21,jp:0,total:55.5,
+    mbo:'1. OpenIO\n2. Open News\n3. Open MAM\n4. Open Command\n5. OpenMAM Development',remark:''},
+  {id:'re019',quarter:'25Q4',productLine:'Media Agent',cn:43.75,tw:1.5,jp:0,total:45.25,
+    mbo:'1. 名人庫詞條內容收集整理（5000 量級）\n2. 名人庫 APP Phase I（internal version）\n3. 場景檢索向量庫生成/布控\n4. 持續調研 MediaAgent 其他應用\n5. 片庫人臉檢索細化\n6. 基於自然語言片庫檢索',remark:'特休消耗'},
+  {id:'re020',quarter:'25Q4',productLine:'BU2 Healthcare',cn:1,tw:0,jp:0,total:1,
+    mbo:'MagicView (MGV) Update',remark:''},
+  // ── 26Q1 ──
+  {id:'re021',quarter:'26Q1',productLine:'創造栗',cn:17.1,tw:0,jp:0,total:17.1,
+    mbo:'1. IdeaLi Maintenance/Support\n2. LLM sensitive content block\n3. AIPC support\n4. Xiaolifang-Pro external power board support',remark:'前季 25Q4: 8.43mm'},
+  {id:'re022',quarter:'26Q1',productLine:'LearnMode',cn:0,tw:0.4,jp:0,total:0.4,
+    mbo:'1. Learnmode System and Function Maintenance\n2. Research and Technical Evaluation of Learning Platform Project',remark:'前季 25Q4: 2.4mm'},
+  {id:'re023',quarter:'26Q1',productLine:'TV Solution',cn:34.5,tw:21,jp:0,total:55.5,
+    mbo:'1. OpenIO\n2. Open News\n3. Open MAM\n4. Open Command\n5. OpenMAM Development',remark:''},
+  {id:'re024',quarter:'26Q1',productLine:'Media Agent',cn:37.5,tw:2.5,jp:0,total:40,
+    mbo:'1. Establish a Media Agent-aware infrastructure\n2. AI media content labeling and tagging\n3. NLP searching\n4. Olapedia 1.0\n5. STT for labeling, social media, raw media\n6. Logo and Object recognization and labeling',remark:'前季 25Q4: 45.25mm'},
+  {id:'re025',quarter:'26Q1',productLine:'BU2 Healthcare',cn:1,tw:0,jp:0,total:1,
+    mbo:'MagicView support (license/Q&A/others when have resource)',remark:'前季 25Q4: 1mm'},
+  // ── 26Q2 ──
+  {id:'re026',quarter:'26Q2',productLine:'創造栗',cn:1.5,tw:0,jp:0,total:1.5,
+    mbo:'IdealLi Maintenance/Support',remark:''},
+  {id:'re027',quarter:'26Q2',productLine:'LearnMode',cn:0,tw:0.4,jp:0,total:0.4,
+    mbo:'Maintenance/Support',remark:''},
+  {id:'re028',quarter:'26Q2',productLine:'TV Solution',cn:34.5,tw:21,jp:0,total:55.5,
+    mbo:'1. OpenIO/OpenCapture\n2. OpenNews/OpenSchedule/OpenManager\n3. OpenCommand\n4. OpenMAM\n5. OpenMAM development\n6. OpenNews development',remark:''},
+  {id:'re029',quarter:'26Q2',productLine:'Media Agent',cn:54,tw:3,jp:0,total:57,
+    mbo:'1. STT for News dept\n2. STT for 節目部\n3. OpenMAM 對接（識別，標註，TBD）\n4. TV Logo final and Investigate other objects\n5. Olapedia 2.0\n6. NLP 2.0 (draft conversational)\n7. Media labeling upgraded',remark:'26H1 核心成長動能'},
+  {id:'re030',quarter:'26Q2',productLine:'BU2 Healthcare',cn:1,tw:0,jp:0,total:1,
+    mbo:'Training support/Release and copy protection',remark:''},
+];
+
+const SEED_CHARGES = [
+  // 24H2
+  {id:'bc001',period:'24H2',area:'TW',    aiLearning:9, ved:0,  tvProject:0, mediaAgent:0,bu2:0,charged:9, notes:''},
+  {id:'bc002',period:'24H2',area:'武漢',  aiLearning:13,ved:0,  tvProject:8, mediaAgent:0,bu2:0,charged:5, notes:''},
+  {id:'bc003',period:'24H2',area:'上海',  aiLearning:18,ved:11, tvProject:1, mediaAgent:0,bu2:0,charged:6, notes:''},
+  {id:'bc004',period:'24H2',area:'USA',   aiLearning:1, ved:0,  tvProject:0, mediaAgent:0,bu2:0,charged:1, notes:''},
+  // 25H1
+  {id:'bc005',period:'25H1',area:'TW+JP', aiLearning:10,ved:1,  tvProject:8, mediaAgent:1,bu2:0,charged:0, notes:'VED 24.87mm；LearnMode 9.12mm 由1位台北負責；創造栗15.75mm 有2位上海負責'},
+  {id:'bc006',period:'25H1',area:'武漢',  aiLearning:13,ved:0,  tvProject:10,mediaAgent:3,bu2:0,charged:0, notes:''},
+  {id:'bc007',period:'25H1',area:'上海',  aiLearning:18,ved:10, tvProject:1, mediaAgent:7,bu2:0,charged:0, notes:'VED 50.25mm（8位支負責陸項目）'},
+  {id:'bc008',period:'25H1',area:'USA',   aiLearning:1, ved:0,  tvProject:0, mediaAgent:1,bu2:0,charged:0, notes:''},
+  // 25H2 (Forecast)
+  {id:'bc009',period:'25H2',area:'TW',    aiLearning:8, ved:0,  tvProject:7, mediaAgent:1, bu2:0,charged:0,notes:'預測基準'},
+  {id:'bc010',period:'25H2',area:'武漢',  aiLearning:13,ved:0,  tvProject:10,mediaAgent:2, bu2:1,charged:0,notes:'預測基準'},
+  {id:'bc011',period:'25H2',area:'上海',  aiLearning:17,ved:3,  tvProject:1, mediaAgent:13,bu2:0,charged:0,notes:'預測基準'},
+  {id:'bc012',period:'25H2',area:'USA',   aiLearning:1, ved:0,  tvProject:0, mediaAgent:1, bu2:0,charged:0,notes:'預測基準'},
+];
+
+function seedIfEmpty() {
+  if (!getEntries().length) saveEntries(SEED_ENTRIES);
+  if (!getCharges().length) saveCharges(SEED_CHARGES);
+}
+
+// ── 工具函式 ──────────────────────────────────────────────────────
+const genId  = () => 're' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const genBId = () => 'bc' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const fmt    = v  => (v == null || v === 0) ? '<span class="text-secondary">—</span>' : String(v);
+
+// ── Tab 切換 ──────────────────────────────────────────────────────
+let _tab = 'quarterly', _quarter = '26Q2', _period = '25H2';
+
+document.querySelectorAll('.res-tab').forEach(btn => {
+  btn.addEventListener('click', function() {
+    _tab = this.dataset.tab;
+    document.querySelectorAll('.res-tab').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('tab-quarterly').style.display = _tab === 'quarterly' ? '' : 'none';
+    document.getElementById('tab-business').style.display  = _tab === 'business'  ? '' : 'none';
+    document.getElementById('tab-trends').style.display    = _tab === 'trends'    ? '' : 'none';
+    const btn = document.getElementById('btnAdd');
+    btn.style.display  = _tab === 'trends' ? 'none' : '';
+    btn.textContent    = _tab === 'quarterly' ? '+ 新增條目' : '+ 新增記錄';
+    render();
+  });
+});
+
+function render() {
+  if      (_tab === 'quarterly') renderQuarterly();
+  else if (_tab === 'business')  renderBusiness();
+  else                           renderTrends();
+}
+
+// ── 季度總覽 ───────────────────────────────────────────────────────
+function renderQuarterChips() {
+  const el = document.getElementById('quarterChips');
+  el.innerHTML = QUARTERS.map(q =>
+    `<button class="filter-chip${q===_quarter?' active':''}" data-q="${q}">${q}</button>`
+  ).join('');
+  el.querySelectorAll('.filter-chip').forEach(b => b.addEventListener('click', function() {
+    _quarter = this.dataset.q; renderQuarterly();
+  }));
+}
+
+function renderQuarterly() {
+  renderQuarterChips();
+  const entries = getEntries()
+    .filter(e => e.quarter === _quarter)
+    .sort((a,b) => (PL_ORDER[a.productLine]??99) - (PL_ORDER[b.productLine]??99));
+
+  const totalMM = entries.reduce((s,e)=>s+(e.total||0),0);
+  const cnMM    = entries.reduce((s,e)=>s+(e.cn||0),0);
+  const twMM    = entries.reduce((s,e)=>s+(e.tw||0),0);
+  const jpMM    = entries.reduce((s,e)=>s+(e.jp||0),0);
+
+  document.getElementById('quarterKPI').innerHTML = [
+    ['Total (mm)', totalMM.toFixed(2)],
+    ['CN (mm)',    cnMM.toFixed(2)],
+    ['TW (mm)',    twMM.toFixed(2)],
+    ...(jpMM > 0 ? [['JP (mm)', jpMM.toFixed(2)]] : []),
+    ['產品線數',  entries.length],
+  ].map(([lbl,val])=>`
+    <div class="stats-bar__item">
+      <div class="stats-bar__val">${val}</div>
+      <div class="stats-bar__lbl">${lbl}</div>
+    </div>`).join('');
+
+  document.getElementById('quarterlyBody').innerHTML = entries.length
+    ? entries.map(e => {
+        const mboLines = (e.mbo||'').split('\n');
+        const mboPreview = mboLines.slice(0,3).join('\n') + (mboLines.length > 3 ? '\n…' : '');
+        return `<tr>
+          <td><span class="font-600">${e.productLine}</span></td>
+          <td class="num">${e.cn||0}</td>
+          <td class="num">${e.tw||0}</td>
+          <td class="num">${e.jp ? e.jp : '<span class="text-secondary">—</span>'}</td>
+          <td class="num" style="font-weight:700;">${e.total||0}</td>
+          <td class="text-xs text-secondary mbo-cell">${mboPreview.replace(/\n/g,'<br>')}</td>
+          <td class="text-xs text-secondary">${e.remark||'—'}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm" onclick="editEntry('${e.id}')" title="編輯">✏️</button>
+            <button class="btn btn-ghost btn-sm" onclick="delEntry('${e.id}')"  title="刪除">✕</button>
+          </td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="8" class="empty-cell">此季度尚無資料</td></tr>`;
+
+  document.getElementById('quarterlyFoot').innerHTML = entries.length
+    ? `<tr class="foot-row">
+        <td>合計</td>
+        <td class="num">${cnMM.toFixed(2)}</td>
+        <td class="num">${twMM.toFixed(2)}</td>
+        <td class="num">${jpMM>0?jpMM.toFixed(2):'—'}</td>
+        <td class="num">${totalMM.toFixed(2)}</td>
+        <td colspan="3"></td>
+      </tr>` : '';
+}
+
+// ── 季度條目 CRUD ─────────────────────────────────────────────────
+window.editEntry = id => {
+  const all = getEntries(), e = all.find(x=>x.id===id); if(!e) return;
+  showEntryModal(e, upd => {
+    const i = all.findIndex(x=>x.id===id);
+    if(i>=0){ all[i]=upd; saveEntries(all); }
+    toast('✅ 已更新條目','success'); renderQuarterly();
+  });
+};
+window.delEntry = id => {
+  if(!window.confirm('確定刪除此條目？')) return;
+  saveEntries(getEntries().filter(e=>e.id!==id));
+  toast('已刪除','success'); renderQuarterly();
+};
+
+function showEntryModal(entry, onSave) {
+  const isNew = !entry.id;
+  const qOpts = QUARTERS.map(q=>`<option value="${q}"${q===(entry.quarter||_quarter)?' selected':''}>${q}</option>`).join('');
+  const pOpts = PRODUCT_LINES.map(pl=>`<option value="${pl}"${pl===entry.productLine?' selected':''}>${pl}</option>`).join('');
+
+  const {close, el} = modal(`
+    <div class="modal__header">
+      <span class="modal__title">${isNew?'新增季度條目':'編輯條目'}</span>
+      <button class="modal__close" type="button">✕</button>
+    </div>
+    <div class="modal__body"><div class="stack">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);">
+        <div class="inp-group"><label class="inp-label">季度</label>
+          <select class="inp" id="meQ">${qOpts}</select></div>
+        <div class="inp-group"><label class="inp-label">產品線</label>
+          <select class="inp" id="mePL">${pOpts}</select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:var(--space-md);">
+        <div class="inp-group"><label class="inp-label">CN (mm)</label>
+          <input type="number" class="inp" id="meCN" value="${entry.cn||0}" step="0.01" min="0"></div>
+        <div class="inp-group"><label class="inp-label">TW (mm)</label>
+          <input type="number" class="inp" id="meTW" value="${entry.tw||0}" step="0.01" min="0"></div>
+        <div class="inp-group"><label class="inp-label">JP (mm)</label>
+          <input type="number" class="inp" id="meJP" value="${entry.jp||0}" step="0.01" min="0"></div>
+        <div class="inp-group"><label class="inp-label">Total (mm)</label>
+          <input type="number" class="inp" id="meTotal" value="${entry.total||0}" step="0.01" min="0"></div>
+      </div>
+      <div class="inp-group"><label class="inp-label">MBO 目標</label>
+        <textarea class="inp" id="meMBO" rows="5" placeholder="各項 MBO 目標，每行一項…">${entry.mbo||''}</textarea></div>
+      <div class="inp-group"><label class="inp-label">備註</label>
+        <input type="text" class="inp" id="meRemark" value="${entry.remark||''}" placeholder="備註說明"></div>
+    </div></div>
+    <div class="modal__footer">
+      <button class="btn btn-outline" id="meCancel">取消</button>
+      <button class="btn btn-primary" id="meSave">${isNew?'新增':'儲存變更'}</button>
+    </div>`);
+
+  // 自動計算 Total
+  const calc = () => {
+    const v = ['#meCN','#meTW','#meJP'].reduce((s,id)=>s+(parseFloat(el.querySelector(id).value)||0),0);
+    el.querySelector('#meTotal').value = v.toFixed(2);
+  };
+  ['#meCN','#meTW','#meJP'].forEach(id => el.querySelector(id).addEventListener('input', calc));
+  el.querySelector('.modal__close').addEventListener('click', close);
+  el.querySelector('#meCancel').addEventListener('click', close);
+  el.querySelector('#meSave').addEventListener('click', () => {
+    const total = parseFloat(el.querySelector('#meTotal').value)||0;
+    if(!total){ toast('請填入人月數值','error'); return; }
+    close();
+    onSave({
+      ...entry, id: entry.id||genId(),
+      quarter:     el.querySelector('#meQ').value,
+      productLine: el.querySelector('#mePL').value,
+      cn:    parseFloat(el.querySelector('#meCN').value)||0,
+      tw:    parseFloat(el.querySelector('#meTW').value)||0,
+      jp:    parseFloat(el.querySelector('#meJP').value)||0,
+      total,
+      mbo:   el.querySelector('#meMBO').value.trim(),
+      remark:el.querySelector('#meRemark').value.trim(),
+    });
+  });
+}
+
+// ── 業務分配 ───────────────────────────────────────────────────────
+function renderPeriodChips() {
+  const el = document.getElementById('periodChips');
+  el.innerHTML = PERIODS.map(p =>
+    `<button class="filter-chip${p===_period?' active':''}" data-p="${p}">${p}</button>`
+  ).join('');
+  el.querySelectorAll('.filter-chip').forEach(b => b.addEventListener('click', function(){
+    _period=this.dataset.p; renderBusiness();
+  }));
+}
+
+function renderBusiness() {
+  renderPeriodChips();
+  const meta    = PERIOD_META[_period];
+  document.getElementById('periodDesc').textContent = meta.desc;
+  const charges = getCharges().filter(c=>c.period===_period);
+
+  document.getElementById('businessHead').innerHTML =
+    `<tr>${['地區 Area',...meta.cols,'備註','操作'].map((c,i)=>
+      `<th${i===0?'':' class="num"'}${i===meta.cols.length+2?' style="width:76px;"':''}>${c}</th>`
+    ).join('')}</tr>`;
+
+  document.getElementById('businessBody').innerHTML = charges.length
+    ? charges.map(c=>`<tr>
+        <td><span class="font-600">${c.area}</span></td>
+        ${meta.keys.map(k=>`<td class="num">${c[k]??0}</td>`).join('')}
+        <td class="text-xs text-secondary">${c.notes||'—'}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="editCharge('${c.id}')" title="編輯">✏️</button>
+          <button class="btn btn-ghost btn-sm" onclick="delCharge('${c.id}')"  title="刪除">✕</button>
+        </td>
+      </tr>`).join('')
+    : `<tr><td colspan="${meta.cols.length+3}" class="empty-cell">此期間尚無資料</td></tr>`;
+}
+
+// ── 業務分配 CRUD ─────────────────────────────────────────────────
+window.editCharge = id => {
+  const all = getCharges(), c = all.find(x=>x.id===id); if(!c) return;
+  showChargeModal(c, upd => {
+    const i = all.findIndex(x=>x.id===id);
+    if(i>=0){ all[i]=upd; saveCharges(all); }
+    toast('✅ 已更新記錄','success'); renderBusiness();
+  });
+};
+window.delCharge = id => {
+  if(!window.confirm('確定刪除此業務分配記錄？')) return;
+  saveCharges(getCharges().filter(c=>c.id!==id));
+  toast('已刪除','success'); renderBusiness();
+};
+
+function showChargeModal(charge, onSave) {
+  const isNew = !charge.id;
+  const meta  = PERIOD_META[_period];
+  const pOpts = PERIODS.map(p=>`<option value="${p}"${p===(charge.period||_period)?' selected':''}>${p}</option>`).join('');
+  const colGrid = meta.keys.map((k,i)=>`
+    <div class="inp-group"><label class="inp-label">${meta.cols[i]} (FTE)</label>
+      <input type="number" class="inp" id="bc_${k}" value="${charge[k]??0}" step="0.5" min="0"></div>`
+  ).join('');
+
+  const {close, el} = modal(`
+    <div class="modal__header">
+      <span class="modal__title">${isNew?'新增業務分配':'編輯業務分配'}</span>
+      <button class="modal__close" type="button">✕</button>
+    </div>
+    <div class="modal__body"><div class="stack">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);">
+        <div class="inp-group"><label class="inp-label">期間</label>
+          <select class="inp" id="bcPeriod">${pOpts}</select></div>
+        <div class="inp-group"><label class="inp-label">地區</label>
+          <input type="text" class="inp" id="bcArea" value="${charge.area||''}" placeholder="TW / 武漢 / 上海 / USA"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(${Math.min(meta.keys.length,3)},1fr);gap:var(--space-md);">
+        ${colGrid}
+      </div>
+      <div class="inp-group"><label class="inp-label">備註</label>
+        <input type="text" class="inp" id="bcNotes" value="${charge.notes||''}" placeholder="備註說明"></div>
+    </div></div>
+    <div class="modal__footer">
+      <button class="btn btn-outline" id="bcCancel">取消</button>
+      <button class="btn btn-primary" id="bcSave">${isNew?'新增':'儲存變更'}</button>
+    </div>`);
+
+  el.querySelector('.modal__close').addEventListener('click', close);
+  el.querySelector('#bcCancel').addEventListener('click', close);
+  el.querySelector('#bcSave').addEventListener('click', () => {
+    const area = el.querySelector('#bcArea').value.trim();
+    if(!area){ toast('請填入地區名稱','error'); return; }
+    const upd = { ...charge, id:charge.id||genBId() };
+    upd.period = el.querySelector('#bcPeriod').value;
+    upd.area   = area;
+    meta.keys.forEach(k=>{ upd[k]=parseFloat(el.querySelector(`#bc_${k}`).value)||0; });
+    upd.notes  = el.querySelector('#bcNotes').value.trim();
+    close(); onSave(upd);
+  });
+}
+
+// ── 人力趨勢 ───────────────────────────────────────────────────────
+function renderTrends() {
+  const entries = getEntries();
+  const allPL = [...new Set(entries.map(e=>e.productLine))]
+    .sort((a,b)=>(PL_ORDER[a]??99)-(PL_ORDER[b]??99));
+
+  const getData = (pl,q) => { const e=entries.find(x=>x.productLine===pl&&x.quarter===q); return e?e.total:null; };
+  const qTotals = QUARTERS.map(q=>entries.filter(e=>e.quarter===q).reduce((s,e)=>s+(e.total||0),0));
+  const maxTotal = Math.max(...qTotals,1);
+
+  const deltaCell = (val, prevVal, align='right') => {
+    if(val===null) return `<td class="num" style="color:var(--color-text-secondary);">—</td>`;
+    let delta = '';
+    if(prevVal!==null){
+      const d = +(val-prevVal).toFixed(2);
+      if(Math.abs(d)>=0.1){
+        const col = d>0?'var(--color-success)':'var(--color-danger)';
+        delta=`<span style="font-size:10px;color:${col};margin-left:3px;">${d>0?'▲':'▼'}${Math.abs(d).toFixed(1)}</span>`;
+      }
+    }
+    return `<td class="num">${val}${delta}</td>`;
+  };
+
+  const rows = allPL.map(pl=>`<tr>
+    <td class="font-600">${pl}</td>
+    ${QUARTERS.map((q,qi)=>deltaCell(getData(pl,q), qi>0?getData(pl,QUARTERS[qi-1]):null)).join('')}
+  </tr>`).join('');
+
+  const totalCells = QUARTERS.map((q,qi)=>{
+    const t=qTotals[qi], prev=qi>0?qTotals[qi-1]:null;
+    let delta='';
+    if(prev!==null){
+      const d=+(t-prev).toFixed(2);
+      if(Math.abs(d)>=0.1){
+        const col=d>0?'var(--color-success)':d<0?'var(--color-danger)':'';
+        delta=`<span style="font-size:10px;color:${col};margin-left:3px;">${d>0?'▲':'▼'}${Math.abs(d).toFixed(1)}</span>`;
+      }
+    }
+    const pct=(t/maxTotal*100).toFixed(0);
+    return `<td class="num">
+      <span style="font-weight:700;">${t.toFixed(1)}</span>${delta}
+      <div style="height:4px;background:var(--color-border-default);border-radius:2px;margin-top:4px;">
+        <div style="height:4px;width:${pct}%;background:var(--color-info);border-radius:2px;"></div>
+      </div>
+    </td>`;
+  }).join('');
+
+  document.getElementById('trendsTable').innerHTML = `
+    <thead><tr style="background:var(--color-bg-secondary);">
+      <th>產品線</th>
+      ${QUARTERS.map(q=>`<th class="num">${q}</th>`).join('')}
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr class="foot-row">
+      <td>Total (mm)</td>${totalCells}
+    </tr></tfoot>`;
+
+  document.getElementById('trendsNotes').innerHTML = `
+    <ul class="text-sm" style="line-height:2;padding-left:var(--space-lg);">
+      <li><strong>TV Solution</strong> 維持全週期最穩定投入（~55–57mm），為組織主力支柱</li>
+      <li><strong>Media Agent</strong> 呈先穩定後大幅提升趨勢（26Q2 達 57mm），為 26H1 核心成長動能</li>
+      <li><strong>創造栗</strong> 呈 W 型波動：25Q1 高峰（30mm）→ 低谷 → 26Q1 回升（17.1mm）→ 26Q2 收縮（1.5mm）</li>
+      <li>整體組織人力容量穩定在 <strong>112–123mm</strong>，無大幅擴編</li>
+      <li>預測方法論：滾動預測（Rolling Forecast），每半年更新，預測範圍：當前季度 + 未來 1–2 季度</li>
+    </ul>`;
+}
+
+// ── 新增按鈕 ──────────────────────────────────────────────────────
+document.getElementById('btnAdd').addEventListener('click', () => {
+  if(_tab==='quarterly'){
+    showEntryModal({quarter:_quarter,productLine:'Media Agent',cn:0,tw:0,jp:0,total:0,mbo:'',remark:''}, entry=>{
+      const all=getEntries(); all.push(entry); saveEntries(all);
+      _quarter=entry.quarter; toast('✅ 已新增條目','success'); renderQuarterly();
+    });
+  } else {
+    showChargeModal({period:_period,area:'',aiLearning:0,ved:0,tvProject:0,mediaAgent:0,bu2:0,charged:0,notes:''}, charge=>{
+      const all=getCharges(); all.push(charge); saveCharges(all);
+      _period=charge.period; toast('✅ 已新增記錄','success'); renderBusiness();
+    });
+  }
+});
+
+// ── 初始化 ────────────────────────────────────────────────────────
+(async () => {
+  await appInit();
+  seedIfEmpty();
+  renderQuarterly();
+})();
+</script>
+
+<style>
+.res-tab {
+  padding: 8px 22px; border: none; border-bottom: 3px solid transparent;
+  background: none; font-size: var(--font-size-sm); font-weight: 600;
+  cursor: pointer; color: var(--color-text-secondary); transition: all .15s;
+}
+.res-tab:hover { color: var(--color-text-primary); }
+.res-tab.active { color: var(--color-info); border-bottom-color: var(--color-info); }
+
+.res-table { width:100%; border-collapse:collapse; font-size:13px; }
+.res-table th, .res-table td { padding:10px 14px; border-bottom:1px solid var(--color-border-default); text-align:left; vertical-align:top; }
+.res-table thead tr { background:var(--color-bg-secondary); }
+.res-table thead th { font-weight:700; font-size:12px; color:var(--color-text-secondary); }
+.res-table tbody tr:hover { background:var(--color-bg-secondary); }
+.res-table .num { text-align:right; }
+.foot-row { background:var(--color-bg-secondary); font-weight:700; }
+.mbo-cell { white-space:pre-line; line-height:1.5; max-width:220px; }
+.empty-cell { text-align:center; padding:32px; color:var(--color-text-secondary); }
+</style>
+</body>
+</html>
