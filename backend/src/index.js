@@ -10,6 +10,10 @@ const PORT = process.env.PORT || 3001;
 const REPORTS_DIR = process.env.REPORTS_DIR
   || path.join(__dirname, '../reports');
 
+// Q-6 修正：REPORT_EXCLUDE_TAG 環境變數可自訂排除標記（預設 _v7）
+// 用途：過濾舊版格式週報，讓清單與 /read 只顯示當前格式的檔案
+const REPORT_EXCLUDE_TAG = process.env.REPORT_EXCLUDE_TAG || '_v7';
+
 // State file (cross-browser sync)
 const DATA_DIR  = path.join(__dirname, '../data');
 const STATE_FILE = path.join(DATA_DIR, 'state.json');
@@ -22,7 +26,25 @@ if (fs.existsSync(PROGRAM_SYNC)) {
   app.use(express.static(PROGRAM_SYNC));
 }
 
-app.use(cors());
+// S-3 修正：CORS_ORIGIN 環境變數可限定允許的 origin（逗號分隔多個）
+// 未設定 → 允許所有 origin（向下相容 / 開發環境）
+// Railway 部署建議設定：CORS_ORIGIN=https://your-app.railway.app
+const _corsAllowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(s => s.trim())
+  : null;
+
+app.use(cors(
+  _corsAllowedOrigins
+    ? {
+        origin(origin, cb) {
+          // 允許無 origin 的同源請求（curl / SSR / 同域 fetch）
+          if (!origin || _corsAllowedOrigins.includes(origin)) return cb(null, true);
+          cb(new Error(`CORS: origin "${origin}" not in allowlist`));
+        },
+        credentials: false,
+      }
+    : {} // 未設定 → cors() 預設行為（allow all）
+));
 app.use(express.json({ limit: '2mb' }));
 
 // ── Admin Token 驗證中介層（S-1/S-2）────────────────────────────
@@ -47,7 +69,7 @@ app.get('/api/health', (req, res) => {
 app.get('/api/reports', (req, res) => {
   try {
     const files = fs.readdirSync(REPORTS_DIR)
-      .filter(f => f.endsWith('.md') && !f.includes('_v7'))
+      .filter(f => f.endsWith('.md') && !f.includes(REPORT_EXCLUDE_TAG))
       .map(f => {
         const content = fs.readFileSync(path.join(REPORTS_DIR, f), 'utf-8');
         const versionMatch = f.match(/v(\d+)/);
@@ -192,7 +214,7 @@ app.post('/api/weeks/:weekLabel', requireAdminToken, (req, res) => {
 app.get('/read', (req, res) => {
   try {
     const files = fs.readdirSync(REPORTS_DIR)
-      .filter(f => f.endsWith('.md') && !f.includes('_v7'))
+      .filter(f => f.endsWith('.md') && !f.includes(REPORT_EXCLUDE_TAG))
       .sort().reverse();
 
     const sections = files.map(f => {

@@ -1,7 +1,7 @@
 # P&D Center Program Sync — 週報管理系統
 
 > VIA Technologies P&D Center 週報管理與協作平台
-> 版本：v3.5 ｜ 部署：Railway ｜ 技術棧：Vanilla HTML5 + Node.js + Anthropic Claude API
+> 版本：v3.10 ｜ 部署：Railway ｜ 技術棧：Vanilla HTML5 + Node.js + Anthropic Claude API
 
 ---
 
@@ -1009,6 +1009,9 @@ open http://localhost:3001/program-sync/index.html
 |------|--------|------|
 | `PORT` | `3001` | 伺服器監聽埠號 |
 | `REPORTS_DIR` | `../reports` | Markdown 週報儲存目錄 |
+| `ADMIN_TOKEN` | 未設定（開放） | 設定後，POST/DELETE 週報及 POST 週次存檔需帶 `X-Admin-Token` header |
+| `CORS_ORIGIN` | 未設定（允許所有） | 逗號分隔的允許 origin（e.g. `https://your-app.railway.app`） |
+| `REPORT_EXCLUDE_TAG` | `_v7` | 週報清單與 `/read` 排除含此標記的舊格式檔案 |
 
 ### 清除 localStorage（重置資料）
 
@@ -1066,6 +1069,7 @@ location.reload();
 
 | **v3.8** | **P2 安全性**：`POST /api/reports` 加 `requireAdminToken`（S-5），防止未授權覆寫週報；`saveReport()` 改用 `_writeHeaders()`（自動帶 `X-Admin-Token`）並加 `AbortSignal.timeout(10000)`（S-6），同步補上 401 處理。 |
 | **v3.9** | **D-1 資料架構**：新增私有 `_exportWeekObj()`，`startBackendSync` 改用此函式推週次資料（不含 `_resources`/`_resourceCharges`），防止跨季人力資料污染歷史週 JSON 並消除冗餘 `JSON.parse(exportAll())`（M-1）。**Quick wins**：`deleteReport()` 改用 `_writeHeaders()`（M-2）；`/read` endpoint 加 try/catch（M-3）；`app-init.js` 頂部過時註解更新（Q-9）；`ai.js` 移除未使用的 `s` 變數（M-5）。 |
+| **v3.10** | **S-3 CORS 限縮**：`app.use(cors())` 改為讀取 `CORS_ORIGIN` 環境變數（逗號分隔 allowlist），未設定時維持開放（向下相容）；Railway 部署建議設 `CORS_ORIGIN=https://your-app.railway.app` 防跨站濫用。**Q-6 排除標記可設定**：後端 `GET /api/reports` 與 `GET /read` 的 `_v7` 硬編碼改為讀取 `REPORT_EXCLUDE_TAG` 環境變數（預設 `_v7`），允許未來更換週報格式版本標記而無需修改程式碼。 |
 
 ---
 
