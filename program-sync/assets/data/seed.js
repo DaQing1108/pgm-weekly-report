@@ -21,7 +21,8 @@ export function seedData() {
     ].forEach(s => store.save('snapshots', s));
   }
 
-  // 若已有專案資料，其餘不重複填入
+  // M-6 修正：改檢查 projects（原本只檢查 snapshots，若 snapshots 存在但 projects 已清除，
+  // 會誤跳過 seed，造成專案空白頁面）
   if (store.getAll('projects').length > 0) return;
 
   // ── 12 個專案（9 green / 2 yellow / 1 red）────────────────────
@@ -274,7 +275,8 @@ export function seedData() {
   ];
 
   // ── 10 筆 Actions ─────────────────────────────────────────────
-  const today = new Date('2026-03-23');
+  // D-2 修正：today 改用 new Date()，讓逾期/未來日期隨當前日期動態計算
+  const today = new Date();
   const fmt = d => d.toISOString().split('T')[0];
   const daysLater = n => { const d = new Date(today); d.setDate(d.getDate()+n); return fmt(d); };
   const daysBefore = n => { const d = new Date(today); d.setDate(d.getDate()-n); return fmt(d); };

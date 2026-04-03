@@ -161,9 +161,13 @@ export const store = {
 
   /** 從 JSON 字串或已解析物件匯入所有資料（覆蓋） */
   // Q-3 修正：接受 string 或 object，消除呼叫端的冗餘 JSON.stringify/parse
+  // A-1 修正：進入前先驗證型別，防止 null/非物件輸入導致 TypeError
   importAll(jsonOrObj) {
     try {
       const data = typeof jsonOrObj === 'string' ? JSON.parse(jsonOrObj) : jsonOrObj;
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        return { ok: false, message: '無效的資料格式（非物件）' };
+      }
       // #1 修正：同步補上 members
       const keys = ['projects', 'risks', 'actions', 'milestones', 'snapshots', 'drafts', 'members'];
       keys.forEach(k => {

@@ -194,6 +194,8 @@ export function getWeekStart(d = new Date()) {
 
 /**
  * 週標籤（W11 格式）
+ * @deprecated Q-11 修正：邏輯與 store.js _weekLabel() / store.weekLabel() 重複。
+ *   請改用 store.weekLabel(weekStart)，此函式保留以維持向下相容，未來版本移除。
  * @param {string} weekStart ISO
  * @returns {string}
  */
@@ -233,11 +235,14 @@ export function debounce(fn, ms) {
 
 /**
  * 產生 UUID v4 字串
+ * S-8 修正：改用 crypto.randomUUID()（高品質亂數），
+ * 並補 getRandomValues fallback 相容 Safari 14（同 store.js _uuid 策略）
  * @returns {string}
  */
 export function generateId() {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0;
+    const r = crypto.getRandomValues(new Uint8Array(1))[0] & 15;
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });

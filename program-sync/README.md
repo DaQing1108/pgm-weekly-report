@@ -1,7 +1,7 @@
 # P&D Center Program Sync — 週報管理系統
 
 > VIA Technologies P&D Center 週報管理與協作平台
-> 版本：v3.10 ｜ 部署：Railway ｜ 技術棧：Vanilla HTML5 + Node.js + Anthropic Claude API
+> 版本：v3.11 ｜ 部署：Railway ｜ 技術棧：Vanilla HTML5 + Node.js + Anthropic Claude API
 
 ---
 
@@ -1070,6 +1070,7 @@ location.reload();
 | **v3.8** | **P2 安全性**：`POST /api/reports` 加 `requireAdminToken`（S-5），防止未授權覆寫週報；`saveReport()` 改用 `_writeHeaders()`（自動帶 `X-Admin-Token`）並加 `AbortSignal.timeout(10000)`（S-6），同步補上 401 處理。 |
 | **v3.9** | **D-1 資料架構**：新增私有 `_exportWeekObj()`，`startBackendSync` 改用此函式推週次資料（不含 `_resources`/`_resourceCharges`），防止跨季人力資料污染歷史週 JSON 並消除冗餘 `JSON.parse(exportAll())`（M-1）。**Quick wins**：`deleteReport()` 改用 `_writeHeaders()`（M-2）；`/read` endpoint 加 try/catch（M-3）；`app-init.js` 頂部過時註解更新（Q-9）；`ai.js` 移除未使用的 `s` 變數（M-5）。 |
 | **v3.10** | **S-3 CORS 限縮**：`app.use(cors())` 改為讀取 `CORS_ORIGIN` 環境變數（逗號分隔 allowlist），未設定時維持開放（向下相容）；Railway 部署建議設 `CORS_ORIGIN=https://your-app.railway.app` 防跨站濫用。**Q-6 排除標記可設定**：後端 `GET /api/reports` 與 `GET /read` 的 `_v7` 硬編碼改為讀取 `REPORT_EXCLUDE_TAG` 環境變數（預設 `_v7`），允許未來更換週報格式版本標記而無需修改程式碼。 |
+| **v3.11** | **P0**：`POST /api/state` 補 `requireAdminToken`（S-7），防止未授權覆寫跨瀏覽器共用 state；`store.importAll()` 加型別驗證（A-1），收到 `null`/非物件時提前回傳錯誤而非拋 TypeError 導致頁面初始化中斷。**P1**：`report.js _genCover()` 對 author 欄位套用 `_escMd()` 跳脫 Markdown 特殊字元（R-1）；`generateReport()` 的 `weekStart` 預設值改為動態計算當週 Monday，取代過期 hardcode 日期（R-2）；`seed.js` 的 `today` 基準改為 `new Date()`（D-2），讓逾期 / 未來日期隨當前日期動態計算。**P2**：`ui.js generateId()` 改用 `crypto.randomUUID()` + `getRandomValues` fallback，與 store.js 策略一致（S-8）；`seed.js` guard 條件改為檢查 `projects` 是否存在（M-6），防止 snapshots 存在但 projects 已清除時誤跳過 seed；標記 `ui.js weekLabel()` 為 deprecated（Q-11），統一使用 `store.weekLabel()`；移除 `schema.js` 中全站未使用的 `PROJECTS_CATALOG` dead code（Q-12）。 |
 
 ---
 

@@ -152,7 +152,8 @@ app.get('/api/state', (req, res) => {
   }
 });
 
-app.post('/api/state', (req, res) => {
+// S-7 修正：加 requireAdminToken，防止未授權覆寫跨瀏覽器共用 state
+app.post('/api/state', requireAdminToken, (req, res) => {
   try {
     const state = req.body;
     if (!state || typeof state !== 'object') return res.status(400).json({ error: 'invalid state' });

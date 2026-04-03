@@ -20,7 +20,8 @@ import { formatDate } from './ui.js';
  */
 export function generateReport(options = {}) {
   const {
-    weekStart  = store.getAll('snapshots').slice(-1)[0]?.weekStart || '2026-03-16',
+    // R-2 修正：weekStart 預設值改為動態計算當週 Monday，取代過去日期硬編碼
+    weekStart  = store.getAll('snapshots').slice(-1)[0]?.weekStart || _currentWeekStart(),
     weekLabel  = 'W11',
     author     = 'Program Sync System',
     sections   = ['cover','summary','projects','teams','decisions','next','risks','actions','milestones'],
@@ -126,7 +127,8 @@ export async function regenerateSection(sectionId, options = {}) {
 
 function _genCover({ weekStart, weekLabel, author, today }) {
   const weekEnd = _addDays(weekStart, 6);
-  return `# VIA Technologies P&D Center\n# Program Weekly Report\n\n**週次：** ${weekLabel} (${formatDate(weekStart)} – ${formatDate(weekEnd)})\n\n**彙整人：** ${author}\n\n**生成時間：** ${formatDate(today)}\n\n> 本報告涵蓋 P&D Center 5 個子組、12 個專案的本週進度摘要、風險管理與行動事項。`;
+  // R-1 修正：使用 _escMd() 跳脫 author 中的 Markdown 特殊字元，防止結構注入
+  return `# VIA Technologies P&D Center\n# Program Weekly Report\n\n**週次：** ${weekLabel} (${formatDate(weekStart)} – ${formatDate(weekEnd)})\n\n**彙整人：** ${_escMd(author)}\n\n**生成時間：** ${formatDate(today)}\n\n> 本報告涵蓋 P&D Center 5 個子組、12 個專案的本週進度摘要、風險管理與行動事項。`;
 }
 
 function _genSummary({ stats, projects, risks, actions, tone }) {
@@ -370,6 +372,20 @@ function _genMilestones({ milestones, today }) {
 }
 
 // ── 內部工具 ──────────────────────────────────────────────────
+
+// R-2 修正：動態計算本週 Monday（取代 hardcode 日期）
+function _currentWeekStart() {
+  const d = new Date();
+  const day = d.getDay(); // 0=Sun
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split('T')[0];
+}
+
+// R-1 修正：跳脫 Markdown 特殊字元，防止 author 欄位注入額外章節
+function _escMd(str) {
+  return String(str ?? '').replace(/[\\`*_{}[\]()#+\-.!|]/g, '\\$&');
+}
 
 function _addDays(dateStr, days) {
   const d = new Date(dateStr);
