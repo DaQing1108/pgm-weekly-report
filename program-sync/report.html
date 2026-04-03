@@ -313,9 +313,19 @@ document.getElementById('btnSyncHistory')?.addEventListener('click', async () =>
     sel.innerHTML = weeks.map(w =>
       `<option value="${w.weekStart}">${w.weekLabel} — ${w.weekStart.slice(5).replace('-','/')}</option>`
     ).join('');
+    // B-1 修正：初始化時將 weekBadge 同步為最新週次標籤
+    const firstLabel = weeks[0]?.weekLabel;
+    if (firstLabel) document.getElementById('weekBadge').textContent = firstLabel;
   } else {
     sel.innerHTML = '<option value="">— 後端未連線 —</option>';
   }
+
+  // B-1 修正：切換週次時即時同步 weekBadge（週次標籤），
+  // 確保生成週報封面的 weekLabel 與畫面選取一致
+  sel.addEventListener('change', () => {
+    const selected = weeks.find(w => w.weekStart === sel.value);
+    if (selected) document.getElementById('weekBadge').textContent = selected.weekLabel;
+  });
 })();
 
 let currentMd = '';
@@ -544,9 +554,44 @@ window.regenSection = async function(sectionId) {
   try {
     const { regenerateSection } = await import('./assets/js/report.js');
     const newSection = await regenerateSection(sectionId, { weekStart, tone });
-    // 簡易替換：在預覽末尾插入新內容作為對比
-    toast(`章節「${sectionId}」重生成完成`, 'success');
-    renderMdPreview(currentMd + '\n\n---\n\n**重生成結果：**\n\n' + newSection);
+
+    // B-3 修正：以章節 ## 標題為邊界做智能替換，取代原本只 append 的做法
+    // 策略：找到對應 ## 標題後，截取到下一個 ## 或 --- 分隔線之前，整段替換
+    const sectionLabels = {
+      cover: 'VIA Technologies',   // 封面用 # 開頭，特別處理
+      summary: 'Executive Summary',
+      projects: '專案進度',
+      teams: '子組進度',
+      decisions: '決策',
+      next: '下週',
+      risks: 'Risk Register',
+      actions: 'Action Items',
+      milestones: '里程碑',
+    };
+    const label = sectionLabels[sectionId];
+    let merged = currentMd;
+    if (label) {
+      // 找到含關鍵字的 ## 標題行，到下一個 ---\n\n 或字串結尾
+      const headerRe = new RegExp(
+        `((?:^|\\n)(?:#{1,2}[^\\n]*${label}[^\\n]*\\n))([\\s\\S]*?)(?=\\n---\\n|$)`,
+        'i'
+      );
+      if (headerRe.test(merged)) {
+        merged = merged.replace(headerRe, () => '\n' + newSection);
+        currentMd = merged;
+        renderMdPreview(currentMd);
+        toast(`章節「${sectionId}」已更新`, 'success');
+      } else {
+        // 找不到對應章節：append 並提示
+        currentMd = currentMd + '\n\n---\n\n' + newSection;
+        renderMdPreview(currentMd);
+        toast(`章節「${sectionId}」重生成完成（附加在末尾）`, 'info');
+      }
+    } else {
+      currentMd = currentMd + '\n\n---\n\n' + newSection;
+      renderMdPreview(currentMd);
+      toast(`章節「${sectionId}」重生成完成`, 'success');
+    }
     setAiStatus('done', '重生成完成');
   } catch (e) {
     setAiStatus('error', e.message);
@@ -612,7 +657,8 @@ document.getElementById('btnSaveCloud')?.addEventListener('click', async () => {
   if (!currentMd) { toast('請先生成週報', 'error'); return; }
   if (!isBackendAvailable()) { toast('後端未連線', 'error'); return; }
 
-  const weekStart = document.getElementById('weekStart').value.replace(/\//g, '');
+  // B-2 修正：getElementById('weekStart') 元素不存在，改用正確的 'weekSelect'
+  const weekStart = document.getElementById('weekSelect').value.replace(/-/g, '');
   const filename  = `Pgm_Weekly_Report_${weekStart}.md`;
 
   try {
