@@ -25,6 +25,19 @@ if (fs.existsSync(PROGRAM_SYNC)) {
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
+// ── Admin Token 驗證中介層（S-1/S-2）────────────────────────────
+// 若環境變數 ADMIN_TOKEN 未設定 → 跳過驗證（向下相容 / 開發環境）
+// Railway 部署時於 Variables 設定 ADMIN_TOKEN=<隨機字串> 即可啟用
+function requireAdminToken(req, res, next) {
+  const expected = process.env.ADMIN_TOKEN;
+  if (!expected) return next(); // 未設定 → 開放
+  const provided = req.headers['x-admin-token'];
+  if (!provided || provided !== expected) {
+    return res.status(401).json({ error: '需要管理員 Token', code: 'UNAUTHORIZED' });
+  }
+  next();
+}
+
 // ── Health ────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: 'v3', message: 'PgM Weekly Report API is running' });
@@ -93,7 +106,7 @@ app.post('/api/reports', (req, res) => {
 });
 
 // ── Delete report (V3 new) ────────────────────────────────────
-app.delete('/api/reports/:filename', (req, res) => {
+app.delete('/api/reports/:filename', requireAdminToken, (req, res) => {
   try {
     const filename = path.basename(req.params.filename);
     const filePath = path.join(REPORTS_DIR, filename);
@@ -164,7 +177,7 @@ app.get('/api/weeks/:weekLabel', (req, res) => {
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/weeks/:weekLabel', (req, res) => {
+app.post('/api/weeks/:weekLabel', requireAdminToken, (req, res) => {
   const safe = req.params.weekLabel.replace(/[^a-zA-Z0-9\-]/g, '');
   const file = path.join(WEEKS_DIR, `${safe}.json`);
   try {

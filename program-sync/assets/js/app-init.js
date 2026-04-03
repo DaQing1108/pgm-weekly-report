@@ -75,7 +75,8 @@ export async function appInit() {
   if (targetLabel) {
     const data = await getWeekState(targetLabel);
     if (data) {
-      store.importAll(JSON.stringify(data));
+      // Q-3 修正：直接傳 object，importAll 內部判斷型別，省去冗餘 JSON.stringify
+      store.importAll(data);
       loadedFromServer = true;
     }
   }
@@ -83,15 +84,11 @@ export async function appInit() {
   // 4. 後端無資料才用種子
   if (!loadedFromServer) seedData();
 
-  // 6. navbar 徽章顯示當前瀏覽週次
-  _syncWeekBadge(targetLabel);
-
-  // 6b. 讓子頁面可知道是否處於歷史唯讀模式
+  // 5. 歷史唯讀模式判斷（Q-4：步驟編號整理）
   const isHistoryMode = !!(targetLabel && latestWeekLabel && targetLabel !== latestWeekLabel);
   window._appInitIsHistoryMode = isHistoryMode;
 
-  // 5. 編輯回寫目標週次
-  // #8 修正：歷史唯讀模式不啟動後端 sync，避免 store:updated 誤寫歷史資料
+  // 6. 非歷史模式才啟動後端 sync（歷史模式不同步，防 store:updated 誤寫歷史 JSON）
   if (!isHistoryMode) {
     store.startBackendSync(stateObj => {
       if (!targetLabel) return Promise.resolve();
@@ -99,15 +96,16 @@ export async function appInit() {
     });
   }
 
-  // 7. 後端離線提示
+  // 7. navbar 徽章顯示當前瀏覽週次
+  _syncWeekBadge(targetLabel);
+
+  // 8. 後端離線提示
   if (!isBackendAvailable()) _showOfflineBanner();
 
-  // 8. 若顯示的是歷史週次，插入提示 banner
-  if (targetLabel && targetLabel !== latestWeekLabel) {
-    _showHistoryBanner(targetLabel, latestWeekLabel);
-  }
+  // 9. 歷史瀏覽 banner
+  if (isHistoryMode) _showHistoryBanner(targetLabel, latestWeekLabel);
 
-  // 9. 移除 loading overlay
+  // 10. 移除 loading overlay
   _hideLoader();
 
   return targetLabel;

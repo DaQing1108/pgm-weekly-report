@@ -66,10 +66,10 @@ export const store = {
   },
 
   /** 刪除單筆 */
+  // Q-1 修正：移除多餘的 _dispatch(key)；_set() 內部已觸發一次
   delete(key, id) {
     const list = _get(key).filter(i => i.id !== id);
     _set(key, list);
-    _dispatch(key);
   },
 
   /** 清空整個 key */
@@ -159,10 +159,11 @@ export const store = {
     return JSON.stringify(data, null, 2);
   },
 
-  /** 從 JSON 字串匯入所有資料（覆蓋） */
-  importAll(jsonStr) {
+  /** 從 JSON 字串或已解析物件匯入所有資料（覆蓋） */
+  // Q-3 修正：接受 string 或 object，消除呼叫端的冗餘 JSON.stringify/parse
+  importAll(jsonOrObj) {
     try {
-      const data = JSON.parse(jsonStr);
+      const data = typeof jsonOrObj === 'string' ? JSON.parse(jsonOrObj) : jsonOrObj;
       // #1 修正：同步補上 members
       const keys = ['projects', 'risks', 'actions', 'milestones', 'snapshots', 'drafts', 'members'];
       keys.forEach(k => {
@@ -290,19 +291,19 @@ export const store = {
   },
 
   // ── API Key 管理 ─────────────────────────────────────────────
+  // S-4 修正：改用 sessionStorage，避免 API Key 持久存於 localStorage 而外洩
+  // 代價：每次重開分頁需重新輸入；如需跨 session 保留，可改回 localStorage
 
   getApiKey() {
-    return localStorage.getItem(PREFIX + 'api_key') || null;
+    return sessionStorage.getItem(PREFIX + 'api_key') || null;
   },
 
   setApiKey(key) {
-    if (key) {
-      localStorage.setItem(PREFIX + 'api_key', key);
-    }
+    if (key) sessionStorage.setItem(PREFIX + 'api_key', key);
   },
 
   clearApiKey() {
-    localStorage.removeItem(PREFIX + 'api_key');
+    sessionStorage.removeItem(PREFIX + 'api_key');
   },
 
   hasApiKey() {
@@ -313,13 +314,10 @@ export const store = {
 
 // ── 工具函式（私有）─────────────────────────────────────────────
 
+// Q-2 修正：改用 crypto.randomUUID()（密碼學安全，Chrome 92+ / Firefox 95+ / Safari 15.4+）
+// 系統已要求 Chrome 90+，實際支援無虞
 function _uuid() {
-  // RFC 4122 UUID v4
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  return crypto.randomUUID();
 }
 
 function _weekLabel(weekStart) {

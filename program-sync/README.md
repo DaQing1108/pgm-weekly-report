@@ -573,12 +573,12 @@ railway.json             # Railway 部署設定
 | `GET` | `/api/reports/:filename` | 取得週報內容（Markdown） |
 | `GET` | `/api/reports/:filename/download` | 下載週報檔案 |
 | `POST` | `/api/reports` | 儲存新週報 |
-| `DELETE` | `/api/reports/:filename` | 刪除週報 |
+| `DELETE` | `/api/reports/:filename` | 刪除週報 🔒 需 `X-Admin-Token` |
 | `GET` | `/api/state` | 取得全域 App 狀態（跨瀏覽器同步） |
 | `POST` | `/api/state` | 儲存全域 App 狀態 |
 | `GET` | `/api/weeks` | 取得所有已歸檔週次清單（含 onTrackPct、projectCount） |
 | `GET` | `/api/weeks/:weekLabel` | 取得指定週次完整狀態（projects/risks/actions/milestones/snapshots） |
-| `POST` | `/api/weeks/:weekLabel` | 歸檔指定週次完整狀態（存入 `backend/data/weeks/W13.json` 等） |
+| `POST` | `/api/weeks/:weekLabel` | 歸檔指定週次完整狀態 🔒 需 `X-Admin-Token` |
 | `GET` | `/read` | HTML 格式週報列表（NotebookLM 用） |
 | `GET` | `*` | SPA Fallback（回傳 index.html） |
 
@@ -614,6 +614,19 @@ Content-Type: application/json
   "content": "# P&D Center Weekly Report..."
 }
 ```
+
+### Admin Token 驗證（v3.6）
+
+後端 `DELETE /api/reports` 與 `POST /api/weeks/:weekLabel` 受 `requireAdminToken` 中介層保護：
+
+- 在 Railway Variables 設定 `ADMIN_TOKEN=<隨機字串>` 即可啟用
+- 未設定時跳過驗證（開發環境向下相容）
+- 前端於 Console 執行以下指令設定 Token：
+  ```javascript
+  import('/assets/js/api.js').then(m => m.setAdminToken('your-token'));
+  ```
+- Token 存於 `sessionStorage`（`pgm_admin_token`），重開分頁需重新設定
+- 未帶 Token 時後端回傳 `401 { error: '需要管理員 Token', code: 'UNAUTHORIZED' }`
 
 ### 限制
 
@@ -708,9 +721,18 @@ returnToCurrentWeek();    // 回到最新週次（GET /api/weeks 取 weeks[0]）
 | 當前狀態 | `backend/data/state.json` | ⚠️ Railway 暫態 | 已廢棄為主要來源，僅保留向下相容 |
 | 本地快取 | `localStorage` | ⚠️ 瀏覽器本地 | 清除快取後從 weeks JSON 重建 |
 
+**API Key 管理（v3.6 改為 sessionStorage）**
+
+```javascript
+store.setApiKey('sk-ant-...');   // 存入 sessionStorage（重開分頁需重設）
+store.getApiKey();               // 讀取
+store.clearApiKey();             // 清除
+// 注意：v3.5 以前存 localStorage；v3.6 改 sessionStorage 以防 Key 外洩
+```
+
 **事件系統**
 
-每次 `store.save()` 或 `store.delete()` 都會觸發：
+每次 `store.save()` 或 `store.delete()` 都會觸發（v3.6 修正：delete 不再觸發兩次）：
 
 ```javascript
 window.addEventListener('store:updated', (e) => {
@@ -802,26 +824,30 @@ await generateWithAI({
 ### 7.4 api.js — 後端通訊
 
 ```javascript
-// 初始化（頁面載入時自動偵測後端）
-// v3.5 修正：後端斷線 30s 後允許自動重試（原本永遠快取 false）
+// 初始化（後端斷線 30s 後允許自動重試）
 const ok = await initApi();
-const ok2 = await checkBackend(forceRecheck = true);  // 強制重新偵測
+const ok2 = await checkBackend(true);  // 強制重新偵測
 
-// 取得週次清單（v3.5 修正：加 sessionStorage 快取 60s，避免 9 頁面各自打一次 API）
+// Admin Token 管理（v3.6 新增，存 sessionStorage）
+import { setAdminToken, getAdminToken, clearAdminToken } from './api.js';
+setAdminToken('your-token');   // 設定；deleteReport/saveWeekState 自動帶入 X-Admin-Token
+getAdminToken();               // 讀取
+clearAdminToken();             // 清除
+
+// 取得週次清單（sessionStorage 快取 TTL 60s）
 const weeks = await listWeeks();
-// → [{ weekLabel, weekStart }, ...]
 
-// 取得歷史週報清單（v3.5 修正：加 AbortSignal.timeout(8000) 防無限等待）
+// 週報清單 / 內容（均有 AbortSignal.timeout）
 const reports = await fetchReports();
-// → [{ filename, date, period, size }, ...]
-
-// 取得週報內容
 const content = await fetchReportContent('weekly_2026-W11.md');
 
 // 儲存週報到後端
 await saveReport('weekly_2026-W11.md', markdownContent);
 
-// 週次資料讀寫（saveWeekState 自動清除 listWeeks 快取）
+// 刪除週報（若後端設定 ADMIN_TOKEN，需先 setAdminToken；401 時拋 code:'UNAUTHORIZED'）
+await deleteReport('weekly_2026-W11.md');
+
+// 週次資料讀寫（saveWeekState 自動清除快取 + 帶 Admin Token + timeout 10s）
 const data = await getWeekState('W14');
 await saveWeekState('W14', stateObject);
 ```
@@ -1029,6 +1055,7 @@ location.reload();
 | **v3.3** | 儀表板預設週次 API 驅動（不依賴 localStorage）、最新週次無 banner、所有瀏覽器一致顯示 |
 | **v3.4** | `app-init.js` 統一初始化模組：廢棄 `/api/state` 為主要來源，所有頁面改從 `/api/weeks/:latestLabel` 載入；修正 `startBackendSync` callback 型別錯誤（stateObj 為 parsed object）；`seedData()` 僅在後端無資料時執行，避免種子快照污染 |
 | **v3.5** | **P0 資料修正**：`exportAll()`/`importAll()` 補上 `members` key（原先遺漏）與 `resources.html` 獨立 localStorage 資料（`pgm_resources_entries` / `pgm_resources_charges`）；`stats(refDate?)` 新增選填參考日期參數，歷史週統計不再誤用今天日期。**P1 穩定性**：`listWeeks()` 加 sessionStorage 快取（TTL 60s）並在 `saveWeekState()` 時自動失效；`fetchReports()` 加 `AbortSignal.timeout(8000)`；`checkBackend()` 改為失敗後 30s 自動重試；歷史唯讀模式不再啟動 `startBackendSync`，防止誤寫歷史 JSON。 |
+| **v3.6** | **P2 安全性**：後端新增 `requireAdminToken` 中介層（環境變數 `ADMIN_TOKEN`），保護 `DELETE /api/reports` 與 `POST /api/weeks/:weekLabel`；`api.js` 新增 `setAdminToken()`/`getAdminToken()`（sessionStorage），write API 自動帶入 `X-Admin-Token` header，401 時拋出 `code:'UNAUTHORIZED'`；`store.getApiKey()`/`setApiKey()` 改為 sessionStorage（防 API Key 長期暴露）。**P3 品質**：`store.delete()` 移除多餘 `_dispatch()`（原觸發兩次 `store:updated`）；`_uuid()` 改用 `crypto.randomUUID()`；`importAll()` 改為同時接受 string 或 object；`app-init.js` 步驟編號整理（1–10 順序）；`fetchReportContent()` 補 `AbortSignal.timeout(8000)`；`saveWeekState()` 補 `AbortSignal.timeout(10000)`。 |
 
 ---
 

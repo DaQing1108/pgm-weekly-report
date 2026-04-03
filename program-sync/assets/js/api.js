@@ -16,6 +16,26 @@ let _backendAvailable = null;
 let _backendLastChecked = 0;
 const _BACKEND_RETRY_MS = 30_000; // 斷線後 30s 自動重試
 
+// ── Admin Token 管理（S-1/S-2）────────────────────────────────
+// 存 sessionStorage：每次重開分頁需重新輸入，避免持久外洩
+// 設定方式：在頁面 console 執行 → await import('./assets/js/api.js').then(m=>m.setAdminToken('xxx'))
+const _ADMIN_TOKEN_KEY = 'pgm_admin_token';
+export function setAdminToken(token) {
+  if (token) sessionStorage.setItem(_ADMIN_TOKEN_KEY, token);
+  else        sessionStorage.removeItem(_ADMIN_TOKEN_KEY);
+}
+export function getAdminToken() { return sessionStorage.getItem(_ADMIN_TOKEN_KEY); }
+export function clearAdminToken() { sessionStorage.removeItem(_ADMIN_TOKEN_KEY); }
+
+/** 回傳含 Content-Type + 可選 X-Admin-Token 的 header 物件 */
+function _writeHeaders() {
+  const token = getAdminToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'X-Admin-Token': token } : {}),
+  };
+}
+
 // ── 偵測後端是否可用 ──────────────────────────────────────────
 // #6 修正：_backendAvailable=false 不再永久快取；30s 後自動重試
 export async function checkBackend(forceRecheck = false) {
@@ -50,8 +70,10 @@ export async function fetchReports() {
 }
 
 // ── 取得單份週報內容 ──────────────────────────────────────────
+// Q-5 修正：加 timeout 防無限等待
 export async function fetchReportContent(filename) {
-  const res = await fetch(`${API_BASE}/reports/${encodeURIComponent(filename)}`);
+  const res = await fetch(`${API_BASE}/reports/${encodeURIComponent(filename)}`,
+    { signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   return data.content || '';
@@ -77,12 +99,17 @@ export function downloadUrl(filename) {
 }
 
 // ── 刪除週報 ──────────────────────────────────────────────────
+// S-1 修正：加入 X-Admin-Token header（後端設定 ADMIN_TOKEN 時才生效）
 export async function deleteReport(filename) {
+  const token = getAdminToken();
   const res = await fetch(`${API_BASE}/reports/${encodeURIComponent(filename)}`, {
-    method: 'DELETE'
+    method: 'DELETE',
+    signal: AbortSignal.timeout(8000),
+    ...(token ? { headers: { 'X-Admin-Token': token } } : {}),
   });
   if (!res.ok) {
-    const err = await res.json();
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) throw Object.assign(new Error('需要管理員 Token，請執行 setAdminToken(\'xxx\')'), { code: 'UNAUTHORIZED' });
     throw new Error(err.error || `HTTP ${res.status}`);
   }
   return await res.json();
@@ -154,12 +181,18 @@ export async function saveWeekState(weekLabel, data) {
   try {
     // 寫入後立即清除 listWeeks 快取，下次取得最新清單
     sessionStorage.removeItem(_WEEKS_CACHE_KEY);
+    // S-2 修正：加入 X-Admin-Token + Q-5 修正：加 timeout
     const res = await fetch(`${API_BASE}/weeks/${encodeURIComponent(weekLabel)}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      headers: _writeHeaders(),
+      body: JSON.stringify(data),
+      signal: AbortSignal.timeout(10000),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 401) throw Object.assign(new Error('需要管理員 Token'), { code: 'UNAUTHORIZED' });
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
     return await res.json();
   } catch (e) {
     console.warn('[api] saveWeekState 失敗:', e.message);
