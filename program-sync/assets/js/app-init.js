@@ -3,8 +3,9 @@
 
    解決的問題：
      1. 各頁面各自實作 init 邏輯，不一致
-     2. startBackendSync callback 誤用 JSON.parse(已是 object) → saveWeekState 從未被呼叫
-     3. input.html 使用 ephemeral /api/state，部署後資料消失
+     2. input.html 使用 ephemeral /api/state，部署後資料消失
+     3. 歷史唯讀模式仍啟動 startBackendSync，可能誤寫歷史 JSON（v3.5 修正）
+     4. resources 跨季資料混入週次 JSON sync（v3.9 修正：改用 _exportWeekObj）
 
    資料優先順序（唯一來源）：
      /api/weeks/:latestLabel（git 持久）→ 所有裝置看到一致資料

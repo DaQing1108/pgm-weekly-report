@@ -693,6 +693,7 @@ const latestLabel = await appInit();
 //   3. 後端無資料時才 seedData()
 //   4. 判斷 isHistoryMode = targetLabel !== latestWeekLabel
 //   5. 非歷史模式才啟動 store.startBackendSync()（v3.5 修正：歷史模式不同步，防誤寫）
+//      ↑ 內部用 _exportWeekObj() 推週次資料（v3.9 修正：不含 resources，防資料污染）
 
 // 切換歷史週次（儀表板週次選擇器）
 loadWeekView('W12');      // GET /api/weeks/W12 → 唯讀渲染，顯示歷史 banner
@@ -1064,6 +1065,7 @@ location.reload();
 ---
 
 | **v3.8** | **P2 安全性**：`POST /api/reports` 加 `requireAdminToken`（S-5），防止未授權覆寫週報；`saveReport()` 改用 `_writeHeaders()`（自動帶 `X-Admin-Token`）並加 `AbortSignal.timeout(10000)`（S-6），同步補上 401 處理。 |
+| **v3.9** | **D-1 資料架構**：新增私有 `_exportWeekObj()`，`startBackendSync` 改用此函式推週次資料（不含 `_resources`/`_resourceCharges`），防止跨季人力資料污染歷史週 JSON 並消除冗餘 `JSON.parse(exportAll())`（M-1）。**Quick wins**：`deleteReport()` 改用 `_writeHeaders()`（M-2）；`/read` endpoint 加 try/catch（M-3）；`app-init.js` 頂部過時註解更新（Q-9）；`ai.js` 移除未使用的 `s` 變數（M-5）。 |
 
 ---
 

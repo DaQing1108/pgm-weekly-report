@@ -103,12 +103,12 @@ export function downloadUrl(filename) {
 
 // ── 刪除週報 ──────────────────────────────────────────────────
 // S-1 修正：加入 X-Admin-Token header（後端設定 ADMIN_TOKEN 時才生效）
+// M-2 修正：改用 _writeHeaders() 與其他寫入操作保持一致
 export async function deleteReport(filename) {
-  const token = getAdminToken();
   const res = await fetch(`${API_BASE}/reports/${encodeURIComponent(filename)}`, {
     method: 'DELETE',
+    headers: _writeHeaders(),
     signal: AbortSignal.timeout(8000),
-    ...(token ? { headers: { 'X-Admin-Token': token } } : {}),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

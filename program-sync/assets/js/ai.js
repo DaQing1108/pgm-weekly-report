@@ -307,9 +307,8 @@ ${JSON.stringify(context, null, 2)}`;
  * 建構 context 物件（從 store 取資料）
  * @param {string} weekStart
  */
+// M-5 修正：移除未使用的 s 變數（dead code）
 export function buildContext(weekStart) {
-  const { store: s } = { store };
-
   const projects   = store.getAll('projects');
   const risks      = store.getAll('risks');
   const actions    = store.getAll('actions');

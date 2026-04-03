@@ -272,7 +272,10 @@ export const store = {
     window.addEventListener('store:updated', () => {
       clearTimeout(_timer);
       _timer = setTimeout(() => {
-        saveFn(JSON.parse(this.exportAll()))
+        // D-1/M-1 修正：改用 _exportWeekObj()
+        //   - 不含 _resources/_resourceCharges（跨季資料不屬於週次 JSON）
+        //   - 直接回傳 object，省去 JSON.parse(exportAll()) 的冗餘序列化
+        saveFn(_exportWeekObj())
           .catch(e => {
             console.warn('[store] 後端同步失敗:', e);
             // N-3：401 時派出自訂事件，讓 UI 層（app-init.js）顯示警告 banner
@@ -329,6 +332,20 @@ export const store = {
 };
 
 // ── 工具函式（私有）─────────────────────────────────────────────
+
+/**
+ * D-1 修正：只含週次相關資料的 plain object（不含 resources 跨季資料）
+ * 供 startBackendSync 推送至 /api/weeks/:weekLabel 使用。
+ * exportAll() 保留完整資料（含 resources），用於手動匯出下載。
+ */
+function _exportWeekObj() {
+  const keys = ['projects', 'risks', 'actions', 'milestones', 'snapshots', 'drafts', 'members'];
+  const data = {};
+  keys.forEach(k => { data[k] = _get(k); });
+  data._exportedAt = new Date().toISOString();
+  data._version = '2.1';
+  return data;
+}
 
 // Q-2 修正：優先用 crypto.randomUUID()（Chrome 92+ / Firefox 95+ / Safari 15.4+）
 // N-1 修正：加 fallback 給 Safari 14（系統需求含 14+，但 randomUUID 要 15.4+）

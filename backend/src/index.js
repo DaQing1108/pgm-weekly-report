@@ -188,33 +188,40 @@ app.post('/api/weeks/:weekLabel', requireAdminToken, (req, res) => {
 });
 
 // ── /read — for NotebookLM / crawlers ────────────────────────
+// M-3 修正：加 try/catch，避免 REPORTS_DIR 空或讀檔失敗時 uncaught throw
 app.get('/read', (req, res) => {
-  const files = fs.readdirSync(REPORTS_DIR)
-    .filter(f => f.endsWith('.md') && !f.includes('_v7'))
-    .sort().reverse();
+  try {
+    const files = fs.readdirSync(REPORTS_DIR)
+      .filter(f => f.endsWith('.md') && !f.includes('_v7'))
+      .sort().reverse();
 
-  const sections = files.map(f => {
-    const raw = fs.readFileSync(path.join(REPORTS_DIR, f), 'utf-8');
-    const text = raw
-      .replace(/```[\s\S]*?```/g, '')
-      .replace(/#{1,6}\s/g, '')
-      .replace(/\*\*(.+?)\*\*/g, '$1')
-      .replace(/\*(.+?)\*/g, '$1')
-      .replace(/`(.+?)`/g, '$1')
-      .replace(/\|.+\|/g, '')
-      .replace(/[-*]\s/g, '')
-      .trim();
-    return `<section><h2>${f.replace('.md', '')}</h2><pre>${text}</pre></section>`;
-  }).join('<hr>');
+    const sections = files.map(f => {
+      try {
+        const raw = fs.readFileSync(path.join(REPORTS_DIR, f), 'utf-8');
+        const text = raw
+          .replace(/```[\s\S]*?```/g, '')
+          .replace(/#{1,6}\s/g, '')
+          .replace(/\*\*(.+?)\*\*/g, '$1')
+          .replace(/\*(.+?)\*/g, '$1')
+          .replace(/`(.+?)`/g, '$1')
+          .replace(/\|.+\|/g, '')
+          .replace(/[-*]\s/g, '')
+          .trim();
+        return `<section><h2>${f.replace('.md', '')}</h2><pre>${text}</pre></section>`;
+      } catch { return ''; }
+    }).filter(Boolean).join('<hr>');
 
-  res.send(`<!DOCTYPE html>
+    res.send(`<!DOCTYPE html>
 <html lang="zh-TW">
 <head><meta charset="UTF-8"><title>PgM Weekly Reports</title></head>
 <body>
 <h1>VIA Technologies — PgM Program Sync 週報彙整</h1>
-${sections}
+${sections || '<p>目前無週報</p>'}
 </body>
 </html>`);
+  } catch (err) {
+    res.status(500).send(`<p>讀取失敗：${err.message}</p>`);
+  }
 });
 
 // ── Fallback: serve program-sync SPA ─────────────────────────
