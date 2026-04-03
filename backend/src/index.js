@@ -88,7 +88,8 @@ app.get('/api/reports/:filename/download', (req, res) => {
 });
 
 // ── Save report to backend (V3 new) ──────────────────────────
-app.post('/api/reports', (req, res) => {
+// S-5 修正：加 requireAdminToken，防止未授權覆寫週報
+app.post('/api/reports', requireAdminToken, (req, res) => {
   try {
     const { filename, content } = req.body;
     if (!filename || !content) return res.status(400).json({ error: '缺少 filename 或 content' });

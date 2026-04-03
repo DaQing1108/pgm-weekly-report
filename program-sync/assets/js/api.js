@@ -80,14 +80,17 @@ export async function fetchReportContent(filename) {
 }
 
 // ── 儲存週報到後端 ────────────────────────────────────────────
+// S-5/S-6 修正：加 X-Admin-Token header + AbortSignal.timeout(10000)
 export async function saveReport(filename, content) {
   const res = await fetch(`${API_BASE}/reports`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filename, content })
+    headers: _writeHeaders(),
+    body: JSON.stringify({ filename, content }),
+    signal: AbortSignal.timeout(10000),
   });
   if (!res.ok) {
-    const err = await res.json();
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) throw Object.assign(new Error('需要管理員 Token，請執行 setAdminToken(\'xxx\')'), { code: 'UNAUTHORIZED' });
     throw new Error(err.error || `HTTP ${res.status}`);
   }
   return await res.json();

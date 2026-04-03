@@ -572,7 +572,7 @@ railway.json             # Railway 部署設定
 | `GET` | `/api/reports` | 取得週報清單 |
 | `GET` | `/api/reports/:filename` | 取得週報內容（Markdown） |
 | `GET` | `/api/reports/:filename/download` | 下載週報檔案 |
-| `POST` | `/api/reports` | 儲存新週報 |
+| `POST` | `/api/reports` | 儲存新週報 🔒 需 `X-Admin-Token` |
 | `DELETE` | `/api/reports/:filename` | 刪除週報 🔒 需 `X-Admin-Token` |
 | `GET` | `/api/state` | 取得全域 App 狀態（跨瀏覽器同步） |
 | `POST` | `/api/state` | 儲存全域 App 狀態 |
@@ -1060,6 +1060,10 @@ location.reload();
 ---
 
 | **v3.7** | **P1 緊急修正**：`_uuid()` 補 `crypto.getRandomValues` fallback，相容 Safari 14（`randomUUID` 要 15.4+，原 v3.6 會 crash）；`store.getApiKey()` 加一次性靜默遷移：首次呼叫若 sessionStorage 無值但 localStorage 有舊 key，自動搬移並清除 localStorage，使用者不需重新輸入 API Key；`startBackendSync` 401 時派出 `store:syncUnauthorized` 事件，`app-init.js` 接收後顯示紅色 Auth Banner（附 Console 指令說明），讓使用者明確知道資料未同步而非靜默失敗。 |
+
+---
+
+| **v3.8** | **P2 安全性**：`POST /api/reports` 加 `requireAdminToken`（S-5），防止未授權覆寫週報；`saveReport()` 改用 `_writeHeaders()`（自動帶 `X-Admin-Token`）並加 `AbortSignal.timeout(10000)`（S-6），同步補上 401 處理。 |
 
 ---
 
