@@ -83,17 +83,21 @@ export async function appInit() {
   // 4. 後端無資料才用種子
   if (!loadedFromServer) seedData();
 
-  // 5. 編輯回寫目標週次（歷史週次也可編輯，寫回對應 JSON）
-  store.startBackendSync(stateObj => {
-    if (!targetLabel) return Promise.resolve();
-    return saveWeekState(targetLabel, stateObj);
-  });
-
   // 6. navbar 徽章顯示當前瀏覽週次
   _syncWeekBadge(targetLabel);
 
   // 6b. 讓子頁面可知道是否處於歷史唯讀模式
-  window._appInitIsHistoryMode = !!(targetLabel && latestWeekLabel && targetLabel !== latestWeekLabel);
+  const isHistoryMode = !!(targetLabel && latestWeekLabel && targetLabel !== latestWeekLabel);
+  window._appInitIsHistoryMode = isHistoryMode;
+
+  // 5. 編輯回寫目標週次
+  // #8 修正：歷史唯讀模式不啟動後端 sync，避免 store:updated 誤寫歷史資料
+  if (!isHistoryMode) {
+    store.startBackendSync(stateObj => {
+      if (!targetLabel) return Promise.resolve();
+      return saveWeekState(targetLabel, stateObj);
+    });
+  }
 
   // 7. 後端離線提示
   if (!isBackendAvailable()) _showOfflineBanner();

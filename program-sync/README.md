@@ -643,7 +643,9 @@ store.sortBy('projects', 'name', 'asc')               // 排序查詢
 **統計方法**
 
 ```javascript
-const s = store.stats();
+// refDate（選填）：ISO 日期字串，歷史週傳入快照參考日期以正確計算 overdueActions
+// 預設為 today（適用於當前週即時統計）
+const s = store.stats(refDate?);
 // {
 //   totalProjects,    onTrackPct,      onTrackProjects,
 //   atRiskProjects,   behindProjects,  pausedProjects,
@@ -673,11 +675,11 @@ store.currentWeekLabel()        // 最新週次標籤（快照優先，無快照
 // app-init.js 統一初始化（actions / milestones / input 共用）
 const latestLabel = await appInit();
 // 內部流程：
-//   1. initApi()
-//   2. listWeeks() → getWeekState(weeks[0]) → store.importAll()
+//   1. initApi()（後端斷線 30s 後自動重試，v3.5 修正）
+//   2. listWeeks()（sessionStorage 快取 60s，v3.5 修正）→ getWeekState(weeks[0]) → store.importAll()
 //   3. 後端無資料時才 seedData()
-//   4. store.startBackendSync(stateObj => saveWeekState(latestLabel, stateObj))
-//      ↑ stateObj 已是 parsed object，直接傳給 saveWeekState
+//   4. 判斷 isHistoryMode = targetLabel !== latestWeekLabel
+//   5. 非歷史模式才啟動 store.startBackendSync()（v3.5 修正：歷史模式不同步，防誤寫）
 
 // 切換歷史週次（儀表板週次選擇器）
 loadWeekView('W12');      // GET /api/weeks/W12 → 唯讀渲染，顯示歷史 banner
@@ -801,9 +803,15 @@ await generateWithAI({
 
 ```javascript
 // 初始化（頁面載入時自動偵測後端）
+// v3.5 修正：後端斷線 30s 後允許自動重試（原本永遠快取 false）
 const ok = await initApi();
+const ok2 = await checkBackend(forceRecheck = true);  // 強制重新偵測
 
-// 取得歷史週報清單
+// 取得週次清單（v3.5 修正：加 sessionStorage 快取 60s，避免 9 頁面各自打一次 API）
+const weeks = await listWeeks();
+// → [{ weekLabel, weekStart }, ...]
+
+// 取得歷史週報清單（v3.5 修正：加 AbortSignal.timeout(8000) 防無限等待）
 const reports = await fetchReports();
 // → [{ filename, date, period, size }, ...]
 
@@ -813,9 +821,9 @@ const content = await fetchReportContent('weekly_2026-W11.md');
 // 儲存週報到後端
 await saveReport('weekly_2026-W11.md', markdownContent);
 
-// 跨瀏覽器狀態同步
-const state = await getState();   // GET /api/state → 物件 或 null
-await saveState(stateObject);     // POST /api/state（由 store.startBackendSync 自動呼叫）
+// 週次資料讀寫（saveWeekState 自動清除 listWeeks 快取）
+const data = await getWeekState('W14');
+await saveWeekState('W14', stateObject);
 ```
 
 ---
@@ -1020,6 +1028,7 @@ location.reload();
 | **v3.2** | 週次歷史瀏覽（`/api/weeks`）、儀表板週次選擇器、W12/W13 歷史狀態歸檔、git 版控資料持久化 |
 | **v3.3** | 儀表板預設週次 API 驅動（不依賴 localStorage）、最新週次無 banner、所有瀏覽器一致顯示 |
 | **v3.4** | `app-init.js` 統一初始化模組：廢棄 `/api/state` 為主要來源，所有頁面改從 `/api/weeks/:latestLabel` 載入；修正 `startBackendSync` callback 型別錯誤（stateObj 為 parsed object）；`seedData()` 僅在後端無資料時執行，避免種子快照污染 |
+| **v3.5** | **P0 資料修正**：`exportAll()`/`importAll()` 補上 `members` key（原先遺漏）與 `resources.html` 獨立 localStorage 資料（`pgm_resources_entries` / `pgm_resources_charges`）；`stats(refDate?)` 新增選填參考日期參數，歷史週統計不再誤用今天日期。**P1 穩定性**：`listWeeks()` 加 sessionStorage 快取（TTL 60s）並在 `saveWeekState()` 時自動失效；`fetchReports()` 加 `AbortSignal.timeout(8000)`；`checkBackend()` 改為失敗後 30s 自動重試；歷史唯讀模式不再啟動 `startBackendSync`，防止誤寫歷史 JSON。 |
 
 ---
 

@@ -100,9 +100,10 @@ export const store = {
 
   /**
    * 計算全域統計
+   * @param {string} [refDate] - ISO 日期字串（歷史週傳入快照參考日），預設今天
    * @returns {{ totalProjects, onTrackPct, highRisks, overdueActions, atRiskProjects, behindProjects }}
    */
-  stats() {
+  stats(refDate) {
     const projects = _get('projects');
     const risks    = _get('risks');
     const actions  = _get('actions');
@@ -119,9 +120,11 @@ export const store = {
 
     const highRisks = risks.filter(r => r.level === 'high' && r.status !== 'closed').length;
 
-    const today = new Date().toISOString().split('T')[0];
+    const refDay = (typeof refDate === 'string' && refDate)
+      ? refDate
+      : new Date().toISOString().split('T')[0];
     const overdueActions = actions.filter(a =>
-      a.dueDate < today && a.status !== 'done'
+      a.dueDate && a.dueDate < refDay && a.status !== 'done'
     ).length;
 
     return {
@@ -140,11 +143,19 @@ export const store = {
 
   /** 匯出所有資料為 JSON 字串 */
   exportAll() {
-    const keys = ['projects', 'risks', 'actions', 'milestones', 'snapshots', 'drafts'];
+    // #1 修正：補上 members key（原先遺漏，成員資料從未同步至後端）
+    const keys = ['projects', 'risks', 'actions', 'milestones', 'snapshots', 'drafts', 'members'];
     const data = {};
     keys.forEach(k => { data[k] = _get(k); });
+    // #3 修正：resources 使用獨立 localStorage key（非 pgm_sync_ 前綴），需特別處理
+    try {
+      const resRaw    = localStorage.getItem('pgm_resources_entries');
+      const chargeRaw = localStorage.getItem('pgm_resources_charges');
+      data._resources       = resRaw    ? JSON.parse(resRaw)    : [];
+      data._resourceCharges = chargeRaw ? JSON.parse(chargeRaw) : [];
+    } catch { /* 忽略解析錯誤 */ }
     data._exportedAt = new Date().toISOString();
-    data._version = '2.0';
+    data._version = '2.1';
     return JSON.stringify(data, null, 2);
   },
 
@@ -152,12 +163,20 @@ export const store = {
   importAll(jsonStr) {
     try {
       const data = JSON.parse(jsonStr);
-      const keys = ['projects', 'risks', 'actions', 'milestones', 'snapshots', 'drafts'];
+      // #1 修正：同步補上 members
+      const keys = ['projects', 'risks', 'actions', 'milestones', 'snapshots', 'drafts', 'members'];
       keys.forEach(k => {
         if (Array.isArray(data[k])) {
           _set(k, data[k]);
         }
       });
+      // #3 修正：還原 resources 到獨立 key
+      if (Array.isArray(data._resources)) {
+        localStorage.setItem('pgm_resources_entries', JSON.stringify(data._resources));
+      }
+      if (Array.isArray(data._resourceCharges)) {
+        localStorage.setItem('pgm_resources_charges', JSON.stringify(data._resourceCharges));
+      }
       return { ok: true, message: '匯入成功' };
     } catch (e) {
       return { ok: false, message: `匯入失敗: ${e.message}` };

@@ -13,10 +13,18 @@ const API_BASE = (() => {
 })();
 
 let _backendAvailable = null;
+let _backendLastChecked = 0;
+const _BACKEND_RETRY_MS = 30_000; // 斷線後 30s 自動重試
 
 // ── 偵測後端是否可用 ──────────────────────────────────────────
-export async function checkBackend() {
-  if (_backendAvailable !== null) return _backendAvailable;
+// #6 修正：_backendAvailable=false 不再永久快取；30s 後自動重試
+export async function checkBackend(forceRecheck = false) {
+  const now = Date.now();
+  const shouldCheck =
+    _backendAvailable === null ||
+    forceRecheck ||
+    (_backendAvailable === false && now - _backendLastChecked > _BACKEND_RETRY_MS);
+  if (!shouldCheck) return _backendAvailable;
   try {
     const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(3000) });
     const data = await res.json();
@@ -24,6 +32,7 @@ export async function checkBackend() {
   } catch {
     _backendAvailable = false;
   }
+  _backendLastChecked = Date.now();
   return _backendAvailable;
 }
 
@@ -32,8 +41,9 @@ export function isBackendAvailable() {
 }
 
 // ── 取得所有週報清單 ──────────────────────────────────────────
+// #P1 修正：加 AbortSignal.timeout 防止無限等待
 export async function fetchReports() {
-  const res = await fetch(`${API_BASE}/reports`);
+  const res = await fetch(`${API_BASE}/reports`, { signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   return data.reports || [];
@@ -105,11 +115,29 @@ export async function saveState(data) {
 }
 
 // ── 週次歸檔（per-week persistent archive）────────────────────
+
+// #4 修正：listWeeks 加 sessionStorage 快取（TTL 60s）
+// 避免 9 個頁面各自初始化時打出 9 次並行請求
+const _WEEKS_CACHE_KEY = 'pgm_weeksCache';
+const _WEEKS_CACHE_TTL = 60_000;
+
 export async function listWeeks() {
+  try {
+    const cached = sessionStorage.getItem(_WEEKS_CACHE_KEY);
+    if (cached) {
+      const { ts, data } = JSON.parse(cached);
+      if (Date.now() - ts < _WEEKS_CACHE_TTL) return data;
+    }
+  } catch { /* 快取讀取失敗不阻斷 */ }
+
   try {
     const res = await fetch(`${API_BASE}/weeks`, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return [];
-    return await res.json();
+    const data = await res.json();
+    try {
+      sessionStorage.setItem(_WEEKS_CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+    } catch { /* sessionStorage 寫入失敗不阻斷 */ }
+    return data;
   } catch { return []; }
 }
 
@@ -124,6 +152,8 @@ export async function getWeekState(weekLabel) {
 
 export async function saveWeekState(weekLabel, data) {
   try {
+    // 寫入後立即清除 listWeeks 快取，下次取得最新清單
+    sessionStorage.removeItem(_WEEKS_CACHE_KEY);
     const res = await fetch(`${API_BASE}/weeks/${encodeURIComponent(weekLabel)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
