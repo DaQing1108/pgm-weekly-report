@@ -273,7 +273,13 @@ export const store = {
       clearTimeout(_timer);
       _timer = setTimeout(() => {
         saveFn(JSON.parse(this.exportAll()))
-          .catch(e => console.warn('[store] 後端同步失敗:', e));
+          .catch(e => {
+            console.warn('[store] 後端同步失敗:', e);
+            // N-3：401 時派出自訂事件，讓 UI 層（app-init.js）顯示警告 banner
+            if (e?.code === 'UNAUTHORIZED') {
+              window.dispatchEvent(new CustomEvent('store:syncUnauthorized'));
+            }
+          });
       }, 2000);
     });
   },
@@ -295,7 +301,17 @@ export const store = {
   // 代價：每次重開分頁需重新輸入；如需跨 session 保留，可改回 localStorage
 
   getApiKey() {
-    return sessionStorage.getItem(PREFIX + 'api_key') || null;
+    // N-2 遷移：v3.6 改為 sessionStorage，首次呼叫若 sessionStorage 無值但 localStorage
+    // 有舊 key，靜默搬移後清除 localStorage，使用者不需重新輸入
+    const session = sessionStorage.getItem(PREFIX + 'api_key');
+    if (session) return session;
+    const legacy = localStorage.getItem(PREFIX + 'api_key');
+    if (legacy) {
+      sessionStorage.setItem(PREFIX + 'api_key', legacy);
+      localStorage.removeItem(PREFIX + 'api_key');
+      return legacy;
+    }
+    return null;
   },
 
   setApiKey(key) {
@@ -314,10 +330,16 @@ export const store = {
 
 // ── 工具函式（私有）─────────────────────────────────────────────
 
-// Q-2 修正：改用 crypto.randomUUID()（密碼學安全，Chrome 92+ / Firefox 95+ / Safari 15.4+）
-// 系統已要求 Chrome 90+，實際支援無虞
+// Q-2 修正：優先用 crypto.randomUUID()（Chrome 92+ / Firefox 95+ / Safari 15.4+）
+// N-1 修正：加 fallback 給 Safari 14（系統需求含 14+，但 randomUUID 要 15.4+）
 function _uuid() {
-  return crypto.randomUUID();
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  // Fallback：RFC 4122 v4，使用 crypto.getRandomValues 保持隨機品質
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = crypto.getRandomValues(new Uint8Array(1))[0] & 15;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 function _weekLabel(weekStart) {

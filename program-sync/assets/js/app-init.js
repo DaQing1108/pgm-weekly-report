@@ -94,6 +94,8 @@ export async function appInit() {
       if (!targetLabel) return Promise.resolve();
       return saveWeekState(targetLabel, stateObj);
     });
+    // N-3：後端 401 時顯示可見警告 banner，讓使用者知道同步未成功
+    window.addEventListener('store:syncUnauthorized', _showAuthBanner);
   }
 
   // 7. navbar 徽章顯示當前瀏覽週次
@@ -142,6 +144,34 @@ function _showHistoryBanner(viewing, latest) {
       style="background:none;border:1px solid currentColor;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;">
       ↩ 回到 ${latest}
     </button>`;
+  nav.insertAdjacentElement('afterend', bar);
+}
+
+// N-3：後端回 401（ADMIN_TOKEN 已設定但前端未帶 token）時顯示警告
+function _showAuthBanner() {
+  if (document.getElementById('appInitAuthBanner')) return;
+  const nav = document.querySelector('.navbar');
+  if (!nav) return;
+  const bar = document.createElement('div');
+  bar.id = 'appInitAuthBanner';
+  bar.style.cssText = [
+    'background:var(--color-danger-bg,#fdecea)',
+    'border-bottom:1px solid var(--color-danger,#d94f4f)',
+    'padding:6px 24px',
+    'font-size:12px',
+    'display:flex',
+    'align-items:center',
+    'gap:12px',
+    'flex-wrap:wrap',
+  ].join(';');
+  bar.innerHTML = `
+    <span style="color:var(--color-danger,#d94f4f);font-weight:600;">🔒 後端同步失敗</span>
+    <span style="color:var(--color-text-secondary,#555);">ADMIN_TOKEN 已設定，請在 Console 執行：</span>
+    <code style="background:rgba(0,0,0,.07);padding:2px 8px;border-radius:4px;font-size:11px;user-select:all;">
+      import('/assets/js/api.js').then(m=&gt;m.setAdminToken('your-token'))
+    </code>
+    <button onclick="document.getElementById('appInitAuthBanner').remove()"
+      style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;color:var(--color-danger,#d94f4f);">✕</button>`;
   nav.insertAdjacentElement('afterend', bar);
 }
 

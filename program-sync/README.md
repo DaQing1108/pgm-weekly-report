@@ -1059,4 +1059,8 @@ location.reload();
 
 ---
 
+| **v3.7** | **P1 緊急修正**：`_uuid()` 補 `crypto.getRandomValues` fallback，相容 Safari 14（`randomUUID` 要 15.4+，原 v3.6 會 crash）；`store.getApiKey()` 加一次性靜默遷移：首次呼叫若 sessionStorage 無值但 localStorage 有舊 key，自動搬移並清除 localStorage，使用者不需重新輸入 API Key；`startBackendSync` 401 時派出 `store:syncUnauthorized` 事件，`app-init.js` 接收後顯示紅色 Auth Banner（附 Console 指令說明），讓使用者明確知道資料未同步而非靜默失敗。 |
+
+---
+
 *P&D Center Program Sync — Built for VIA Technologies P&D Center*
