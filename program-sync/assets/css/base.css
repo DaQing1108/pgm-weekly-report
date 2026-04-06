@@ -62,13 +62,27 @@
 }
 
 /* Dark mode */
+:root[data-theme="dark"] {
+  --color-bg-primary: #1c1c1a;
+  --color-bg-secondary: #252523;
+  --color-bg-tertiary: #2e2e2b;
+  --color-text-primary: #f0ede6;
+  --color-text-secondary: #c5c3bb;
+  --color-text-tertiary: #8c8a84;
+  --color-border-default: rgba(255, 255, 255, 0.1);
+  --color-border-emphasis: rgba(255, 255, 255, 0.2);
+  --color-success-bg: #1a3024;
+  --color-warning-bg: #332610;
+  --color-danger-bg: #331414;
+  --color-info-bg: #0d2040;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --color-bg-primary: #1c1c1a;
     --color-bg-secondary: #252523;
     --color-bg-tertiary: #2e2e2b;
     --color-text-primary: #f0ede6;
-    /* V-8 修正：提升深色模式文字對比度至 WCAG AA */
     --color-text-secondary: #c5c3bb;
     --color-text-tertiary: #8c8a84;
     --color-border-default: rgba(255, 255, 255, 0.1);

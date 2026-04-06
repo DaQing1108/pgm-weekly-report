@@ -48,11 +48,17 @@
 <div class="page-container">
 
   <!-- 週次歷史選擇器 -->
-  <div id="weekNavBar" style="display:none;margin-bottom:var(--space-md);background:var(--color-surface);border:1px solid var(--color-border-default);border-radius:var(--radius-md);padding:10px var(--space-lg);align-items:center;gap:10px;">
-    <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;">查看週次：</span>
-    <select id="weekSelect" class="inp" style="width:160px;padding:4px 8px;font-size:var(--font-size-sm);" onchange="loadWeekView(this.value)">
+  <div id="weekNavBar" style="display:none;margin-bottom:var(--space-md);background:var(--color-bg-primary);border:1px solid var(--color-border-default);border-radius:var(--radius-md);padding:10px var(--space-lg);align-items:center;gap:16px;">
+    <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;">📅 查看版本：</span>
+    
+    <!-- U-3: 新增 Tab/Radio 按鈕組，顯示最新 4 週 -->
+    <div class="tab-bar" id="weekRadioGroup" style="overflow-x:auto; margin:0; flex-wrap:nowrap;"></div>
+
+    <!-- 其餘歷史週次保留在下拉選單 -->
+    <select id="weekSelect" class="inp" style="width:140px;padding:4px 8px;font-size:var(--font-size-sm); display:none;" onchange="loadWeekView(this.value)">
     </select>
-    <span id="weekNavMeta" style="font-size:11px;color:var(--color-text-tertiary);"></span>
+    
+    <span id="weekNavMeta" style="font-size:11px;color:var(--color-text-tertiary);margin-left:auto;"></span>
   </div>
 
   <!-- 歷史瀏覽 banner -->
@@ -443,6 +449,33 @@ function renderProjects(filter) {
       if (diff >= 0 && diff <= 3) urgent = true;
     }
 
+    const pActions = allActions.filter(a => a.project === p.name);
+    // U-2 跨模組關聯：加上 risks
+    const allRisks = _viewState ? (_viewState.risks || []) : store.getAll('risks');
+    const pRisks = allRisks.filter(r => r.project === p.name);
+
+    let relatedHtml = '';
+    if (pRisks.length > 0 || pActions.length > 0) {
+        relatedHtml += `<div style="margin-top:var(--space-md);padding-top:var(--space-sm);border-top:1px dashed var(--color-border-default);">`;
+        if (pRisks.length > 0) {
+            relatedHtml += `<div style="margin-bottom:var(--space-xs);display:flex;align-items:center;gap:8px;">
+                              <strong style="color:var(--color-danger);font-size:12px;">⚠️ 關聯風險:</strong> 
+                              ${pRisks.map(r => `<span class="badge ${r.level==='high'?'badge-danger':'badge-warning'} text-xs">${r.title}</span>`).join('')}
+                            </div>`;
+        }
+        if (pActions.length > 0) {
+            const pendingActs = pActions.filter(a => a.status !== 'done');
+            const doneActs = pActions.filter(a => a.status === 'done');
+            relatedHtml += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                              <strong style="color:var(--color-info);font-size:12px;">📝 關聯行動:</strong> 
+                              ${pendingActs.slice(0, 3).map(a => `<span style="font-size:12px;color:var(--color-text-secondary);background:var(--color-bg-secondary);padding:2px 6px;border-radius:4px;">▫️ ${a.task}</span>`).join('')}
+                              ${pendingActs.length > 3 ? `<span style="font-size:12px;color:var(--color-text-tertiary);">等 ${pendingActs.length} 項待辦...</span>` : ''}
+                              ${doneActs.length > 0 && pendingActs.length === 0 ? `<span style="font-size:12px;color:var(--color-success);">✅ 全部 (${doneActs.length}) 已完成</span>` : ''}
+                            </div>`;
+        }
+        relatedHtml += `</div>`;
+    }
+
     return `
     <div class="project-row project-row--${p.status} ${overdue ? 'a-late' : urgent ? 'a-urgent' : ''}" data-id="${p.id}" onclick="toggleDetail('${p.id}')">
       <div class="project-row__dot project-row__dot--${p.status}"></div>
@@ -461,6 +494,7 @@ function renderProjects(filter) {
       ${p.blockers  ? `<p><strong>阻塞：</strong><span style="color:var(--color-danger)">${p.blockers}</span></p>` : ''}
       <p><strong>負責人：</strong>${p.owner || '—'}　<strong>目標日期：</strong>${formatDate(p.targetDate)}
       ${isAuto ? `　<span class="text-xs text-secondary">🤖 完成率依 Actions 計算</span>` : ''}</p>
+      ${relatedHtml}
     </div>`;
   }).join('');
 }
@@ -531,15 +565,32 @@ async function renderWeekNav() {
 
   const latestLabel = weeks[0].weekLabel;           // API 最新週次，與 localStorage 無關
 
-  // 組裝 option 清單（最新在最上方，標示「最新」）
-  sel.innerHTML = weeks.map((w, i) => {
-    const label = i === 0 ? `${w.weekLabel}（最新）` : w.weekLabel;
-    const selected = w.weekLabel === (_viewingLabel || latestLabel) ? 'selected' : '';
-    return `<option value="${w.weekLabel}" ${selected}>${label}</option>`;
-  }).join('');
+  const currentViewing = _viewingLabel || latestLabel;
+
+  // 1) 繪製前四週按鈕 (Radio / Tab Group)
+  const radioGroup = document.getElementById('weekRadioGroup');
+  if (radioGroup) {
+    const recentWeeks = weeks.slice(0, 4);
+    radioGroup.innerHTML = recentWeeks.map((w, i) => {
+      const active = w.weekLabel === currentViewing ? 'active' : '';
+      return `<button class="tab-btn ${active}" style="padding:4px 12px;" onclick="loadWeekView('${w.weekLabel}')">${w.weekLabel}${i===0?' (最新)':''}</button>`;
+    }).join('');
+  }
+
+  // 2) 若有第 5 週以後，放入下拉選單
+  if (weeks.length > 4) {
+    sel.style.display = '';
+    const olderWeeks = weeks.slice(4);
+    const isOlderSelected = olderWeeks.some(w => w.weekLabel === currentViewing);
+    
+    sel.innerHTML = '<option value="" ' + (!isOlderSelected ? 'selected' : '') + '>更早的週次...</option>' + 
+      olderWeeks.map(w => `<option value="${w.weekLabel}" ${w.weekLabel === currentViewing ? 'selected' : ''}>${w.weekLabel}</option>`).join('');
+  } else {
+    sel.style.display = 'none';
+  }
 
   // 顯示目前選定週次的摘要
-  const cur = weeks.find(w => w.weekLabel === (_viewingLabel || latestLabel)) || weeks[0];
+  const cur = weeks.find(w => w.weekLabel === currentViewing) || weeks[0];
   if (cur) meta.textContent = `${cur.projectCount} 個專案 ｜ 健康度 ${cur.onTrackPct}%`;
 }
 

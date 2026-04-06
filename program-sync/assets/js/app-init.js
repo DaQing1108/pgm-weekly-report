@@ -24,6 +24,12 @@ import { initApi, listWeeks, getWeekState, saveWeekState, isBackendAvailable } f
  */
 const SESSION_WEEK_KEY = 'pgm_viewWeek';
 
+// ── 防止深淺色閃爍，立刻套用 theme ───────────────────────────
+(function() {
+  const saved = localStorage.getItem('pgm_theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+})();
+
 // ── Loading overlay ──────────────────────────────────────────────
 function _showLoader() {
   if (document.getElementById('_appLoader')) return;
@@ -111,7 +117,37 @@ export async function appInit() {
   // 10. 移除 loading overlay
   _hideLoader();
 
+  // 11. 插入 Dark mode 狀態切換按鈕
+  _initThemeToggle();
+
   return targetLabel;
+}
+
+function _initThemeToggle() {
+  // 從 localStorage 恢復深色模式
+  const saved = localStorage.getItem('pgm_theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  
+  const actionsContainer = document.querySelector('.navbar__actions');
+  if (!actionsContainer || document.getElementById('btnThemeToggle')) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'btnThemeToggle';
+  btn.className = 'btn btn-ghost btn-sm';
+  btn.style.cssText = 'font-size:16px;padding:4px 8px;margin-right:8px;line-height:1;margin-left:4px;';
+  btn.title = '切換深/淺色模式';
+  btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+
+  btn.onclick = () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('pgm_theme', newTheme);
+    btn.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+  };
+
+  // 插入在 hamburger menu 或生成按鈕之前
+  actionsContainer.insertBefore(btn, actionsContainer.firstElementChild);
 }
 
 /** Dashboard 切週時呼叫，讓其他頁面跟著切 */
