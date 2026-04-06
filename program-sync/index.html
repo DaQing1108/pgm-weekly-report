@@ -102,6 +102,16 @@
       <div class="panel__header" style="flex-wrap:wrap;gap:var(--space-sm);">
         <span class="panel__title">專案進度總覽</span>
         <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;margin-left:auto;">
+          <!-- 進階搜尋與排序 -->
+          <div class="inp-group" style="margin:0;position:relative;">
+            <input type="text" class="inp" id="projectSearch" placeholder="🔍 搜尋專案或負責人..." style="width:170px;padding:4px 8px;font-size:var(--font-size-sm);" autocomplete="off">
+          </div>
+          <select class="inp" id="projectSort" style="width:120px;padding:4px 8px;font-size:var(--font-size-sm);">
+            <option value="default">預設排序</option>
+            <option value="update-desc">最近更新</option>
+            <option value="health-asc">需關注優先</option>
+            <option value="progress-desc">進度最高</option>
+          </select>
           <select class="inp" id="teamFilter" style="width:130px;padding:4px 8px;font-size:var(--font-size-sm);">
             <option value="all">全部子組</option>
             <option value="media-agent">Media Agent</option>
@@ -364,8 +374,43 @@ let currentTeamFilter = 'all';
 function renderProjects(filter) {
   if (filter !== undefined) currentFilter = filter;
   const all = _displayProjects();
+  const allActions = _viewState ? (_viewState.actions || []) : store.getAll('actions');
+
+  // 計算每個專案的進度
+  function effectiveProgress(p) {
+    if (p.progressMode !== 'auto') return p.progress ?? 0;
+    const acts = allActions.filter(a => a.project === p.name);
+    if (acts.length === 0) return p.progress ?? 0;
+    return Math.round(acts.filter(a => a.status === 'done').length / acts.length * 100);
+  }
+
   let list = currentFilter === 'all' ? all : all.filter(p => p.status === currentFilter);
   if (currentTeamFilter !== 'all') list = list.filter(p => p.team === currentTeamFilter);
+
+  // 1. 搜尋過濾
+  const searchEl = document.getElementById('projectSearch');
+  if (searchEl && searchEl.value.trim()) {
+    const q = searchEl.value.trim().toLowerCase();
+    list = list.filter(p => 
+      (p.name || '').toLowerCase().includes(q) || 
+      (p.owner || '').toLowerCase().includes(q) ||
+      (p.weekDone || '').toLowerCase().includes(q)
+    );
+  }
+
+  // 2. 排序處理
+  const sortEl = document.getElementById('projectSort');
+  if (sortEl && sortEl.value !== 'default') {
+    const s = sortEl.value;
+    if (s === 'update-desc') {
+      list.sort((a,b) => new Date(b._updatedAt || 0) - new Date(a._updatedAt || 0));
+    } else if (s === 'health-asc') {
+      const w = { 'behind': 1, 'at-risk': 2, 'paused': 3, 'on-track': 4 };
+      list.sort((a,b) => (w[a.status] || 9) - (w[b.status] || 9));
+    } else if (s === 'progress-desc') {
+      list.sort((a,b) => effectiveProgress(b) - effectiveProgress(a));
+    }
+  }
   const el = document.getElementById('projectList');
   document.getElementById('projectCount').textContent = `${list.length} 個專案`;
 
@@ -386,25 +431,24 @@ function renderProjects(filter) {
     'org-mgmt':'組織管理'
   };
 
-  const allActions = _viewState ? (_viewState.actions || []) : store.getAll('actions');
-  function effectiveProgress(p) {
-    if (p.progressMode !== 'auto') return p.progress ?? 0;
-    const acts = allActions.filter(a => a.project === p.name);
-    if (acts.length === 0) return p.progress ?? 0;
-    return Math.round(acts.filter(a => a.status === 'done').length / acts.length * 100);
-  }
-
   el.innerHTML = list.map(p => {
     const pct      = effectiveProgress(p);
     const isAuto   = p.progressMode === 'auto';
     const barColor = p.status === 'on-track' ? 'var(--color-success)' : p.status === 'at-risk' ? 'var(--color-warning)' : p.status === 'paused' ? 'var(--color-text-tertiary)' : 'var(--color-danger)';
-    const overdue  = p.targetDate && isOverdue(p.targetDate);
+    const overdue  = p.targetDate && isOverdue(p.targetDate) && pct < 100;
+    
+    let urgent = false;
+    if (!overdue && p.targetDate && pct < 100 && p.status !== 'paused') {
+      const diff = (new Date(p.targetDate) - new Date()) / 86400000;
+      if (diff >= 0 && diff <= 3) urgent = true;
+    }
+
     return `
-    <div class="project-row project-row--${p.status}" data-id="${p.id}" onclick="toggleDetail('${p.id}')">
+    <div class="project-row project-row--${p.status} ${overdue ? 'a-late' : urgent ? 'a-urgent' : ''}" data-id="${p.id}" onclick="toggleDetail('${p.id}')">
       <div class="project-row__dot project-row__dot--${p.status}"></div>
       <div class="project-row__name">${p.name}</div>
       <span class="badge badge-neutral text-xs">${TEAM_NAMES[p.team] || p.team}</span>
-      ${overdue ? '<span class="badge badge-danger text-xs">逾期</span>' : ''}
+      ${overdue ? '<span class="badge badge-danger text-xs">⚠️ 逾期</span>' : urgent ? '<span class="badge badge-warning text-xs">⏳ 即將到期</span>' : ''}
       <div class="project-row__progress-wrap">
         <div class="project-row__progress-bar">
           <div class="project-row__progress-fill" style="width:${pct}%;background:${barColor}"></div>
@@ -465,6 +509,8 @@ document.getElementById('teamFilter').addEventListener('change', function() {
   currentTeamFilter = this.value;
   renderProjects();
 });
+document.getElementById('projectSearch')?.addEventListener('input', () => renderProjects());
+document.getElementById('projectSort')?.addEventListener('change', () => renderProjects());
 
 // ── 週次選擇器 ─────────────────────────────────────────────────
 async function renderWeekNav() {

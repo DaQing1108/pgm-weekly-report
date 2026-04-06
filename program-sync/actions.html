@@ -168,17 +168,25 @@ function renderPanels() {
 
     const rows = items.map(a => {
       const late = isOverdue(a.dueDate) && a.status !== 'done';
+      let urgent = false;
+      if (!late && a.dueDate && a.status !== 'done') {
+        const diff = (new Date(a.dueDate) - new Date(today)) / 86400000;
+        urgent = diff >= 0 && diff <= 3;
+      }
+      const rowClass = late ? 'a-late' : urgent ? 'a-urgent' : '';
+      const dueStyle = late ? 'color:var(--color-danger);font-weight:600;' : urgent ? 'color:var(--color-warning);font-weight:600;' : '';
+      const icon = late ? ' ⚠️' : urgent ? ' ⏳' : '';
+
       return `
-        <div class="action-row ${late ? 'a-late' : ''}" id="arow-${a.id}">
+        <div class="action-row ${rowClass}" id="arow-${a.id}">
           <div class="action-row__task">
             <span>${a.task}</span>
             ${a.project ? `<span class="badge badge-neutral" style="margin-left:4px;font-size:10px;">${a.project.substring(0,15)}</span>` : ''}
           </div>
           <div class="action-row__owner text-xs text-secondary">${a.owner || '—'}</div>
-          <div class="action-row__due text-xs ${late ? 'text-danger' : 'text-secondary'}"
-               style="${late ? 'color:var(--color-danger);font-weight:600;' : ''}">
+          <div class="action-row__due text-xs" style="${dueStyle}">
             ${a.dueDate ? formatDate(a.dueDate) : '—'}
-            ${late ? ' ⚠️' : ''}
+            ${icon}
           </div>
           <div style="display:flex;align-items:center;gap:var(--space-xs);">
             <!-- U-42 修正：顯示下一狀態提示，讓循環操作更直覺 -->

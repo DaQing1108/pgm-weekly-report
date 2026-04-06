@@ -398,6 +398,12 @@
   background: var(--color-danger-bg);
 }
 
+.a-urgent {
+  border-left: 3px solid var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+
 .action-row__task {
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
