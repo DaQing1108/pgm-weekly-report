@@ -22,6 +22,8 @@
     <a href="risks.html"      class="navbar__link">Risks</a>
     <a href="actions.html"    class="navbar__link">Action Items</a>
     <a href="milestones.html" class="navbar__link">Milestones</a>
+    <a href="trends.html"     class="navbar__link" style="padding:8px var(--space-md);">Trends</a>
+    <a href="trends.html"     class="navbar__link">Trends</a>
     <a href="review.html"     class="navbar__link">Review</a>
     <a href="resources.html" class="navbar__link">Resources</a>
   </div>
@@ -37,7 +39,8 @@
   <a href="risks.html"      class="navbar__link" style="padding:8px var(--space-md);">Risks</a>
   <a href="actions.html"    class="navbar__link" style="padding:8px var(--space-md);">Action Items</a>
   <a href="milestones.html" class="navbar__link" style="padding:8px var(--space-md);">Milestones</a>
-  <a href="review.html"     class="navbar__link" style="padding:8px var(--space-md);">Review</a>
+  <a href="trends.html"     class="navbar__link" style="padding:8px var(--space-md);">Trends</a>
+    <a href="review.html"     class="navbar__link" style="padding:8px var(--space-md);">Review</a>
   <a href="resources.html"  class="navbar__link" style="padding:8px var(--space-md);">Resources</a>
 </div>
 
@@ -72,7 +75,8 @@
     </p>
     <div style="margin-top:var(--space-lg);display:flex;gap:var(--space-md);justify-content:center;flex-wrap:wrap;">
       <a href="input.html" class="btn btn-primary btn-sm">✏️ 前往填寫本週資料</a>
-      <a href="review.html" class="btn btn-outline btn-sm">📋 查看審核流程</a>
+      <a href="trends.html"     class="navbar__link" style="padding:8px var(--space-md);">Trends</a>
+    <a href="review.html" class="btn btn-outline btn-sm">📋 查看審核流程</a>
     </div>
   </div>
 
@@ -117,6 +121,17 @@
         <canvas id="chartActions" height="130"></canvas>
       </div>
     </div>
+
+    <!-- 資源熱區圖 (Bottleneck Indicator) -->
+    <div class="panel" style="margin-bottom:var(--space-xl);">
+      <div class="panel__header">
+        <span class="panel__title">👥 資源瓶頸熱區 (單點故障觀測)</span>
+        <span class="text-xs text-secondary">最新一週 Top 5 待辦任務所屬負責人</span>
+      </div>
+      <div class="panel__body" style="padding:var(--space-lg);">
+        <canvas id="chartResource" height="100"></canvas>
+      </div>
+    </div>
   </div>
 
   <!-- 週次快照明細表 -->
@@ -134,7 +149,7 @@ import { listWeeks, getWeekState } from './assets/js/api.js';
 
 let _range = 4;
 let _allSnapshots = []; // [{ weekLabel, weekStart, snap }]
-let _chartHealth = null, _chartRisk = null, _chartActions = null;
+let _chartHealth = null, _chartRisk = null, _chartActions = null, _chartResource = null;
 
 (async () => {
   await appInit();
@@ -164,7 +179,7 @@ async function loadTrends() {
       if (!data?.snapshots?.length) return;
       // 取該週最新快照
       const snap = data.snapshots[data.snapshots.length - 1];
-      _allSnapshots.push({ weekLabel: w.weekLabel, weekStart: w.weekStart, snap });
+      _allSnapshots.push({ weekLabel: w.weekLabel, weekStart: w.weekStart, snap, actions: data.actions || [] });
     })
   );
 
@@ -325,6 +340,40 @@ async function renderCharts(snapshots) {
         y2: { position: 'right', min: 0, grid: { drawOnChartArea: false }, ticks: { stepSize: 1 } },
       },
       plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  // 資源瓶頸熱區 (最新一週 Top 5 負責人)
+  const latestSnap = snapshots[snapshots.length - 1];
+  const pendingActions = (latestSnap?.actions || []).filter(a => a.status !== 'done' && a.owner);
+  
+  const ownerCounts = {};
+  pendingActions.forEach(a => {
+    ownerCounts[a.owner] = (ownerCounts[a.owner] || 0) + 1;
+  });
+  const topOwners = Object.entries(ownerCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  if (_chartResource) _chartResource.destroy();
+  _chartResource = new Chart(document.getElementById('chartResource'), {
+    type: 'bar',
+    data: {
+      labels: topOwners.map(o => o[0]),
+      datasets: [{
+        label: '待辦任務總數',
+        data: topOwners.map(o => o[1]),
+        backgroundColor: topOwners.map((o, i) => i === 0 && o[1] > 3 ? '#d94f4f' : '#e4a23c'),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      scales: {
+        x: { ticks: { stepSize: 1 }, title: { display: true, text: '進行中 Actions 數量' } }
+      },
+      plugins: { legend: { display: false } }
     }
   });
 }
