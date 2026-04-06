@@ -58,24 +58,29 @@
     <div class="kpi-card kpi-ok">
       <div class="kpi-card__label">專案健康度</div>
       <div class="kpi-card__value" id="kpiHealth">—%</div>
+      <span class="kpi-delta-wrap" id="kpiHealthDelta"></span>
       <div class="kpi-card__sub" id="kpiHealthSub">載入中…</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-card__label">進行中專案</div>
       <div class="kpi-card__value" id="kpiTotal">—</div>
+      <span class="kpi-delta-wrap" id="kpiTotalDelta"></span>
       <div class="kpi-card__sub" id="kpiTotalSub"></div>
     </div>
     <div class="kpi-card" id="kpiRisksCard">
       <div class="kpi-card__label">需關注專案</div>
       <div class="kpi-card__value" id="kpiRisks">—</div>
+      <span class="kpi-delta-wrap" id="kpiRisksDelta"></span>
       <div class="kpi-card__sub" id="kpiRisksSub">At Risk + 落後</div>
     </div>
     <div class="kpi-card" id="kpiActionsCard">
       <div class="kpi-card__label">逾期 Actions</div>
       <div class="kpi-card__value" id="kpiActions">—</div>
+      <span class="kpi-delta-wrap" id="kpiActionsDelta"></span>
       <div class="kpi-card__sub" id="kpiActionsSub">待追蹤</div>
     </div>
   </div>
+
 
   <!-- Main Grid：僅專案列表，全寬 -->
   <div class="main-grid" style="grid-template-columns:1fr;">
@@ -159,7 +164,7 @@
 <script type="module">
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
-import { toast, renderBadge, formatDate, isOverdue } from './assets/js/ui.js';
+import { toast, renderBadge, formatDate, isOverdue, confirm } from './assets/js/ui.js';
 import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl, deleteReport, listWeeks, getWeekState, saveWeekState } from './assets/js/api.js';
 import { setSessionWeek } from './assets/js/app-init.js';
 import { modal } from './assets/js/ui.js';
@@ -168,6 +173,7 @@ import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js
 // ── 歷史週次瀏覽狀態 ────────────────────────────────────────────
 let _viewState   = null;  // null = 本週；object = 歷史週次資料
 let _viewingLabel = null; // 目前瀏覽的週次標籤
+let _prevSnap    = null;  // 上一週快照（用於 KPI delta 比較）
 
 // ── 從 viewState 或 store 取得顯示資料 ─────────────────────────
 function _displayProjects() {
@@ -223,10 +229,18 @@ async function init() {
       _viewState    = data;
       _viewingLabel = latestLabel;
     }
+    // 取上一週快照供 KPI delta 對比
+    if (weeks.length > 1) {
+      const prevData = await getWeekState(weeks[1].weekLabel).catch(() => null);
+      _prevSnap = prevData
+        ? (prevData.snapshots || []).slice(-1)[0] || null
+        : null;
+    }
     // Dashboard 預設顯示最新週，同步清除跨頁 sessionStorage
     // 避免其他頁面因殘留舊 session 載入過期週次
     setSessionWeek(null);
   }
+
 
   // 後端無資料時才 seed（避免種子快照污染 store）
   if (!_viewState) seedData();
@@ -247,6 +261,17 @@ function renderAll() {
 function updateWeekBadge() {
   const label = _viewingLabel || store.currentWeekLabel();
   if (label) document.getElementById('weekBadge').textContent = label;
+}
+
+// ── KPI delta badge helper ─────────────────────────────────────────────
+function _deltaBadge(cur, prev, lowerIsBetter = false) {
+  if (prev == null || cur == null) return '';
+  const d = cur - prev;
+  if (d === 0) return '';
+  const up   = d > 0;
+  const good = lowerIsBetter ? !up : up;
+  const cls  = good ? 'kpi-delta--good' : 'kpi-delta--bad';
+  return `<span class="kpi-delta ${cls}">${up ? '▲' : '▼'}&nbsp;${Math.abs(d)}</span>`;
 }
 
 // ── KPI ─────────────────────────────────────────────────────────
@@ -290,19 +315,24 @@ function renderKPIs() {
     overdue = _actions.filter(a => a.dueDate && a.dueDate < _refDate && a.status !== 'done').length;
   }
 
-  document.getElementById('kpiHealth').textContent    = `${onTrackPct}%`;
-  document.getElementById('kpiHealthSub').textContent =
+  document.getElementById('kpiHealth').textContent     = `${onTrackPct}%`;
+  document.getElementById('kpiHealthDelta').innerHTML  = _deltaBadge(onTrackPct, _prevSnap?.onTrackPct);
+  document.getElementById('kpiHealthSub').textContent  =
     `${onTrack} 正常 / ${atRisk} 風險 / ${behind} 落後${paused ? ` / ${paused} 暫緩` : ''}`;
-  document.getElementById('kpiTotal').textContent     = total;
-  document.getElementById('kpiTotalSub').textContent  = `${behind} 落後 / ${paused} 暫緩`;
-  document.getElementById('kpiRisks').textContent     = needAttn;
-  document.getElementById('kpiRisksSub').textContent  = `${atRisk} At Risk / ${behind} 落後`;
-  document.getElementById('kpiRisksCard').className   =
+  document.getElementById('kpiTotal').textContent      = total;
+  document.getElementById('kpiTotalDelta').innerHTML   = _deltaBadge(total, _prevSnap?.totalProjects);
+  document.getElementById('kpiTotalSub').textContent   = `${behind} 落後 / ${paused} 暫緩`;
+  document.getElementById('kpiRisks').textContent      = needAttn;
+  const _pNeedAttn = _prevSnap ? (_prevSnap.atRiskCount || 0) + (_prevSnap.behindCount || 0) : null;
+  document.getElementById('kpiRisksDelta').innerHTML   = _deltaBadge(needAttn, _pNeedAttn, true);
+  document.getElementById('kpiRisksSub').textContent   = `${atRisk} At Risk / ${behind} 落後`;
+  document.getElementById('kpiRisksCard').className    =
     `kpi-card ${needAttn === 0 ? 'kpi-ok' : needAttn <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
-  document.getElementById('kpiActions').textContent   = overdue;
+  document.getElementById('kpiActions').textContent    = overdue;
+  document.getElementById('kpiActionsDelta').innerHTML = _deltaBadge(overdue, _prevSnap?.overdueActions ?? null, true);
   document.getElementById('kpiActionsSub').textContent =
     overdue > 0 ? `${overdue} 項已逾期` : '無逾期項目';
-  document.getElementById('kpiActionsCard').className =
+  document.getElementById('kpiActionsCard').className  =
     `kpi-card ${overdue === 0 ? 'kpi-ok' : overdue <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
   healthCard.className =
     `kpi-card ${onTrackPct >= 80 ? 'kpi-ok' : onTrackPct >= 60 ? 'kpi-warn' : 'kpi-bad'}`;
@@ -452,6 +482,16 @@ window.loadWeekView = async function(weekLabel) {
   const weeks = await listWeeks();
   const isLatest = weeks.length > 0 && weekLabel === weeks[0].weekLabel;
 
+  // 更新前一週快照供 KPI delta 對比
+  const curIdx = weeks.findIndex(w => w.weekLabel === weekLabel);
+  if (curIdx >= 0 && curIdx + 1 < weeks.length) {
+    const prevData = await getWeekState(weeks[curIdx + 1].weekLabel).catch(() => null);
+    _prevSnap = prevData ? (prevData.snapshots || []).slice(-1)[0] || null : null;
+  } else {
+    _prevSnap = null;
+  }
+
+
   // 同步跨頁 sessionStorage：其他頁面 (actions/milestones/input) 切到同一週次
   setSessionWeek(isLatest ? null : weekLabel);
 
@@ -541,8 +581,10 @@ async function initArchive() {
 }
 
 // ── 刪除歷史週報 ───────────────────────────────────────────────
+// U-1 修正：改用 styled confirm modal，明確顯示檔名，取代原生 window.confirm
 window.removeReport = async function(filename) {
-  if (!window.confirm(`確定刪除週報「${filename}」？此操作無法還原。`)) return;
+  const ok = await confirm(`確定刪除週報？\n\n「${filename}」\n\n此操作無法還原。`, '刪除');
+  if (!ok) return;
   try {
     await deleteReport(filename);
     toast(`🗑 已刪除 ${filename}`, 'success');

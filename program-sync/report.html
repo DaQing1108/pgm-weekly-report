@@ -28,6 +28,7 @@
     <a href="resources.html" class="navbar__link">Resources</a>
   </div>
   <div class="navbar__actions">
+    <button class="btn btn-outline btn-sm three-col__ai-toggle" id="btnAiPanelToggle" title="AI 控制面板">⚙ AI 設定</button>
     <button class="btn btn-outline btn-sm" id="btnApiKeyNav">🔑 API Key</button>
   </div>
 </nav>
@@ -128,7 +129,7 @@
     </div>
 
     <!-- ── 右側：AI 控制 ──────────────────────────────────── -->
-    <div class="sidebar-sticky stack" style="gap:var(--space-md);">
+    <div class="sidebar-sticky stack three-col__ai-panel" id="aiControlPanel" style="gap:var(--space-md);">
 
       <!-- API Key 狀態 -->
       <div class="panel">
@@ -227,11 +228,35 @@
 import { store }                   from './assets/js/store.js';
 import { appInit }                 from './assets/js/app-init.js';
 import { generateReport }          from './assets/js/report.js';
-import { toast, modal, formatDate, renderReviewBadge } from './assets/js/ui.js';
+import { toast, modal, formatDate, renderReviewBadge, btnLoading } from './assets/js/ui.js';
 import { REPORT_SECTIONS }         from './assets/data/schema.js';
 import { toDocx, toPdf }           from './assets/js/export.js';
 import { initApi, saveReport, isBackendAvailable, fetchReports, fetchReportContent, listWeeks } from './assets/js/api.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
+
+// ── AI 控制欄 toggle（1280px 以下使用 drawer 模式）────────────
+(function() {
+  const toggleBtn = document.getElementById('btnAiPanelToggle');
+  const panel     = document.getElementById('aiControlPanel');
+  if (!toggleBtn || !panel) return;
+
+  // 點擊 toggle 開關 drawer
+  toggleBtn.addEventListener('click', () => {
+    panel.classList.toggle('open');
+    toggleBtn.textContent = panel.classList.contains('open') ? '✕ 關閉' : '⚙ AI 設定';
+  });
+
+  // 點擊 panel 外部關閉
+  document.addEventListener('click', (e) => {
+    if (panel.classList.contains('open') &&
+        !panel.contains(e.target) &&
+        e.target !== toggleBtn) {
+      panel.classList.remove('open');
+      toggleBtn.textContent = '⚙ AI 設定';
+    }
+  });
+})();
+
 
 // 歷史週報快取
 let _historicalReports = [];   // [{ filename, content }]
@@ -653,19 +678,23 @@ document.getElementById('btnCopyMd').addEventListener('click', async () => {
 });
 
 // ── 儲存到雲端（V3）──────────────────────────────────────────
-document.getElementById('btnSaveCloud')?.addEventListener('click', async () => {
+// U-10 修正：加 btnLoading 防重複點擊，明確顯示上傳中狀態
+document.getElementById('btnSaveCloud')?.addEventListener('click', async (e) => {
   if (!currentMd) { toast('請先生成週報', 'error'); return; }
   if (!isBackendAvailable()) { toast('後端未連線', 'error'); return; }
 
   // B-2 修正：getElementById('weekStart') 元素不存在，改用正確的 'weekSelect'
   const weekStart = document.getElementById('weekSelect').value.replace(/-/g, '');
   const filename  = `Pgm_Weekly_Report_${weekStart}.md`;
+  const reset = btnLoading(e.currentTarget, '⏳ 上傳中…');
 
   try {
     const result = await saveReport(filename, currentMd);
     toast(`✅ 已儲存到雲端：${result.filename}`, 'success');
   } catch (err) {
     toast(`❌ 儲存失敗：${err.message}`, 'error');
+  } finally {
+    reset();
   }
 });
 

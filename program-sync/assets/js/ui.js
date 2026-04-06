@@ -21,16 +21,23 @@ function _getToastContainer() {
  * @param {string} message
  * @param {'success'|'error'|'info'|'warning'} type
  * @param {number} duration ms
+ * @param {object} [options]
+ * @param {Function} [options.onUndo] - U-43：傳入此 callback 時顯示「復原」按鈕
+ * @param {string}   [options.undoLabel] - 復原按鈕文字，預設「復原」
  */
-export function toast(message, type = 'success', duration = 3000) {
+export function toast(message, type = 'success', duration = 3000, options = {}) {
   const container = _getToastContainer();
   const el = document.createElement('div');
   el.className = `toast toast--${type}`;
 
   const icons = { success: '✓', error: '✕', info: 'ℹ', warning: '⚠' };
+  const undoBtn = options?.onUndo
+    ? `<button class="toast__undo" style="margin-left:10px;background:none;border:1px solid currentColor;border-radius:3px;padding:1px 8px;cursor:pointer;font-size:11px;opacity:.85;">${_escHtml(options.undoLabel || '復原')}</button>`
+    : '';
   el.innerHTML = `
     <span class="toast__icon">${icons[type] ?? 'ℹ'}</span>
     <span class="toast__msg">${_escHtml(message)}</span>
+    ${undoBtn}
   `;
 
   container.appendChild(el);
@@ -41,7 +48,16 @@ export function toast(message, type = 'success', duration = 3000) {
   };
 
   const timer = setTimeout(remove, duration);
-  el.addEventListener('click', () => { clearTimeout(timer); remove(); });
+  el.addEventListener('click', e => {
+    if (e.target.classList.contains('toast__undo')) {
+      clearTimeout(timer);
+      remove();
+      options.onUndo?.();
+    } else {
+      clearTimeout(timer);
+      remove();
+    }
+  });
 
   return { close: remove };
 }
@@ -303,6 +319,25 @@ function _escHtml(str) {
 }
 
 export { _escHtml as escHtml };
+
+// ── Button loading state ──────────────────────────────────────
+
+/**
+ * U-10：讓按鈕進入 loading 狀態（禁用 + 顯示 spinner 文字），回傳 reset 函式
+ * 用於非同步操作（API 呼叫）期間防止重複點擊並給予即時視覺回饋
+ * @param {HTMLButtonElement} btn
+ * @param {string} [loadingText] - 顯示中的文字，預設「處理中…」
+ * @returns {Function} reset — 呼叫後恢復原始文字並取消禁用
+ */
+export function btnLoading(btn, loadingText = '處理中…') {
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = loadingText;
+  return () => {
+    btn.disabled = false;
+    btn.textContent = original;
+  };
+}
 
 // ── Loading spinner ────────────────────────────────────────────
 

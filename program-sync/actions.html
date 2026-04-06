@@ -79,7 +79,7 @@
 import { store }   from './assets/js/store.js';
 import { appInit, setSessionWeek } from './assets/js/app-init.js';
 import { listWeeks } from './assets/js/api.js';
-import { toast, renderBadge, formatDate, generateId, modal, isOverdue } from './assets/js/ui.js';
+import { toast, renderBadge, formatDate, generateId, modal, isOverdue, confirm } from './assets/js/ui.js';
 
 (async () => {
   const currentLabel = await appInit();
@@ -169,8 +169,8 @@ function renderPanels() {
                   title="點擊切換狀態">
               ${statusLabel(a.status)}
             </span>
-            <button class="btn btn-ghost btn-sm" onclick="editAction('${a.id}')" style="padding:2px 4px;color:var(--color-text-tertiary);" title="編輯">✏️</button>
-            <button class="btn btn-ghost btn-sm" onclick="deleteAction('${a.id}')" style="padding:2px 4px;color:var(--color-text-tertiary);" title="刪除">✕</button>
+            <button class="btn btn-ghost btn-sm" onclick="editAction('${a.id}')" style="padding:4px 8px;color:var(--color-text-tertiary);" title="編輯">✏️</button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteAction('${a.id}')" style="padding:4px 8px;color:var(--color-text-tertiary);" title="刪除">✕</button>
           </div>
         </div>`;
     }).join('');
@@ -238,10 +238,16 @@ window.addAction = function(catId) {
 };
 
 // ── 刪除 ───────────────────────────────────────────────────────
-window.deleteAction = function(id) {
-  if (!window.confirm('確定刪除此 Action？')) return;
+// U-1/U-43 修正：styled confirm + undo toast（5 秒內可復原）
+window.deleteAction = async function(id) {
+  const a = store.getById('actions', id);
+  if (!a) return;
+  const ok = await confirm(`確定刪除此 Action？\n\n「${a.task}」`, '刪除');
+  if (!ok) return;
   store.delete('actions', id);
-  toast('已刪除', 'success');
+  toast('已刪除', 'success', 5000, {
+    onUndo: () => { store.save('actions', a); toast('已復原', 'info'); },
+  });
 };
 
 // ── 編輯 Action（含變更專案）───────────────────────────────────
@@ -333,12 +339,46 @@ window.editAction = function(id) {
 };
 
 // ── 批次完成 ───────────────────────────────────────────────────
-document.getElementById('btnMarkDone').addEventListener('click', () => {
+// U-2/U-44 修正：排除 blocked 狀態、列清單確認、完成後可 undo
+document.getElementById('btnMarkDone').addEventListener('click', async () => {
   const inProg = store.query('actions', a => a.status === 'in-progress');
   if (!inProg.length) { toast('沒有進行中的 Action', 'info'); return; }
-  if (!window.confirm(`將 ${inProg.length} 個「進行中」Action 標記為完成？`)) return;
-  inProg.forEach(a => store.save('actions', { ...a, status: 'done' }));
-  toast(`✅ ${inProg.length} 項已標記完成`, 'success');
+
+  const listHtml = inProg.map(a =>
+    `<li style="padding:4px 0;border-bottom:1px solid var(--color-border-default);font-size:13px;">
+       <span style="color:var(--color-text-secondary);">[${a.category}]</span>
+       ${a.task}
+       ${a.owner ? `<span style="color:var(--color-text-tertiary);margin-left:6px;">— ${a.owner}</span>` : ''}
+     </li>`
+  ).join('');
+
+  const { close, el } = modal(`
+    <div class="modal__header">
+      <span class="modal__title">批次標記完成</span>
+      <button class="modal__close" type="button">✕</button>
+    </div>
+    <div class="modal__body">
+      <p style="margin-bottom:var(--space-sm);font-size:var(--font-size-sm);">
+        以下 <strong>${inProg.length}</strong> 個「進行中」Action 將標記為完成：
+      </p>
+      <ul style="list-style:none;padding:0;margin:0;max-height:260px;overflow-y:auto;">
+        ${listHtml}
+      </ul>
+      <p style="margin-top:var(--space-md);font-size:12px;color:var(--color-text-tertiary);">此操作無法復原，請確認後繼續。</p>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn-outline" id="_batchCancel">取消</button>
+      <button class="btn btn-primary" id="_batchConfirm">✅ 全部完成</button>
+    </div>
+  `);
+
+  el.querySelector('.modal__close').addEventListener('click', close);
+  el.querySelector('#_batchCancel').addEventListener('click', close);
+  el.querySelector('#_batchConfirm').addEventListener('click', () => {
+    close();
+    inProg.forEach(a => store.save('actions', { ...a, status: 'done' }));
+    toast(`✅ ${inProg.length} 項已標記完成`, 'success');
+  });
 });
 
 function populateOwnerSelects() {

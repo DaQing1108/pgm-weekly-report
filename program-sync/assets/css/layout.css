@@ -285,9 +285,47 @@
 }
 
 /* ── Responsive breakpoints ──────────────────────────────────── */
+@media (max-width: 1280px) {
+  .three-col {
+    grid-template-columns: 230px 1fr;
+  }
+
+  /* 右側 AI 控制欄在 1280px 以下隱藏，透過 toggle 按鈕展開 */
+  .three-col__ai-panel {
+    display: none;
+    position: fixed;
+    top: var(--navbar-height);
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 200;
+    background: var(--color-bg-primary);
+    border-left: 1px solid var(--color-border-default);
+    box-shadow: -4px 0 16px rgba(0,0,0,0.08);
+    overflow-y: auto;
+    padding: var(--space-lg);
+  }
+
+  .three-col__ai-panel.open {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .three-col__ai-toggle {
+    display: inline-flex !important;
+  }
+}
+
+@media (min-width: 1281px) {
+  .three-col__ai-toggle {
+    display: none !important;
+  }
+}
+
 @media (max-width: 1100px) {
   .three-col {
-    grid-template-columns: 240px 1fr 260px;
+    grid-template-columns: 210px 1fr;
   }
 
   .trends-grid {

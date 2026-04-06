@@ -127,7 +127,25 @@ function _showOfflineBanner() {
   const bar = document.createElement('div');
   bar.id = 'appInitOfflineBanner';
   bar.style.cssText = 'background:var(--color-danger-bg,#fdecea);border-bottom:1px solid var(--color-danger,#d94f4f);padding:4px 24px;font-size:12px;display:flex;align-items:center;gap:8px;color:var(--color-danger,#d94f4f);';
-  bar.innerHTML = `<span>⚠ 後端離線</span><span style="color:var(--color-text-secondary,#888);font-size:11px;">— 資料僅存於本機 localStorage，切換頁面後不保留</span>`;
+  // U-21 修正：加「重試連線」按鈕，讓使用者可重新整理連線狀態
+  window._appInitRetry = async () => {
+    const { initApi, isBackendAvailable } = await import('./api.js');
+    await initApi(true);
+    if (isBackendAvailable()) {
+      document.getElementById('appInitOfflineBanner')?.remove();
+      location.reload();
+    } else {
+      bar.querySelector('#retryMsg').textContent = '連線失敗，請確認後端服務';
+    }
+  };
+  bar.innerHTML = `
+    <span>⚠ 後端離線</span>
+    <span style="color:var(--color-text-secondary,#888);font-size:11px;">— 資料僅存於本機 localStorage，切換頁面後不保留</span>
+    <button onclick="window._appInitRetry()"
+      style="margin-left:8px;background:none;border:1px solid currentColor;border-radius:4px;padding:1px 8px;cursor:pointer;font-size:11px;color:var(--color-danger,#d94f4f);">
+      🔄 重試連線
+    </button>
+    <span id="retryMsg" style="font-size:11px;color:var(--color-text-tertiary,#aaa);"></span>`;
   nav.insertAdjacentElement('afterend', bar);
 }
 
@@ -140,10 +158,13 @@ function _showHistoryBanner(viewing, latest) {
   bar.id = 'appInitHistoryBanner';
   bar.style.cssText = 'background:var(--color-warning-bg,#fff8e1);border-bottom:1px solid var(--color-warning,#e4a23c);padding:6px 24px;font-size:12px;display:flex;align-items:center;gap:12px;';
   window._appInitReturnLatest = () => { sessionStorage.removeItem(SESSION_WEEK_KEY); location.reload(); };
-  bar.innerHTML = `<span>📅 歷史瀏覽模式：${viewing}</span>
+  // U-48 修正：加「🔒 唯讀」標示，讓用戶明確知道無法編輯
+  bar.innerHTML = `
+    <span>📅 歷史瀏覽模式：${viewing}</span>
+    <span style="background:var(--color-warning,#e4a23c);color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;font-weight:600;">🔒 唯讀</span>
     <button onclick="window._appInitReturnLatest()"
       style="background:none;border:1px solid currentColor;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:11px;">
-      ↩ 回到 ${latest}
+      ↩ 回到最新 ${latest}
     </button>`;
   nav.insertAdjacentElement('afterend', bar);
 }

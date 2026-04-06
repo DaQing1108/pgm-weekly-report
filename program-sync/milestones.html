@@ -113,7 +113,7 @@
 import { store }   from './assets/js/store.js';
 import { appInit, setSessionWeek } from './assets/js/app-init.js';
 import { listWeeks } from './assets/js/api.js';
-import { toast, formatDate, generateId } from './assets/js/ui.js';
+import { toast, formatDate, generateId, confirm } from './assets/js/ui.js';
 
 (async () => {
   const currentLabel = await appInit();
@@ -253,10 +253,17 @@ window.changeStatus = function(id, status) {
   toast('里程碑狀態已更新', 'success');
 };
 
-window.deleteMs = function(id) {
-  if (!window.confirm('確定要刪除此里程碑？')) return;
+// U-1 修正：改用 styled confirm modal，顯示里程碑名稱
+window.deleteMs = async function(id) {
+  const m = store.getById('milestones', id);
+  if (!m) return;
+  // U-43 修正：刪除前快照，提供 5 秒復原視窗
+  const ok = await confirm(`確定刪除里程碑？\n\n「${m.name}」`, '刪除');
+  if (!ok) return;
   store.delete('milestones', id);
-  toast('已刪除', 'success');
+  toast('已刪除里程碑', 'success', 5000, {
+    onUndo: () => { store.save('milestones', m); toast('已復原', 'info'); },
+  });
 };
 
 // ── HTML5 Drag & Drop（同天排序）─────────────────────────────
@@ -384,6 +391,10 @@ window.addEventListener('store:updated', renderAll);
 renderAll();
 </script>
 <style>
+/* U-7 修正：可拖曳里程碑顯示 grab 游標提示 */
+.milestone[draggable="true"] { cursor: grab; }
+.milestone[draggable="true"]:active { cursor: grabbing; }
+
 /* 歷史週唯讀模式 */
 body.is-history-readonly #btnAddMs,
 body.is-history-readonly .panel__footer,

@@ -1,7 +1,7 @@
 # P&D Center Program Sync — 週報管理系統
 
 > VIA Technologies P&D Center 週報管理與協作平台
-> 版本：v3.12 ｜ 部署：Railway ｜ 技術棧：Vanilla HTML5 + Node.js + Anthropic Claude API
+> 版本：v3.13 ｜ 部署：Railway ｜ 技術棧：Vanilla HTML5 + Node.js + Anthropic Claude API
 
 ---
 

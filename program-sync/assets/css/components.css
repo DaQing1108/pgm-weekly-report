@@ -145,6 +145,34 @@
 .kpi-warn .kpi-card__value { color: var(--color-warning); }
 .kpi-bad  .kpi-card__value { color: var(--color-danger); }
 
+/* KPI delta badge（WoW 對比）*/
+.kpi-delta-wrap {
+  display: block;
+  min-height: 1.2em;
+  margin: 2px 0 2px;
+}
+
+.kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 99px;
+  letter-spacing: 0.02em;
+}
+
+.kpi-delta--good {
+  color: var(--color-success);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.kpi-delta--bad {
+  color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+
 /* ── Panel ───────────────────────────────────────────────────── */
 .panel {
   background: var(--color-bg-primary);
@@ -267,17 +295,22 @@
 }
 
 .project-row__detail {
-  display: none;
-  padding: var(--space-md) var(--space-md) var(--space-md) 44px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, padding 0.2s ease, opacity 0.2s ease;
+  padding: 0 var(--space-md) 0 44px;
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   background: var(--color-bg-secondary);
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   line-height: 1.7;
+  opacity: 0;
 }
 
 .project-row__detail.open {
-  display: block;
+  max-height: 300px;
+  padding: var(--space-md) var(--space-md) var(--space-md) 44px;
+  opacity: 1;
 }
 
 /* ── Risk Row ────────────────────────────────────────────────── */
@@ -576,6 +609,7 @@ select.inp {
 /* Progress range input */
 .inp-range {
   -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   height: 4px;
   background: var(--color-bg-tertiary);
@@ -691,6 +725,10 @@ select.inp {
   font-weight: 600;
   white-space: nowrap;
   letter-spacing: 0.02em;
+  /* U-40 修正：防止超長文字溢出容器 */
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .badge-success {

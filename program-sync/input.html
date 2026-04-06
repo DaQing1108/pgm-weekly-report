@@ -644,12 +644,13 @@ document.getElementById('btnToggleEditProj').addEventListener('click', () => {
 });
 
 // ── 刪除專案 ────────────────────────────────────────────────────
-document.getElementById('btnDeleteProj').addEventListener('click', () => {
+document.getElementById('btnDeleteProj').addEventListener('click', async () => {
   const projId = document.getElementById('qProject').value;
   if (!projId || projId === '__new__') return;
   const p = store.getById('projects', projId);
   if (!p) return;
-  if (!window.confirm(`確定刪除專案「${p.name}」？此操作無法還原。`)) return;
+  const ok = await uiConfirm(`確定刪除專案「${p.name}」？\n\n此操作無法還原。`, '刪除專案');
+  if (!ok) return;
   store.delete('projects', projId);
   toast(`🗑 已刪除專案「${p.name}」`, 'success');
   // 重置表單
@@ -879,6 +880,18 @@ function renderParseResult(data) {
 
   btn.style.display = '';
 
+  // ── Fix #5：模糊重複偵測 ───────────────────────────────────────
+  const existingProjects = store.getAll('projects');
+  function _normalize(s) { return (s || '').toLowerCase().replace(/[\s\-_]/g, ''); }
+  function _isDuplicate(name) {
+    const n = _normalize(name);
+    return existingProjects.some(p => {
+      const en = _normalize(p.name);
+      // 完全一致 or 其中一方 includes 另一方（容忍縮寫/空格差異）
+      return en === n || en.includes(n) || n.includes(en);
+    });
+  }
+
   const sections = [
     { key:'projects',  label:'📁 專案', icon:'on-track' },
     { key:'risks',     label:'⚠️ 風險', icon:'at-risk' },
@@ -893,17 +906,26 @@ function renderParseResult(data) {
     html += `<div class="section-heading">${sec.label} (${data[sec.key].length})</div>`;
     data[sec.key].forEach((item, idx) => {
       const label = item.name || item.description || item.task || '(未命名)';
+      const isDup = sec.key === 'projects' && _isDuplicate(label);
+      const dupBadge = isDup
+        ? `<span class="badge badge--warning" title="與現有專案名稱相近，可能重複" style="font-size:10px;flex-shrink:0;">⚠ 可能重複</span>`
+        : '';
+      const rowBg = isDup
+        ? 'background:rgba(234,179,8,0.07);border-color:rgba(234,179,8,0.35);'
+        : 'background:var(--color-bg-primary);';
       html += `
-        <label style="display:flex;align-items:center;gap:var(--space-sm);padding:6px var(--space-sm);border-radius:var(--radius-sm);cursor:pointer;margin-bottom:4px;border:1px solid var(--color-border-default);background:var(--color-bg-primary);">
-          <input type="checkbox" checked data-type="${sec.key}" data-idx="${idx}" style="accent-color:var(--color-info);">
+        <label style="display:flex;align-items:center;gap:var(--space-sm);padding:6px var(--space-sm);border-radius:var(--radius-sm);cursor:pointer;margin-bottom:4px;border:1px solid var(--color-border-default);${rowBg}">
+          <input type="checkbox" ${isDup ? '' : 'checked'} data-type="${sec.key}" data-idx="${idx}" style="accent-color:var(--color-info);">
           <span class="text-sm flex-1">${label.substring(0,60)}${label.length>60?'…':''}</span>
           ${item.level ? renderBadge(item.level) : item.status ? renderBadge(item.status) : ''}
+          ${dupBadge}
         </label>`;
     });
   });
 
   el.innerHTML = html;
 }
+
 
 document.getElementById('btnImportAll').addEventListener('click', () => {
   if (!parsedData) return;

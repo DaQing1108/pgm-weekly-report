@@ -54,8 +54,10 @@
   <!-- 無資料 -->
   <div id="noDataState" style="display:none;text-align:center;padding:64px 0;color:var(--color-text-secondary);">
     <div style="font-size:48px;margin-bottom:12px;">📭</div>
-    <p class="font-600">尚無跨週快照資料</p>
-    <p class="text-sm" style="margin-top:4px;">請在 Review 頁面核准週報後，系統會自動建立快照</p>
+    <p class="font-600">尚無跨週趨勢資料</p>
+    <!-- U-17 修正：移除「Review 核准」術語，改為用戶易懂的操作說明 -->
+    <p class="text-sm" style="margin-top:4px;">每週完成資料輸入後，系統會自動記錄週次快照</p>
+    <p class="text-sm" style="margin-top:2px;">累積 2 週以上資料即可顯示趨勢圖表</p>
   </div>
 
   <!-- 本週 vs 上週 KPI 對比 -->
@@ -356,7 +358,9 @@ document.querySelectorAll('.range-btn').forEach(btn => {
 </script>
 
 <style>
-.range-btn.active { background:var(--color-info,#378add); color:#fff; border-color:var(--color-info,#378add); }
+/* U-8 修正：range-btn active 狀態加粗體 + transition，視覺區分更明顯 */
+.range-btn { transition: background .15s, color .15s, border-color .15s; font-weight:400; }
+.range-btn.active { background:var(--color-info,#378add); color:#fff; border-color:var(--color-info,#378add); font-weight:600; box-shadow:0 1px 4px rgba(55,138,221,.35); }
 .trends-table { width:100%; border-collapse:collapse; font-size:13px; }
 .trends-table th, .trends-table td { padding:8px 12px; border-bottom:1px solid var(--color-border-default); text-align:left; }
 .trends-table thead tr { background:var(--color-bg-secondary); }
