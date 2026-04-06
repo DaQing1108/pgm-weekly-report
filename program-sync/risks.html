@@ -139,7 +139,8 @@
       </div>
       <div class="inp-group">
         <label class="inp-label inp-label--required">風險描述</label>
-        <textarea class="inp" id="mDesc" rows="3" placeholder="描述風險內容及可能影響…"></textarea>
+        <!-- U-24 修正：加 maxlength 防止過長輸入 -->
+        <textarea class="inp" id="mDesc" rows="3" placeholder="描述風險內容及可能影響…" maxlength="300"></textarea>
       </div>
       <div class="inp-grid">
         <div class="inp-group">
@@ -159,7 +160,7 @@
       </div>
       <div class="inp-group">
         <label class="inp-label">因應方案</label>
-        <textarea class="inp" id="mMitigation" rows="2" placeholder="描述已採取或計畫中的因應措施…"></textarea>
+        <textarea class="inp" id="mMitigation" rows="2" placeholder="描述已採取或計畫中的因應措施…" maxlength="200"></textarea>
       </div>
     </div>
   </div>
@@ -410,6 +411,35 @@ document.getElementById('btnAddRisk').addEventListener('click', () => {
   }
 
   el.querySelector('#mCancel').addEventListener('click', close);
+
+  // U-30 修正：Modal 開啟時自動聚焦第一個輸入欄
+  setTimeout(() => el.querySelector('#mDesc')?.focus(), 50);
+
+  // U-22 修正：截止日期選過去時顯示警告
+  const mDueDateEl = el.querySelector('#mDueDate');
+  if (mDueDateEl) {
+    mDueDateEl.addEventListener('change', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const existing = el.querySelector('.past-date-hint');
+      if (mDueDateEl.value && mDueDateEl.value < today) {
+        if (!existing) {
+          const hint = document.createElement('span');
+          hint.className = 'past-date-hint';
+          hint.style.cssText = 'font-size:11px;color:var(--color-warning,#e4a23c);margin-top:2px;display:block;';
+          hint.textContent = '⚠ 所選日期為過去日期';
+          mDueDateEl.insertAdjacentElement('afterend', hint);
+        }
+      } else {
+        existing?.remove();
+      }
+    });
+  }
+
+  // U-29 修正：關聯專案欄位 Enter 鍵觸發儲存
+  el.querySelector('#mProject')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.querySelector('#mSave').click(); }
+  });
+
   el.querySelector('#mSave').addEventListener('click', () => {
     const desc = el.querySelector('#mDesc').value.trim();
     if (!desc) { toast('請填寫風險描述', 'error'); return; }

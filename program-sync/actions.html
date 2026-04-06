@@ -163,10 +163,11 @@ function renderPanels() {
             ${late ? ' ⚠️' : ''}
           </div>
           <div style="display:flex;align-items:center;gap:var(--space-xs);">
+            <!-- U-42 修正：顯示下一狀態提示，讓循環操作更直覺 -->
             <span class="badge ${statusBadgeCls(a.status)}"
                   style="cursor:pointer;"
                   onclick="cycleStatus('${a.id}')"
-                  title="點擊切換狀態">
+                  title="點擊切換 → ${statusLabel(STATUS_CYCLE[(STATUS_CYCLE.indexOf(a.status)+1)%STATUS_CYCLE.length])}">
               ${statusLabel(a.status)}
             </span>
             <button class="btn btn-ghost btn-sm" onclick="editAction('${a.id}')" style="padding:4px 8px;color:var(--color-text-tertiary);" title="編輯">✏️</button>
@@ -320,6 +321,8 @@ window.editAction = function(id) {
 
   el.querySelector('.modal__close').addEventListener('click', close);
   el.querySelector('#eCancel').addEventListener('click', close);
+  // U-30 修正：Modal 開啟時自動聚焦任務名稱欄
+  setTimeout(() => el.querySelector('#eTask')?.focus(), 50);
   el.querySelector('#eSave').addEventListener('click', () => {
     const task = el.querySelector('#eTask').value.trim();
     if (!task) { toast('任務名稱不能空白', 'error'); return; }

@@ -1,7 +1,7 @@
 # P&D Center Program Sync — 週報管理系統
 
 > VIA Technologies P&D Center 週報管理與協作平台
-> 版本：v3.13 ｜ 部署：Railway ｜ 技術棧：Vanilla HTML5 + Node.js + Anthropic Claude API
+> 版本：v3.14 ｜ 部署：Railway ｜ 技術棧：Vanilla HTML5 + Node.js + Anthropic Claude API
 
 ---
 
@@ -1072,6 +1072,8 @@ location.reload();
 | **v3.10** | **S-3 CORS 限縮**：`app.use(cors())` 改為讀取 `CORS_ORIGIN` 環境變數（逗號分隔 allowlist），未設定時維持開放（向下相容）；Railway 部署建議設 `CORS_ORIGIN=https://your-app.railway.app` 防跨站濫用。**Q-6 排除標記可設定**：後端 `GET /api/reports` 與 `GET /read` 的 `_v7` 硬編碼改為讀取 `REPORT_EXCLUDE_TAG` 環境變數（預設 `_v7`），允許未來更換週報格式版本標記而無需修改程式碼。 |
 | **v3.11** | **P0**：`POST /api/state` 補 `requireAdminToken`（S-7），防止未授權覆寫跨瀏覽器共用 state；`store.importAll()` 加型別驗證（A-1），收到 `null`/非物件時提前回傳錯誤而非拋 TypeError 導致頁面初始化中斷。**P1**：`report.js _genCover()` 對 author 欄位套用 `_escMd()` 跳脫 Markdown 特殊字元（R-1）；`generateReport()` 的 `weekStart` 預設值改為動態計算當週 Monday，取代過期 hardcode 日期（R-2）；`seed.js` 的 `today` 基準改為 `new Date()`（D-2），讓逾期 / 未來日期隨當前日期動態計算。**P2**：`ui.js generateId()` 改用 `crypto.randomUUID()` + `getRandomValues` fallback，與 store.js 策略一致（S-8）；`seed.js` guard 條件改為檢查 `projects` 是否存在（M-6），防止 snapshots 存在但 projects 已清除時誤跳過 seed；標記 `ui.js weekLabel()` 為 deprecated（Q-11），統一使用 `store.weekLabel()`；移除 `schema.js` 中全站未使用的 `PROJECTS_CATALOG` dead code（Q-12）。 |
 | **v3.12** | **週報產出流程 Bug 修正**：B-1 `weekSelect` 切週時即時同步 `weekBadge`，並在初始化時設定正確週次標籤，防止封面顯示過期 W11 預設值；B-2 `btnSaveCloud` 的元素 ID 由不存在的 `weekStart` 改為正確的 `weekSelect`（原為 crash 必現 bug，導致雲端儲存完全失效）；B-3 章節重生成（`regenSection`）改為以 `##` 標題為邊界的智能替換，找到對應章節則原地替換，找不到才 append，解決原本重複章節問題。 |
+| **v3.13** | **UI/UX 優化第一輪（U-1～U-17）**：styled confirm modal 取代原生 `window.confirm`（U-1）；批次完成排除 blocked items（U-2/U-44）；刪除操作加 5 秒復原 toast（U-43，actions）；modal 開啟自動聚焦（U-30）；`btnLoading()` 工具函式（U-10）；`app-init.js` 加重試連線按鈕（U-21）；歷史模式加「🔒 唯讀」badge（U-48）；`toast()` 擴充 `onUndo` callback 支援（U-43）；風險升降級按鈕方向修正（U-6）；風險狀態改動加確認 modal 並可回滾 select（U-41）。 |
+| **v3.14** | **UI/UX 優化第二輪（U-4～U-50）**：`deleteRisk` / `deleteMs` 加 5 秒復原視窗（U-43）；里程碑拖曳 `cursor:grab` 提示（U-7）；badge 加 `text-overflow:ellipsis` 防溢（U-40）；tab-btn 加副標題說明（U-9）；input.html 新增 `maxlength`（U-24）、`required`（U-25）、Enter 鍵儲存（U-29）、過去日期警告（U-22）；risks.html modal 加 `maxlength`（U-24）、autofocus（U-30）、Enter 鍵（U-29）、過去日期警告（U-22）；Action status badge 顯示下一狀態 tooltip（U-42）；KPI 卡加單位標示（U-34）；首頁空狀態加 CTA「新增第一個專案」按鈕（U-35）；週次選擇器後端離線時仍顯示佔位（U-4）；歷史週報區離線提示（U-49）；匯入按鈕加拖放 title 說明（U-50）；report.html 生成模式說明（U-11）、token 費用參考（U-16）。 |
 
 ---
 

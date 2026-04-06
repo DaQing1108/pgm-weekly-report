@@ -54,28 +54,29 @@
   </div>
 
   <!-- KPI Row -->
+  <!-- U-34 修正：KPI 卡片加單位標示，讓數字意義更清晰 -->
   <div class="kpi-row" id="kpiRow">
     <div class="kpi-card kpi-ok">
       <div class="kpi-card__label">專案健康度</div>
-      <div class="kpi-card__value" id="kpiHealth">—%</div>
+      <div class="kpi-card__value" id="kpiHealth">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">%</span></div>
       <span class="kpi-delta-wrap" id="kpiHealthDelta"></span>
       <div class="kpi-card__sub" id="kpiHealthSub">載入中…</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-card__label">進行中專案</div>
-      <div class="kpi-card__value" id="kpiTotal">—</div>
+      <div class="kpi-card__value" id="kpiTotal">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">個</span></div>
       <span class="kpi-delta-wrap" id="kpiTotalDelta"></span>
       <div class="kpi-card__sub" id="kpiTotalSub"></div>
     </div>
     <div class="kpi-card" id="kpiRisksCard">
       <div class="kpi-card__label">需關注專案</div>
-      <div class="kpi-card__value" id="kpiRisks">—</div>
+      <div class="kpi-card__value" id="kpiRisks">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">個</span></div>
       <span class="kpi-delta-wrap" id="kpiRisksDelta"></span>
       <div class="kpi-card__sub" id="kpiRisksSub">At Risk + 落後</div>
     </div>
     <div class="kpi-card" id="kpiActionsCard">
       <div class="kpi-card__label">逾期 Actions</div>
-      <div class="kpi-card__value" id="kpiActions">—</div>
+      <div class="kpi-card__value" id="kpiActions">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">項</span></div>
       <span class="kpi-delta-wrap" id="kpiActionsDelta"></span>
       <div class="kpi-card__sub" id="kpiActionsSub">待追蹤</div>
     </div>
@@ -129,9 +130,14 @@
         <span class="panel__title">☁ 歷史週報中心</span>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="badge badge--info" id="archiveBadge">載入中…</span>
-          <button class="btn btn-primary btn-sm" id="btnImportMd">⬆ 匯入週報</button>
+          <!-- U-50 修正：匯入按鈕加 title 提示支援拖放 -->
+          <button class="btn btn-primary btn-sm" id="btnImportMd" title="點擊選擇或拖放 .md 檔案至此區域">⬆ 匯入週報</button>
           <input type="file" id="mdFileInput" accept=".md" style="display:none;">
         </div>
+      </div>
+      <!-- U-49 修正：後端離線提示 -->
+      <div id="archiveOfflineHint" style="display:none;background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:8px var(--space-lg);font-size:12px;color:var(--color-text-tertiary);">
+        ⚠ 後端離線時無法查看歷史週報。請<a href="input.html#archive" style="color:var(--color-info);">前往 Quick Input → 週報歸檔</a>頁面上傳歸檔。
       </div>
       <div class="panel__body" id="archiveList" style="padding:var(--space-md) var(--space-lg);">
         <div class="empty-state">
@@ -315,20 +321,22 @@ function renderKPIs() {
     overdue = _actions.filter(a => a.dueDate && a.dueDate < _refDate && a.status !== 'done').length;
   }
 
-  document.getElementById('kpiHealth').textContent     = `${onTrackPct}%`;
+  // U-34 修正：使用 innerHTML 保留單位 span，數字不覆蓋單位標示
+  const _unit = u => `<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">${u}</span>`;
+  document.getElementById('kpiHealth').innerHTML      = `${onTrackPct}${_unit('%')}`;
   document.getElementById('kpiHealthDelta').innerHTML  = _deltaBadge(onTrackPct, _prevSnap?.onTrackPct);
   document.getElementById('kpiHealthSub').textContent  =
     `${onTrack} 正常 / ${atRisk} 風險 / ${behind} 落後${paused ? ` / ${paused} 暫緩` : ''}`;
-  document.getElementById('kpiTotal').textContent      = total;
+  document.getElementById('kpiTotal').innerHTML       = `${total}${_unit('個')}`;
   document.getElementById('kpiTotalDelta').innerHTML   = _deltaBadge(total, _prevSnap?.totalProjects);
   document.getElementById('kpiTotalSub').textContent   = `${behind} 落後 / ${paused} 暫緩`;
-  document.getElementById('kpiRisks').textContent      = needAttn;
+  document.getElementById('kpiRisks').innerHTML       = `${needAttn}${_unit('個')}`;
   const _pNeedAttn = _prevSnap ? (_prevSnap.atRiskCount || 0) + (_prevSnap.behindCount || 0) : null;
   document.getElementById('kpiRisksDelta').innerHTML   = _deltaBadge(needAttn, _pNeedAttn, true);
   document.getElementById('kpiRisksSub').textContent   = `${atRisk} At Risk / ${behind} 落後`;
   document.getElementById('kpiRisksCard').className    =
     `kpi-card ${needAttn === 0 ? 'kpi-ok' : needAttn <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
-  document.getElementById('kpiActions').textContent    = overdue;
+  document.getElementById('kpiActions').innerHTML     = `${overdue}${_unit('項')}`;
   document.getElementById('kpiActionsDelta').innerHTML = _deltaBadge(overdue, _prevSnap?.overdueActions ?? null, true);
   document.getElementById('kpiActionsSub').textContent =
     overdue > 0 ? `${overdue} 項已逾期` : '無逾期項目';
@@ -351,9 +359,12 @@ function renderProjects(filter) {
   document.getElementById('projectCount').textContent = `${list.length} 個專案`;
 
   if (list.length === 0) {
+    // U-35 修正：空狀態加 CTA 引導用戶操作
+    const isAllFilter = currentFilter === 'all' && currentTeamFilter === 'all';
     el.innerHTML = `<div class="empty-state">
-      <span class="empty-state__icon">🎉</span>
-      <p class="empty-state__msg">此狀態無專案</p>
+      <span class="empty-state__icon">${isAllFilter ? '📂' : '🎉'}</span>
+      <p class="empty-state__msg">${isAllFilter ? '尚無專案資料' : '此篩選條件無符合專案'}</p>
+      ${isAllFilter ? `<a href="input.html" class="btn btn-primary btn-sm" style="margin-top:var(--space-md);">➕ 新增第一個專案</a>` : ''}
     </div>`;
     return;
   }
@@ -447,14 +458,21 @@ document.getElementById('teamFilter').addEventListener('change', function() {
 // ── 週次選擇器 ─────────────────────────────────────────────────
 async function renderWeekNav() {
   const weeks = await listWeeks();
-  if (weeks.length === 0) return;
 
   const navBar     = document.getElementById('weekNavBar');
   const sel        = document.getElementById('weekSelect');
   const meta       = document.getElementById('weekNavMeta');
-  const latestLabel = weeks[0].weekLabel;           // API 最新週次，與 localStorage 無關
 
+  // U-4 修正：後端無資料時仍顯示 nav bar，以佔位符說明狀態
   navBar.style.display = 'flex';
+
+  if (weeks.length === 0) {
+    sel.innerHTML = '<option value="">— 後端離線，無歷史週次 —</option>';
+    meta.textContent = '連線後端後可切換歷史週次';
+    return;
+  }
+
+  const latestLabel = weeks[0].weekLabel;           // API 最新週次，與 localStorage 無關
 
   // 組裝 option 清單（最新在最上方，標示「最新」）
   sel.innerHTML = weeks.map((w, i) => {
@@ -545,9 +563,14 @@ document.getElementById('btnApiKey').addEventListener('click', () => {
 // ── 歷史週報中心（V3 後端整合）────────────────────────────────
 async function initArchive() {
   const available = await initApi();
-  if (!available) return;
 
+  // U-49 修正：後端離線時仍顯示 archiveSection，加提示說明操作路徑
   document.getElementById('archiveSection').style.display = '';
+  if (!available) {
+    document.getElementById('archiveOfflineHint').style.display = '';
+    document.getElementById('archiveList').innerHTML = `<div class="empty-state"><span class="empty-state__icon">🔌</span><p class="empty-state__msg">後端離線，無法顯示歷史週報</p></div>`;
+    return;
+  }
 
   try {
     const reports = await fetchReports();

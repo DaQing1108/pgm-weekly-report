@@ -166,6 +166,11 @@
               <option value="technical">技術細節</option>
             </select>
           </div>
+          <!-- U-11 修正：生成模式說明 tooltip -->
+          <p class="text-xs text-secondary" style="line-height:1.5;">
+            🖥 <strong>本地</strong>：即時生成，不需 API Key<br>
+            🤖 <strong>AI</strong>：Claude 潤飾，需設定 API Key
+          </p>
           <div class="divider"></div>
           <button class="btn btn-primary" id="btnGenerate">▶ 生成週報</button>
         </div>
@@ -181,6 +186,10 @@
             <span class="ai-status__text" id="aiStatusText">待機中</span>
             <span class="ai-status__token" id="tokenCount"></span>
           </div>
+          <!-- U-16 修正：顯示 token 費用參考 -->
+          <p class="text-xs text-secondary" id="tokenCostNote" style="display:none;line-height:1.5;margin-top:4px;">
+            參考費用：約 $0.003 / 1K tokens（claude-sonnet-4-6）
+          </p>
           <div id="streamProgress" style="display:none;">
             <div class="progress-bar"><div class="progress-bar__fill" id="streamBar" style="width:0%;transition:width 0.1s;"></div></div>
           </div>
@@ -518,7 +527,10 @@ document.getElementById('btnGenerate').addEventListener('click', async () => {
           saveDraft();
         },
         onTokens: ({ input, output }) => {
-          document.getElementById('tokenCount').textContent = `${input + output} tokens`;
+          const total = input + output;
+          document.getElementById('tokenCount').textContent = `${total} tokens`;
+          // U-16 修正：顯示費用參考提示
+          document.getElementById('tokenCostNote').style.display = '';
         },
         onError: (err) => {
           setAiStatus('error', `錯誤：${err.message}`);
