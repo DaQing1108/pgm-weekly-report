@@ -27,8 +27,19 @@
   </div>
   <div class="navbar__actions">
     <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+    <button class="btn btn-ghost btn-sm navbar__hamburger" id="navHamburger" aria-label="開啟選單" style="display:none;font-size:18px;padding:4px 8px;line-height:1;">☰</button>
   </div>
 </nav>
+<!-- V-3 修正：手機選單 -->
+<div id="mobileNav" style="display:none;position:fixed;top:var(--navbar-height);left:0;right:0;z-index:99;background:var(--color-bg-primary);border-bottom:1px solid var(--color-border-default);box-shadow:var(--shadow-md);padding:var(--space-md) var(--space-lg);flex-direction:column;gap:4px;">
+  <a href="index.html"      class="navbar__link" style="padding:8px var(--space-md);">Dashboard</a>
+  <a href="input.html"      class="navbar__link" style="padding:8px var(--space-md);">Quick Input</a>
+  <a href="risks.html"      class="navbar__link" style="padding:8px var(--space-md);">Risks</a>
+  <a href="actions.html"    class="navbar__link" style="padding:8px var(--space-md);">Action Items</a>
+  <a href="milestones.html" class="navbar__link" style="padding:8px var(--space-md);">Milestones</a>
+  <a href="review.html"     class="navbar__link" style="padding:8px var(--space-md);">Review</a>
+  <a href="resources.html"  class="navbar__link" style="padding:8px var(--space-md);">Resources</a>
+</div>
 
 <div class="page-container">
   <div class="page-header">
@@ -53,6 +64,10 @@
     <div style="display:flex;gap:6px;margin-bottom:var(--space-lg);flex-wrap:wrap;" id="quarterChips"></div>
     <div class="stats-bar" id="quarterKPI" style="margin-bottom:var(--space-xl);"></div>
     <div class="panel">
+      <!-- V-13 修正：加搜尋過濾框 -->
+      <div style="padding:var(--space-sm) var(--space-md);border-bottom:1px solid var(--color-border-default);">
+        <input type="text" class="inp" id="resSearch" placeholder="搜尋產品線、備註…" style="max-width:280px;padding:4px 10px;font-size:var(--font-size-sm);" autocomplete="off">
+      </div>
       <div class="panel__body" style="padding:0;overflow-x:auto;">
         <table class="res-table">
           <thead>
@@ -566,6 +581,19 @@ function renderTrends() {
     </ul>`;
 }
 
+// V-13 修正：資源表格搜尋過濾
+function initResSearch() {
+  const searchEl = document.getElementById('resSearch');
+  if (!searchEl) return;
+  searchEl.addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    document.querySelectorAll('#quarterlyBody tr, #businessBody tr').forEach(tr => {
+      const text = tr.textContent.toLowerCase();
+      tr.style.display = q && !text.includes(q) ? 'none' : '';
+    });
+  });
+}
+
 // ── 新增按鈕 ──────────────────────────────────────────────────────
 document.getElementById('btnAdd').addEventListener('click', () => {
   if(_tab==='quarterly'){
@@ -586,6 +614,7 @@ document.getElementById('btnAdd').addEventListener('click', () => {
   await appInit();
   seedIfEmpty();
   renderQuarterly();
+  initResSearch();
 })();
 </script>
 
@@ -608,5 +637,26 @@ document.getElementById('btnAdd').addEventListener('click', () => {
 .mbo-cell { white-space:pre-line; line-height:1.5; max-width:220px; }
 .empty-cell { text-align:center; padding:32px; color:var(--color-text-secondary); }
 </style>
+<script>
+// V-3 修正：手機漢堡選單
+(function() {
+  var btn = document.getElementById('navHamburger');
+  var menu = document.getElementById('mobileNav');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function() {
+    var open = menu.style.display === 'flex';
+    menu.style.display = open ? 'none' : 'flex';
+    btn.textContent = open ? '☰' : '✕';
+    btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.style.display = 'none';
+      btn.textContent = '☰';
+      btn.setAttribute('aria-label', '開啟選單');
+    });
+  });
+})();
+</script>
 </body>
 </html>

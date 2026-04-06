@@ -28,8 +28,19 @@
   </div>
   <div class="navbar__actions">
     <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+    <button class="btn btn-ghost btn-sm navbar__hamburger" id="navHamburger" aria-label="開啟選單" style="display:none;font-size:18px;padding:4px 8px;line-height:1;">☰</button>
   </div>
 </nav>
+<!-- V-3 修正：手機選單 -->
+<div id="mobileNav" style="display:none;position:fixed;top:var(--navbar-height);left:0;right:0;z-index:99;background:var(--color-bg-primary);border-bottom:1px solid var(--color-border-default);box-shadow:var(--shadow-md);padding:var(--space-md) var(--space-lg);flex-direction:column;gap:4px;">
+  <a href="index.html"      class="navbar__link" style="padding:8px var(--space-md);">Dashboard</a>
+  <a href="input.html"      class="navbar__link" style="padding:8px var(--space-md);">Quick Input</a>
+  <a href="risks.html"      class="navbar__link" style="padding:8px var(--space-md);">Risks</a>
+  <a href="actions.html"    class="navbar__link" style="padding:8px var(--space-md);">Action Items</a>
+  <a href="milestones.html" class="navbar__link" style="padding:8px var(--space-md);">Milestones</a>
+  <a href="review.html"     class="navbar__link" style="padding:8px var(--space-md);">Review</a>
+  <a href="resources.html"  class="navbar__link" style="padding:8px var(--space-md);">Resources</a>
+</div>
 
 <div class="page-container">
   <div class="page-header">
@@ -73,9 +84,11 @@
           <span class="panel__title">審核操作</span>
         </div>
         <div class="panel__body stack">
+          <!-- V-4 修正：審核備註加字數計數器 -->
           <div class="inp-group">
             <label class="inp-label">審核備註</label>
-            <textarea class="inp" id="reviewComment" rows="3" placeholder="填寫審核意見或修改建議…"></textarea>
+            <textarea class="inp" id="reviewComment" rows="3" placeholder="填寫審核意見或修改建議…" maxlength="500"></textarea>
+            <div class="char-counter" id="reviewCommentCounter">0 / 500</div>
           </div>
           <div style="display:flex;gap:var(--space-sm);">
             <button class="btn btn-success" id="btnApprove" style="flex:1;">✅ 核准</button>
@@ -176,11 +189,12 @@ function renderStepper() {
   const draft = currentDraft;
   const status = draft?.reviewStatus || 'draft';
 
+  // V-12 修正：Stepper 步驟標籤精簡，避免小螢幕截斷
   const STEPS = [
-    { id: 'draft',     label: '草稿建立',  desc: '週報初稿完成' },
-    { id: 'submitted', label: '送出審核',  desc: '提交給審核人員' },
-    { id: 'reviewing', label: '審核中',    desc: '等待核准或退回' },
-    { id: 'approved',  label: '已核准',    desc: '週報正式發布' },
+    { id: 'draft',     label: '草稿',  desc: '初稿完成' },
+    { id: 'submitted', label: '送審',  desc: '提交審核' },
+    { id: 'reviewing', label: '審核中', desc: '等待回應' },
+    { id: 'approved',  label: '核准',  desc: '正式發布' },
   ];
 
   const stateMap = {
@@ -376,6 +390,41 @@ window.addEventListener('store:updated', () => {
 });
 
 initWeekSelect();
+
+// V-4 修正：審核備註字數計數器
+(function() {
+  const ta = document.getElementById('reviewComment');
+  const counter = document.getElementById('reviewCommentCounter');
+  if (!ta || !counter) return;
+  ta.addEventListener('input', function() {
+    const len = this.value.length;
+    const max = parseInt(this.getAttribute('maxlength')) || 500;
+    counter.textContent = `${len} / ${max}`;
+    counter.className = len > max * 0.9 ? 'char-counter char-counter--warn' : 'char-counter';
+    if (len >= max) counter.className = 'char-counter char-counter--over';
+  });
+})();
+</script>
+<script>
+// V-3 修正：手機漢堡選單
+(function() {
+  var btn = document.getElementById('navHamburger');
+  var menu = document.getElementById('mobileNav');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function() {
+    var open = menu.style.display === 'flex';
+    menu.style.display = open ? 'none' : 'flex';
+    btn.textContent = open ? '☰' : '✕';
+    btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.style.display = 'none';
+      btn.textContent = '☰';
+      btn.setAttribute('aria-label', '開啟選單');
+    });
+  });
+})();
 </script>
 </body>
 </html>

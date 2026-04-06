@@ -27,8 +27,19 @@
   </div>
   <div class="navbar__actions">
     <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+    <button class="btn btn-ghost btn-sm navbar__hamburger" id="navHamburger" aria-label="開啟選單" style="display:none;font-size:18px;padding:4px 8px;line-height:1;">☰</button>
   </div>
 </nav>
+<!-- V-3 修正：手機選單 -->
+<div id="mobileNav" style="display:none;position:fixed;top:var(--navbar-height);left:0;right:0;z-index:99;background:var(--color-bg-primary);border-bottom:1px solid var(--color-border-default);box-shadow:var(--shadow-md);padding:var(--space-md) var(--space-lg);flex-direction:column;gap:4px;">
+  <a href="index.html"      class="navbar__link" style="padding:8px var(--space-md);">Dashboard</a>
+  <a href="input.html"      class="navbar__link" style="padding:8px var(--space-md);">Quick Input</a>
+  <a href="risks.html"      class="navbar__link" style="padding:8px var(--space-md);">Risks</a>
+  <a href="actions.html"    class="navbar__link" style="padding:8px var(--space-md);">Action Items</a>
+  <a href="milestones.html" class="navbar__link" style="padding:8px var(--space-md);">Milestones</a>
+  <a href="review.html"     class="navbar__link" style="padding:8px var(--space-md);">Review</a>
+  <a href="resources.html"  class="navbar__link" style="padding:8px var(--space-md);">Resources</a>
+</div>
 
 <div class="page-container">
   <div class="page-header">
@@ -52,12 +63,17 @@
   </div>
 
   <!-- 無資料 -->
+  <!-- V-15 修正：更完整的空狀態引導 -->
   <div id="noDataState" style="display:none;text-align:center;padding:64px 0;color:var(--color-text-secondary);">
-    <div style="font-size:48px;margin-bottom:12px;">📭</div>
-    <p class="font-600">尚無跨週趨勢資料</p>
-    <!-- U-17 修正：移除「Review 核准」術語，改為用戶易懂的操作說明 -->
-    <p class="text-sm" style="margin-top:4px;">每週完成資料輸入後，系統會自動記錄週次快照</p>
-    <p class="text-sm" style="margin-top:2px;">累積 2 週以上資料即可顯示趨勢圖表</p>
+    <div style="font-size:48px;margin-bottom:12px;">📊</div>
+    <p class="font-600" style="font-size:var(--font-size-lg);">尚無跨週趨勢資料</p>
+    <p class="text-sm" style="margin-top:8px;max-width:380px;margin-left:auto;margin-right:auto;line-height:1.7;">
+      每週完成資料輸入後，系統會自動記錄週次快照。<br>累積 <strong>2 週以上</strong>資料即可顯示趨勢圖表。
+    </p>
+    <div style="margin-top:var(--space-lg);display:flex;gap:var(--space-md);justify-content:center;flex-wrap:wrap;">
+      <a href="input.html" class="btn btn-primary btn-sm">✏️ 前往填寫本週資料</a>
+      <a href="review.html" class="btn btn-outline btn-sm">📋 查看審核流程</a>
+    </div>
   </div>
 
   <!-- 本週 vs 上週 KPI 對比 -->
@@ -366,5 +382,26 @@ document.querySelectorAll('.range-btn').forEach(btn => {
 .trends-table thead tr { background:var(--color-bg-secondary); }
 .trends-table tbody tr:hover { background:var(--color-bg-secondary); }
 </style>
+<script>
+// V-3 修正：手機漢堡選單
+(function() {
+  var btn = document.getElementById('navHamburger');
+  var menu = document.getElementById('mobileNav');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function() {
+    var open = menu.style.display === 'flex';
+    menu.style.display = open ? 'none' : 'flex';
+    btn.textContent = open ? '☰' : '✕';
+    btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.style.display = 'none';
+      btn.textContent = '☰';
+      btn.setAttribute('aria-label', '開啟選單');
+    });
+  });
+})();
+</script>
 </body>
 </html>

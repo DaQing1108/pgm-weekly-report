@@ -28,8 +28,19 @@
   </div>
   <div class="navbar__actions">
     <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+    <button class="btn btn-ghost btn-sm navbar__hamburger" id="navHamburger" aria-label="開啟選單" style="display:none;font-size:18px;padding:4px 8px;line-height:1;">☰</button>
   </div>
 </nav>
+<!-- V-3 修正：手機選單 -->
+<div id="mobileNav" style="display:none;position:fixed;top:var(--navbar-height);left:0;right:0;z-index:99;background:var(--color-bg-primary);border-bottom:1px solid var(--color-border-default);box-shadow:var(--shadow-md);padding:var(--space-md) var(--space-lg);flex-direction:column;gap:4px;">
+  <a href="index.html"      class="navbar__link" style="padding:8px var(--space-md);">Dashboard</a>
+  <a href="input.html"      class="navbar__link" style="padding:8px var(--space-md);">Quick Input</a>
+  <a href="risks.html"      class="navbar__link" style="padding:8px var(--space-md);">Risks</a>
+  <a href="actions.html"    class="navbar__link" style="padding:8px var(--space-md);">Action Items</a>
+  <a href="milestones.html" class="navbar__link" style="padding:8px var(--space-md);">Milestones</a>
+  <a href="review.html"     class="navbar__link" style="padding:8px var(--space-md);">Review</a>
+  <a href="resources.html"  class="navbar__link" style="padding:8px var(--space-md);">Resources</a>
+</div>
 
 <!-- 週次選擇器 -->
 <div id="weekSelectorStrip" style="background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:6px 24px;display:flex;align-items:center;gap:12px;font-size:13px;">
@@ -43,6 +54,12 @@
 <div class="page-container">
   <div class="page-header">
     <div class="page-header__left">
+      <!-- V-14 修正：加返回路徑連結 -->
+      <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:4px;">
+        <a href="index.html" style="color:var(--color-text-tertiary);text-decoration:none;" onmouseover="this.style.color='var(--color-info)'" onmouseout="this.style.color='var(--color-text-tertiary)'">← Dashboard</a>
+        <span style="margin:0 4px;">›</span>
+        <span>Milestones</span>
+      </div>
       <h1 class="page-header__title">里程碑時間軸</h1>
       <p class="page-header__sub">追蹤所有專案關鍵交付日期</p>
     </div>
@@ -401,5 +418,26 @@ body.is-history-readonly .panel__footer,
 body.is-history-readonly .milestone__detail .btn-danger,
 body.is-history-readonly .milestone__detail select { opacity:.35; pointer-events:none; cursor:not-allowed; }
 </style>
+<script>
+// V-3 修正：手機漢堡選單
+(function() {
+  var btn = document.getElementById('navHamburger');
+  var menu = document.getElementById('mobileNav');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function() {
+    var open = menu.style.display === 'flex';
+    menu.style.display = open ? 'none' : 'flex';
+    btn.textContent = open ? '☰' : '✕';
+    btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.style.display = 'none';
+      btn.textContent = '☰';
+      btn.setAttribute('aria-label', '開啟選單');
+    });
+  });
+})();
+</script>
 </body>
 </html>

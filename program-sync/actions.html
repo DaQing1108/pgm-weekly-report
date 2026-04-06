@@ -28,8 +28,19 @@
   </div>
   <div class="navbar__actions">
     <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+    <button class="btn btn-ghost btn-sm navbar__hamburger" id="navHamburger" aria-label="開啟選單" style="display:none;font-size:18px;padding:4px 8px;line-height:1;">☰</button>
   </div>
 </nav>
+<!-- V-3 修正：手機選單 -->
+<div id="mobileNav" style="display:none;position:fixed;top:var(--navbar-height);left:0;right:0;z-index:99;background:var(--color-bg-primary);border-bottom:1px solid var(--color-border-default);box-shadow:var(--shadow-md);padding:var(--space-md) var(--space-lg);flex-direction:column;gap:4px;">
+  <a href="index.html"      class="navbar__link" style="padding:8px var(--space-md);">Dashboard</a>
+  <a href="input.html"      class="navbar__link" style="padding:8px var(--space-md);">Quick Input</a>
+  <a href="risks.html"      class="navbar__link" style="padding:8px var(--space-md);">Risks</a>
+  <a href="actions.html"    class="navbar__link" style="padding:8px var(--space-md);">Action Items</a>
+  <a href="milestones.html" class="navbar__link" style="padding:8px var(--space-md);">Milestones</a>
+  <a href="review.html"     class="navbar__link" style="padding:8px var(--space-md);">Review</a>
+  <a href="resources.html"  class="navbar__link" style="padding:8px var(--space-md);">Resources</a>
+</div>
 
 <!-- 週次選擇器 -->
 <div id="weekSelectorStrip" style="background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:6px 24px;display:flex;align-items:center;gap:12px;font-size:13px;">
@@ -43,11 +54,18 @@
 <div class="page-container">
   <div class="page-header">
     <div class="page-header__left">
+      <!-- V-14 修正：加返回 Dashboard 路徑連結 -->
+      <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:4px;">
+        <a href="index.html" style="color:var(--color-text-tertiary);text-decoration:none;" onmouseover="this.style.color='var(--color-info)'" onmouseout="this.style.color='var(--color-text-tertiary)'">← Dashboard</a>
+        <span style="margin:0 4px;">›</span>
+        <span>Action Items</span>
+      </div>
       <h1 class="page-header__title">Action Items</h1>
       <p class="page-header__sub">追蹤所有行動事項的執行狀態</p>
     </div>
     <div class="page-header__right">
-      <button class="btn btn-outline btn-sm" id="btnMarkDone">✓ 批次完成</button>
+      <!-- V-11 修正：批次完成按鈕加 title 說明，並調整樣式提升可見度 -->
+      <button class="btn btn-primary btn-sm" id="btnMarkDone" title="將所有「進行中」Action 批次標記為完成（可選擇後復原）">✓ 批次完成</button>
     </div>
   </div>
 
@@ -178,13 +196,17 @@ function renderPanels() {
 
     // Inline 新增表單
     const addForm = `
-      <div class="inline-form" style="margin-top:var(--space-sm);">
-        <input type="text" class="inp" id="newTask-${cat.id}" placeholder="新增 ${cat.label} 行動…">
-        <select class="inp owner-select" id="newOwner-${cat.id}" style="width:110px;">
-          <option value="">負責人</option>
-        </select>
-        <input type="date" class="inp" id="newDue-${cat.id}" style="width:130px;">
-        <button class="btn btn-primary btn-sm" onclick="addAction('${cat.id}')">+</button>
+      <div style="margin-top:var(--space-sm);">
+        <div class="inline-form">
+          <input type="text" class="inp" id="newTask-${cat.id}" placeholder="新增 ${cat.label} 行動…">
+          <select class="inp owner-select" id="newOwner-${cat.id}" style="width:110px;">
+            <option value="">負責人</option>
+          </select>
+          <input type="date" class="inp" id="newDue-${cat.id}" style="width:130px;" title="截止日期">
+          <button class="btn btn-primary btn-sm" onclick="addAction('${cat.id}')">+</button>
+        </div>
+        <!-- V-2 修正：驗證錯誤訊息 -->
+        <div class="inp-error" id="newTaskError-${cat.id}" style="display:none;">請輸入行動任務</div>
       </div>`;
 
     return `
@@ -220,12 +242,33 @@ window.cycleStatus = function(id) {
   renderAll();
 };
 
-// ── 新增 action ────────────────────────────────────────────────
+// V-5 修正：預設截止日期（兩週後的周五）
+function _defaultDueDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
+  const day = d.getDay();
+  const diff = day <= 5 ? 5 - day : 6; // 找到最近的周五
+  d.setDate(d.getDate() + (day === 5 ? 0 : diff));
+  return d.toISOString().split('T')[0];
+}
+
+// V-5 修正：新增 Action 時預設日期為兩週後的周五
 window.addAction = function(catId) {
-  const task  = document.getElementById(`newTask-${catId}`)?.value.trim();
-  const owner = document.getElementById(`newOwner-${catId}`)?.value;
-  const due   = document.getElementById(`newDue-${catId}`)?.value;
-  if (!task) { toast('請輸入行動任務', 'error'); return; }
+  const taskEl  = document.getElementById(`newTask-${catId}`);
+  const task    = taskEl?.value.trim();
+  const owner   = document.getElementById(`newOwner-${catId}`)?.value;
+  const dueEl   = document.getElementById(`newDue-${catId}`);
+  const due     = dueEl?.value || _defaultDueDate();
+  const errEl   = document.getElementById(`newTaskError-${catId}`);
+  // V-2 修正：inline 驗證錯誤顯示
+  if (!task) {
+    taskEl?.classList.add('inp--error');
+    if (errEl) errEl.style.display = '';
+    taskEl?.focus();
+    return;
+  }
+  taskEl?.classList.remove('inp--error');
+  if (errEl) errEl.style.display = 'none';
 
   store.save('actions', {
     id: generateId(),
@@ -407,5 +450,26 @@ body.is-history-readonly #btnMarkDone,
 body.is-history-readonly .inline-form,
 body.is-history-readonly .btn-ghost { opacity:.35; pointer-events:none; cursor:not-allowed; }
 </style>
+<script>
+// V-3 修正：手機漢堡選單
+(function() {
+  var btn = document.getElementById('navHamburger');
+  var menu = document.getElementById('mobileNav');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function() {
+    var open = menu.style.display === 'flex';
+    menu.style.display = open ? 'none' : 'flex';
+    btn.textContent = open ? '☰' : '✕';
+    btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.style.display = 'none';
+      btn.textContent = '☰';
+      btn.setAttribute('aria-label', '開啟選單');
+    });
+  });
+})();
+</script>
 </body>
 </html>

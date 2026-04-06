@@ -28,12 +28,29 @@
   </div>
   <div class="navbar__actions">
     <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
+    <button class="btn btn-ghost btn-sm navbar__hamburger" id="navHamburger" aria-label="開啟選單" style="display:none;font-size:18px;padding:4px 8px;line-height:1;">☰</button>
   </div>
 </nav>
+<!-- V-3 修正：手機選單 -->
+<div id="mobileNav" style="display:none;position:fixed;top:var(--navbar-height);left:0;right:0;z-index:99;background:var(--color-bg-primary);border-bottom:1px solid var(--color-border-default);box-shadow:var(--shadow-md);padding:var(--space-md) var(--space-lg);flex-direction:column;gap:4px;">
+  <a href="index.html"      class="navbar__link" style="padding:8px var(--space-md);">Dashboard</a>
+  <a href="input.html"      class="navbar__link" style="padding:8px var(--space-md);">Quick Input</a>
+  <a href="risks.html"      class="navbar__link" style="padding:8px var(--space-md);">Risks</a>
+  <a href="actions.html"    class="navbar__link" style="padding:8px var(--space-md);">Action Items</a>
+  <a href="milestones.html" class="navbar__link" style="padding:8px var(--space-md);">Milestones</a>
+  <a href="review.html"     class="navbar__link" style="padding:8px var(--space-md);">Review</a>
+  <a href="resources.html"  class="navbar__link" style="padding:8px var(--space-md);">Resources</a>
+</div>
 
 <div class="page-container">
   <div class="page-header">
     <div class="page-header__left">
+      <!-- V-14 修正：加返回路徑連結 -->
+      <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:4px;">
+        <a href="index.html" style="color:var(--color-text-tertiary);text-decoration:none;" onmouseover="this.style.color='var(--color-info)'" onmouseout="this.style.color='var(--color-text-tertiary)'">← Dashboard</a>
+        <span style="margin:0 4px;">›</span>
+        <span>Quick Input</span>
+      </div>
       <h1 class="page-header__title">快速輸入</h1>
       <p class="page-header__sub">更新本週專案進度，或批次貼入文字自動解析</p>
     </div>
@@ -64,6 +81,8 @@
               <select class="inp" id="qProject">
                 <option value="">— 選擇或新增專案 —</option>
               </select>
+              <!-- V-2 修正：驗證錯誤訊息 -->
+              <div class="inp-error" id="qProjectError" style="display:none;">請選擇或新增專案</div>
             </div>
 
             <!-- 新增專案欄位 -->
@@ -137,9 +156,13 @@
               </div>
               <div class="inp-group">
                 <label class="inp-label">負責人</label>
-                <select class="inp owner-select" id="qOwner">
-                  <option value="">— 選擇 —</option>
-                </select>
+                <!-- V-6 修正：owner select 加搜尋輸入框 -->
+                <div style="position:relative;">
+                  <input type="text" class="inp" id="qOwnerSearch" placeholder="搜尋負責人…" style="margin-bottom:2px;font-size:var(--font-size-xs);padding:3px 8px;" autocomplete="off">
+                  <select class="inp owner-select" id="qOwner">
+                    <option value="">— 選擇 —</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -772,10 +795,24 @@ document.getElementById('btnSaveQuick').addEventListener('click', () => {
   const riskLevel   = document.getElementById('qRiskLevel').value;
   const riskDesc    = document.getElementById('qRiskDesc').value.trim();
 
+  // V-2 修正：inline 驗證錯誤顯示
+  function _setFieldError(elId, errId, hasError) {
+    const el  = document.getElementById(elId);
+    const err = document.getElementById(errId);
+    if (el)  el.classList.toggle('inp--error', hasError);
+    if (err) err.style.display = hasError ? '' : 'none';
+  }
+
   let item;
   if (projId === '__new__') {
     const name = document.getElementById('qNewProjName').value.trim();
-    if (!name) { toast('請輸入專案名稱', 'error'); return; }
+    if (!name) {
+      document.getElementById('qNewProjName').classList.add('inp--error');
+      toast('請輸入專案名稱', 'error');
+      document.getElementById('qNewProjName').focus();
+      return;
+    }
+    document.getElementById('qNewProjName').classList.remove('inp--error');
     const progress = getEffectiveProgress(name);
     item = {
       id: generateId(),
@@ -785,6 +822,7 @@ document.getElementById('btnSaveQuick').addEventListener('click', () => {
       status, progress, progressMode, owner, weekDone, blockers,
     };
   } else if (projId) {
+    _setFieldError('qProject', 'qProjectError', false);
     item = store.getById('projects', projId);
     if (!item) { toast('找不到專案', 'error'); return; }
     const progress = getEffectiveProgress(item.name);
@@ -798,7 +836,9 @@ document.getElementById('btnSaveQuick').addEventListener('click', () => {
     }
     Object.assign(item, { status, progress, progressMode, owner, weekDone, blockers });
   } else {
-    toast('請選擇專案', 'error'); return;
+    _setFieldError('qProject', 'qProjectError', true);
+    document.getElementById('qProject').focus();
+    return;
   }
 
   store.save('projects', item);
@@ -990,6 +1030,26 @@ function populateOwnerSelects() {
   });
 }
 
+// V-6 修正：owner 搜尋過濾
+function initOwnerSearch() {
+  const searchEl = document.getElementById('qOwnerSearch');
+  const selectEl = document.getElementById('qOwner');
+  if (!searchEl || !selectEl) return;
+  searchEl.addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    Array.from(selectEl.options).forEach(opt => {
+      opt.hidden = q ? !opt.text.toLowerCase().includes(q) : false;
+    });
+  });
+  searchEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const visible = Array.from(selectEl.options).find(o => !o.hidden && o.value);
+      if (visible) { selectEl.value = visible.value; this.value = visible.text; }
+    }
+  });
+}
+
 function renderMemberList() {
   const members = getMembers();
   const el = document.getElementById('memberList');
@@ -1099,6 +1159,7 @@ window.deleteMember = async function(id) {
 initMembers();
 populateOwnerSelects();
 renderMemberList();
+initOwnerSearch();
 
 // ── U-29 修正：Enter 鍵快速儲存（單行輸入欄）────────────────────
 ['qNewProjName', 'qEditProjName', 'qRiskDesc'].forEach(id => {
@@ -1130,6 +1191,27 @@ function _warnPastDate(input) {
   const el = document.getElementById(id);
   if (el) el.addEventListener('change', () => _warnPastDate(el));
 });
+</script>
+<script>
+// V-3 修正：手機漢堡選單
+(function() {
+  var btn = document.getElementById('navHamburger');
+  var menu = document.getElementById('mobileNav');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function() {
+    var open = menu.style.display === 'flex';
+    menu.style.display = open ? 'none' : 'flex';
+    btn.textContent = open ? '☰' : '✕';
+    btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+  });
+  menu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      menu.style.display = 'none';
+      btn.textContent = '☰';
+      btn.setAttribute('aria-label', '開啟選單');
+    });
+  });
+})();
 </script>
 </body>
 </html>

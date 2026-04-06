@@ -385,6 +385,11 @@
     display: none;
   }
 
+  /* V-3 修正：手機版顯示漢堡按鈕 */
+  .navbar__hamburger {
+    display: inline-flex !important;
+  }
+
   .split-pane {
     flex-direction: column;
   }

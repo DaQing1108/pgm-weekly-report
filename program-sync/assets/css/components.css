@@ -82,6 +82,8 @@
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
   font-weight: 600;
+  /* V-18 修正：加底部指示線，強化當前頁面識別 */
+  box-shadow: inset 0 -2px 0 var(--color-info);
 }
 
 .navbar__actions {
@@ -230,6 +232,8 @@
 
 .project-row:hover {
   background: var(--color-bg-secondary);
+  /* V-9 修正：加 inset border 增強 hover 視覺反饋 */
+  box-shadow: inset 0 0 0 1px var(--color-border-default);
 }
 
 .project-row.expanded {
@@ -329,7 +333,8 @@
 }
 
 .risk-row:hover {
-  box-shadow: var(--shadow-md);
+  /* V-9 修正：統一 hover 視覺風格 */
+  box-shadow: var(--shadow-md), inset 0 0 0 1px var(--color-border-default);
 }
 
 .risk-row__level {
@@ -541,9 +546,16 @@
   color: var(--color-text-secondary);
 }
 
+/* V-1 修正：必填欄位標示加粗，提升可辨識度 */
+.inp-label--required {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
 .inp-label--required::after {
   content: ' *';
   color: var(--color-danger);
+  font-weight: 700;
 }
 
 .inp {
@@ -580,8 +592,27 @@
 
 textarea.inp {
   resize: vertical;
-  min-height: 80px;
+  /* V-4 修正：增加預設高度讓長文字更舒適 */
+  min-height: 120px;
   line-height: 1.6;
+}
+
+/* V-4 修正：字數計數器 */
+.char-counter {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-align: right;
+  margin-top: 2px;
+  transition: color 0.15s;
+}
+
+.char-counter--warn {
+  color: var(--color-warning);
+}
+
+.char-counter--over {
+  color: var(--color-danger);
+  font-weight: 600;
 }
 
 select.inp {

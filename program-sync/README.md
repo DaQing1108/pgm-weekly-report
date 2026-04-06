@@ -1,7 +1,7 @@
 # P&D Center Program Sync — 週報管理系統
 
 > VIA Technologies P&D Center 週報管理與協作平台
-> 版本：v3.14 ｜ 部署：Railway ｜ 技術棧：Vanilla HTML5 + Node.js + Anthropic Claude API
+> 版本：v3.15 ｜ 部署：Railway ｜ 技術棧：Vanilla HTML5 + Node.js + Anthropic Claude API
 
 ---
 
@@ -1074,6 +1074,7 @@ location.reload();
 | **v3.12** | **週報產出流程 Bug 修正**：B-1 `weekSelect` 切週時即時同步 `weekBadge`，並在初始化時設定正確週次標籤，防止封面顯示過期 W11 預設值；B-2 `btnSaveCloud` 的元素 ID 由不存在的 `weekStart` 改為正確的 `weekSelect`（原為 crash 必現 bug，導致雲端儲存完全失效）；B-3 章節重生成（`regenSection`）改為以 `##` 標題為邊界的智能替換，找到對應章節則原地替換，找不到才 append，解決原本重複章節問題。 |
 | **v3.13** | **UI/UX 優化第一輪（U-1～U-17）**：styled confirm modal 取代原生 `window.confirm`（U-1）；批次完成排除 blocked items（U-2/U-44）；刪除操作加 5 秒復原 toast（U-43，actions）；modal 開啟自動聚焦（U-30）；`btnLoading()` 工具函式（U-10）；`app-init.js` 加重試連線按鈕（U-21）；歷史模式加「🔒 唯讀」badge（U-48）；`toast()` 擴充 `onUndo` callback 支援（U-43）；風險升降級按鈕方向修正（U-6）；風險狀態改動加確認 modal 並可回滾 select（U-41）。 |
 | **v3.14** | **UI/UX 優化第二輪（U-4～U-50）**：`deleteRisk` / `deleteMs` 加 5 秒復原視窗（U-43）；里程碑拖曳 `cursor:grab` 提示（U-7）；badge 加 `text-overflow:ellipsis` 防溢（U-40）；tab-btn 加副標題說明（U-9）；input.html 新增 `maxlength`（U-24）、`required`（U-25）、Enter 鍵儲存（U-29）、過去日期警告（U-22）；risks.html modal 加 `maxlength`（U-24）、autofocus（U-30）、Enter 鍵（U-29）、過去日期警告（U-22）；Action status badge 顯示下一狀態 tooltip（U-42）；KPI 卡加單位標示（U-34）；首頁空狀態加 CTA「新增第一個專案」按鈕（U-35）；週次選擇器後端離線時仍顯示佔位（U-4）；歷史週報區離線提示（U-49）；匯入按鈕加拖放 title 說明（U-50）；report.html 生成模式說明（U-11）、token 費用參考（U-16）。 |
+| **v3.15** | **UI/UX 優化第三輪（V-1～V-18）**：**CSS**：必填欄位標籤加粗 + `*` 標示（V-1）；textarea min-height 提升至 120px + 字數計數器（warn/over 顏色提示）（V-4）；dark mode 次要/輔助文字對比度提升至 WCAG AA（V-8）；project-row / risk-row hover 加 box-shadow 邊框（V-9）；active navbar link 底部藍色 underline 指示器（V-18）。**行為**：全站手機 hamburger 選單（V-3，9 頁面 + layout.css）；Actions 新增 Action 日期欄預設為兩週後最近週五（V-5）；Quick Input owner select 加即時搜尋過濾輸入框（V-6）；review.html 評論框加字數計數器（V-4）；review.html Stepper 精簡為 4 步驟（V-12）；resources.html 搜尋過濾橫跨季度表與業務彙整表（V-13）；trends.html 圖表空狀態加 CTA 按鈕（V-15）；**導覽**：8 頁面加麵包屑返回路徑（V-14）；**表單驗證**：input.html / risks.html / actions.html 必填欄位加 `.inp--error` 紅框 + inline 錯誤訊息，取代純 toast 提示（V-2）；Actions 批次完成按鈕改為 btn-primary 並加描述性 title（V-11）。 |
 
 ---
 
