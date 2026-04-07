@@ -103,7 +103,15 @@ export async function appInit() {
     });
     // N-3：後端 401 時顯示可見警告 banner，讓使用者知道同步未成功
     window.addEventListener('store:syncUnauthorized', _showAuthBanner);
+    // P0-3：非 401 的一般同步失敗（網路中斷、5xx）也顯示 banner
+    window.addEventListener('store:syncFailed', e => _showSyncFailedBanner(e.detail?.message));
   }
+
+  // P0-1：localStorage 資料損壞時顯示警告 banner
+  window.addEventListener('store:corrupt', e => _showCorruptBanner(e.detail?.key));
+
+  // P0-4：監聽表單 dirty 狀態，離頁前警告
+  _initDirtyTracking();
 
   // 7. navbar 徽章顯示當前瀏覽週次
   _syncWeekBadge(targetLabel);
@@ -231,6 +239,89 @@ function _showAuthBanner() {
     <button onclick="document.getElementById('appInitAuthBanner').remove()"
       style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;color:var(--color-danger,#d94f4f);">✕</button>`;
   nav.insertAdjacentElement('afterend', bar);
+}
+
+// P0-3：一般同步失敗 banner（非 401，例如網路中斷或後端 5xx）
+function _showSyncFailedBanner(message) {
+  if (document.getElementById('appInitSyncFailedBanner')) return;
+  const nav = document.querySelector('.navbar');
+  if (!nav) return;
+  const bar = document.createElement('div');
+  bar.id = 'appInitSyncFailedBanner';
+  bar.style.cssText = 'background:var(--color-warning-bg,#fff8e1);border-bottom:1px solid var(--color-warning,#e4a23c);padding:6px 24px;font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
+  const msg = message ? `（${message}）` : '';
+  bar.innerHTML = `
+    <span style="font-weight:600;color:var(--color-warning,#e4a23c);">⚠ 後端同步失敗${msg}</span>
+    <span style="color:var(--color-text-secondary,#555);">本機資料已保存，但尚未同步至後端。</span>
+    <button onclick="document.getElementById('appInitSyncFailedBanner').remove()"
+      style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;color:var(--color-warning,#e4a23c);">✕</button>`;
+  nav.insertAdjacentElement('afterend', bar);
+  // 30 秒後自動消失（非致命警告）
+  setTimeout(() => document.getElementById('appInitSyncFailedBanner')?.remove(), 30_000);
+}
+
+// P0-1：localStorage 資料損壞 banner（JSON parse 失敗時觸發）
+function _showCorruptBanner(key) {
+  const bannerId = 'appInitCorruptBanner';
+  // 同一 key 損壞只顯示一次
+  if (document.getElementById(bannerId)) return;
+  const nav = document.querySelector('.navbar');
+  if (!nav) return;
+  const bar = document.createElement('div');
+  bar.id = bannerId;
+  bar.style.cssText = 'background:var(--color-danger-bg,#fdecea);border-bottom:2px solid var(--color-danger,#d94f4f);padding:8px 24px;font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
+  const keyLabel = key ? `「${key}」` : '';
+  bar.innerHTML = `
+    <span style="font-weight:700;color:var(--color-danger,#d94f4f);">🚨 資料損壞警告</span>
+    <span style="color:var(--color-text-secondary,#555);">localStorage 中的 ${keyLabel} 資料無法讀取，已重置為空。</span>
+    <span style="color:var(--color-text-tertiary,#aaa);font-size:11px;">建議：匯出備份 → 清除瀏覽器資料 → 重新匯入。</span>
+    <button onclick="document.getElementById('${bannerId}').remove()"
+      style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;color:var(--color-danger,#d94f4f);">✕</button>`;
+  nav.insertAdjacentElement('afterend', bar);
+}
+
+// P0-4：表單 dirty 追蹤 — 使用者輸入後若未儲存直接離頁則顯示確認
+function _initDirtyTracking() {
+  let _dirty = false;
+
+  // 任何 input/textarea/select 有變動就標為 dirty（排除 modal overlay 內，因 modal 為即時存檔）
+  document.addEventListener('input', e => {
+    const tag = e.target.tagName.toLowerCase();
+    if (['input', 'textarea', 'select'].includes(tag) && !e.target.closest('.modal__overlay')) {
+      _dirty = true;
+    }
+  });
+  document.addEventListener('change', e => {
+    const tag = e.target.tagName.toLowerCase();
+    if (['input', 'textarea', 'select'].includes(tag) && !e.target.closest('.modal__overlay')) {
+      _dirty = true;
+    }
+  });
+
+  // store:updated 表示資料已成功寫入 localStorage，清除 dirty flag
+  window.addEventListener('store:updated', () => { _dirty = false; });
+
+  // 瀏覽器原生離頁（重新整理、關分頁、輸入新網址）
+  window.addEventListener('beforeunload', e => {
+    if (_dirty) {
+      e.preventDefault();
+      // 現代瀏覽器忽略自訂訊息，但需要設定 returnValue 才會顯示對話框
+      e.returnValue = '您有尚未儲存的變更，確定要離開？';
+    }
+  });
+
+  // SPA 內部導航（點擊 Navbar / 麵包屑連結）— capture phase 攔截
+  document.addEventListener('click', e => {
+    if (!_dirty) return;
+    const a = e.target.closest('a[href]');
+    if (!a) return;
+    const href = a.getAttribute('href');
+    // 排除錨點、javascript:void、外部連結（這些不需要 dirty 警告）
+    if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
+    if (!window.confirm('您有尚未儲存的變更，確定要離開此頁？')) {
+      e.preventDefault();
+    }
+  }, true /* capture */);
 }
 
 function _syncWeekBadge(overrideLabel) {

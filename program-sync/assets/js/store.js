@@ -11,7 +11,13 @@ function _get(name) {
   try {
     const raw = localStorage.getItem(_key(name));
     return raw ? JSON.parse(raw) : [];
-  } catch {
+  } catch (e) {
+    // P0-1 修正：記錄損壞的 key 並派出 store:corrupt 事件，讓 UI 層顯示警告
+    console.error(`[store] localStorage 資料損壞 (key: ${name}):`, e.message);
+    window.dispatchEvent(new CustomEvent('store:corrupt', {
+      detail: { key: name, error: e.message },
+      bubbles: true,
+    }));
     return [];
   }
 }
@@ -162,7 +168,18 @@ export const store = {
   /** 從 JSON 字串或已解析物件匯入所有資料（覆蓋） */
   // Q-3 修正：接受 string 或 object，消除呼叫端的冗餘 JSON.stringify/parse
   // A-1 修正：進入前先驗證型別，防止 null/非物件輸入導致 TypeError
+  // P0-2 修正：每個 entity 加 schema 驗證，malformed items 被過濾並回報數量
   importAll(jsonOrObj) {
+    // P0-2：各 entity 最低必填欄位定義
+    const REQUIRED_FIELDS = {
+      projects:   ['id', 'name'],
+      risks:      ['id', 'description'],
+      actions:    ['id', 'task'],
+      milestones: ['id', 'name'],
+      snapshots:  ['id', 'weekStart'],
+      drafts:     ['id', 'weekStart'],
+      members:    ['id', 'name'],
+    };
     try {
       const data = typeof jsonOrObj === 'string' ? JSON.parse(jsonOrObj) : jsonOrObj;
       if (!data || typeof data !== 'object' || Array.isArray(data)) {
@@ -170,10 +187,20 @@ export const store = {
       }
       // #1 修正：同步補上 members
       const keys = ['projects', 'risks', 'actions', 'milestones', 'snapshots', 'drafts', 'members'];
+      let totalSkipped = 0;
       keys.forEach(k => {
-        if (Array.isArray(data[k])) {
-          _set(k, data[k]);
+        if (!Array.isArray(data[k])) return;
+        const required = REQUIRED_FIELDS[k] || ['id'];
+        const valid   = data[k].filter(item =>
+          item && typeof item === 'object' && !Array.isArray(item) &&
+          required.every(f => f in item && item[f] != null)
+        );
+        const skipped = data[k].length - valid.length;
+        if (skipped > 0) {
+          console.warn(`[store] importAll: 略過 ${skipped} 筆無效 ${k} 資料（缺少必填欄位）`);
+          totalSkipped += skipped;
         }
+        _set(k, valid);
       });
       // #3 修正：還原 resources 到獨立 key
       if (Array.isArray(data._resources)) {
@@ -182,7 +209,11 @@ export const store = {
       if (Array.isArray(data._resourceCharges)) {
         localStorage.setItem('pgm_resources_charges', JSON.stringify(data._resourceCharges));
       }
-      return { ok: true, message: '匯入成功' };
+      return {
+        ok: true,
+        message: totalSkipped > 0 ? `匯入完成（略過 ${totalSkipped} 筆無效資料）` : '匯入成功',
+        skipped: totalSkipped,
+      };
     } catch (e) {
       return { ok: false, message: `匯入失敗: ${e.message}` };
     }
@@ -281,10 +312,15 @@ export const store = {
         //   - 直接回傳 object，省去 JSON.parse(exportAll()) 的冗餘序列化
         saveFn(_exportWeekObj())
           .catch(e => {
-            console.warn('[store] 後端同步失敗:', e);
+            console.warn('[store] 後端同步失敗:', e.message);
             // N-3：401 時派出自訂事件，讓 UI 層（app-init.js）顯示警告 banner
             if (e?.code === 'UNAUTHORIZED') {
               window.dispatchEvent(new CustomEvent('store:syncUnauthorized'));
+            } else {
+              // P0-3 修正：非 401 的其他同步失敗（網路中斷、5xx 等）也派出事件通知 UI
+              window.dispatchEvent(new CustomEvent('store:syncFailed', {
+                detail: { message: e.message },
+              }));
             }
           });
       }, 2000);

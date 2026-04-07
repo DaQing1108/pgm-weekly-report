@@ -180,26 +180,24 @@ export async function getWeekState(weekLabel) {
   } catch { return null; }
 }
 
+// P0-3 修正：移除吞掉 error 的 try-catch，讓錯誤正確傳遞至 store.startBackendSync 的 .catch()
+// 呼叫端（store.js startBackendSync）負責 catch 並派出 store:syncUnauthorized / store:syncFailed 事件
 export async function saveWeekState(weekLabel, data) {
-  try {
-    // 寫入後立即清除 listWeeks 快取，下次取得最新清單
-    sessionStorage.removeItem(_WEEKS_CACHE_KEY);
-    // S-2 修正：加入 X-Admin-Token + Q-5 修正：加 timeout
-    const res = await fetch(`${API_BASE}/weeks/${encodeURIComponent(weekLabel)}`, {
-      method: 'POST',
-      headers: _writeHeaders(),
-      body: JSON.stringify(data),
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      if (res.status === 401) throw Object.assign(new Error('需要管理員 Token'), { code: 'UNAUTHORIZED' });
-      throw new Error(err.error || `HTTP ${res.status}`);
-    }
-    return await res.json();
-  } catch (e) {
-    console.warn('[api] saveWeekState 失敗:', e.message);
+  // 寫入後立即清除 listWeeks 快取，下次取得最新清單
+  sessionStorage.removeItem(_WEEKS_CACHE_KEY);
+  // S-2 修正：加入 X-Admin-Token + Q-5 修正：加 timeout
+  const res = await fetch(`${API_BASE}/weeks/${encodeURIComponent(weekLabel)}`, {
+    method: 'POST',
+    headers: _writeHeaders(),
+    body: JSON.stringify(data),
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401) throw Object.assign(new Error('需要管理員 Token'), { code: 'UNAUTHORIZED' });
+    throw new Error(err.error || `HTTP ${res.status}`);
   }
+  return await res.json();
 }
 
 // ── 初始化：頁面載入時自動偵測後端 ────────────────────────────
