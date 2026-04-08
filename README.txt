@@ -190,3 +190,13 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
    - 當單一處理人負擔超過 3 項目時，柱狀圖將自動高亮呈危險紅色（單點故障警示）。
 2. **[System] 全局面板導航銜接**
    - 將 Trends (趨勢分析) 視圖以第一級選單姿態加入全站所有的 Navbar 中，無縫俯視專案脈絡。
+
+## 2026-04-08 穩定性與防護體驗升級 (Resilience Engineering)
+1. **表單未儲存防呆 (Dirty Tracking)**
+   - 實裝全站 `_initDirtyTracking`，在使用者有未儲存變更時進行離頁攔截。
+   - 針對搜尋框 (`type="search"`) 及過濾狀態欄位加入了豁免機制，確保查詢時不誤觸防呆。
+2. **壞檔自救機制 (Corrupt Data Self-Healing)**
+   - 強化 `_showCorruptBanner`：當 localStorage 欄位損毀無法解析時，提供一鍵「重置該變數」按鈕，幫助專案經理省去進開發者工具除錯的繁瑣步驟。
+3. **全局連線狀態監視器 (Sync Status Indicator)**
+   - 修改 `store.js` 使其向上廣播 `syncing` 與 `syncSuccess` 事件。
+   - 在全站 Navbar 右上角導入類似現代協作軟體的呼吸燈狀態綠點 (Offline / Syncing / Saved / Failed)，大幅提升與後端同步時的安全感與 UX 透明度。
