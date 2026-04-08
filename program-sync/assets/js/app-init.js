@@ -113,6 +113,11 @@ export async function appInit() {
   // P0-4：監聽表單 dirty 狀態，離頁前警告
   _initDirtyTracking();
 
+  // P0-3：全域連線狀態綠點初始化
+  if (!isHistoryMode) {
+    _initSyncStatusIndicator();
+  }
+
   // 7. navbar 徽章顯示當前瀏覽週次
   _syncWeekBadge(targetLabel);
 
@@ -274,7 +279,10 @@ function _showCorruptBanner(key) {
   bar.innerHTML = `
     <span style="font-weight:700;color:var(--color-danger,#d94f4f);">🚨 資料損壞警告</span>
     <span style="color:var(--color-text-secondary,#555);">localStorage 中的 ${keyLabel} 資料無法讀取，已重置為空。</span>
-    <span style="color:var(--color-text-tertiary,#aaa);font-size:11px;">建議：匯出備份 → 清除瀏覽器資料 → 重新匯入。</span>
+    <button onclick="localStorage.removeItem('${key}'); location.reload();"
+      style="margin-left:12px;background:var(--color-danger,#d94f4f);color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;">
+      🔄 一鍵重置該變數
+    </button>
     <button onclick="document.getElementById('${bannerId}').remove()"
       style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;color:var(--color-danger,#d94f4f);">✕</button>`;
   nav.insertAdjacentElement('afterend', bar);
@@ -337,4 +345,38 @@ function _syncWeekBadge(overrideLabel) {
   if (!el) return;
   const label = overrideLabel || store.currentWeekLabel();
   if (label) el.textContent = label;
+}
+
+// P0-3：全局連線狀態小綠點 (Sync Status Indicator)
+function _initSyncStatusIndicator() {
+  const actionsContainer = document.querySelector('.navbar__actions');
+  if (!actionsContainer) return;
+  
+  const indicator = document.createElement('span');
+  indicator.id = 'syncStatusDot';
+  indicator.style.cssText = 'font-size:12px;display:flex;align-items:center;gap:4px;margin-right:12px;color:var(--color-text-secondary);';
+  indicator.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-text-tertiary);"></span> Offline`;
+  actionsContainer.insertBefore(indicator, actionsContainer.firstChild);
+
+  // 注入 pulse animation keyframes
+  if (!document.getElementById('syncPulseStyle')) {
+    const style = document.createElement('style');
+    style.id = 'syncPulseStyle';
+    style.textContent = '@keyframes syncPulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }';
+    document.head.appendChild(style);
+  }
+
+  window.addEventListener('store:syncing', () => {
+    indicator.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-primary,#378add);animation:syncPulse 1s infinite;"></span> Syncing...`;
+    document.getElementById('appInitSyncFailedBanner')?.remove();
+  });
+  window.addEventListener('store:syncSuccess', () => {
+    indicator.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-success,#4caf6e);"></span> Saved`;
+  });
+  window.addEventListener('store:syncFailed', () => {
+    indicator.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-danger,#d94f4f);"></span> Failed`;
+  });
+  window.addEventListener('store:syncUnauthorized', () => {
+    indicator.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-warning,#e4a23c);"></span> Auth Error`;
+  });
 }

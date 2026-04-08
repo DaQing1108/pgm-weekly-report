@@ -307,10 +307,12 @@ export const store = {
     window.addEventListener('store:updated', () => {
       clearTimeout(_timer);
       _timer = setTimeout(() => {
-        // D-1/M-1 修正：改用 _exportWeekObj()
-        //   - 不含 _resources/_resourceCharges（跨季資料不屬於週次 JSON）
-        //   - 直接回傳 object，省去 JSON.parse(exportAll()) 的冗餘序列化
+        // D-1/M-1 修正：改用 _exportWeekObj() 回傳物件
+        window.dispatchEvent(new CustomEvent('store:syncing'));
         saveFn(_exportWeekObj())
+          .then(() => {
+            window.dispatchEvent(new CustomEvent('store:syncSuccess'));
+          })
           .catch(e => {
             console.warn('[store] 後端同步失敗:', e.message);
             // N-3：401 時派出自訂事件，讓 UI 層（app-init.js）顯示警告 banner
