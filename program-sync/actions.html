@@ -66,6 +66,10 @@
       <p class="page-header__sub">追蹤所有行動事項的執行狀態</p>
     </div>
     <div class="page-header__right">
+      <!-- 新增：Loop 匯入按鈕與隱藏的 file input -->
+      <button class="btn btn-outline btn-sm" id="btnImportLoop" title="匯入由 Python 腳本萃取的 Loop 任務 JSON 檔" style="margin-right: 8px;">🔄 從 Loop 匯入</button>
+      <input type="file" id="loopFileInput" accept=".json" style="display:none;">
+      
       <!-- V-11 修正：批次完成按鈕加 title 說明，並調整樣式提升可見度 -->
       <button class="btn btn-primary btn-sm" id="btnMarkDone" title="將所有「進行中」Action 批次標記為完成（可選擇後復原）">✓ 批次完成</button>
     </div>
@@ -435,6 +439,57 @@ document.getElementById('btnMarkDone').addEventListener('click', async () => {
     inProg.forEach(a => store.save('actions', { ...a, status: 'done' }));
     toast(`✅ ${inProg.length} 項已標記完成`, 'success');
   });
+});
+
+// ── 匯入 Microsoft Loop 資料 ──────────────────────────────────
+document.getElementById('btnImportLoop').addEventListener('click', () => {
+  document.getElementById('loopFileInput').click();
+});
+
+document.getElementById('loopFileInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const items = JSON.parse(text);
+    if (!Array.isArray(items)) throw new Error('檔案格式錯誤，預期應為陣列');
+    
+    let imported = 0;
+    items.forEach(item => {
+      if (!item.content) return; // 略過無效項目
+      
+      // 自動分類推測：如果 Loop 裡的分類文字帶有技術/資源，則歸入對應類別，否則預設 business
+      let mappedCategory = 'business'; 
+      if (item.category && item.category.includes('技術')) mappedCategory = 'technical';
+      if (item.category && item.category.includes('資源')) mappedCategory = 'resource';
+
+      // 嘗試清洗微軟 Loop 的日期字串 (例如："2025年5月21日 週三")
+      let cleanDate = '';
+      if (item.date) {
+        const match = item.date.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+        if (match) {
+          cleanDate = `${match[1]}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}`;
+        }
+      }
+
+      store.save('actions', {
+        id: generateId(),
+        category: mappedCategory,
+        task: item.content,
+        owner: item.owner || 'TBD',
+        dueDate: cleanDate || _defaultDueDate(),
+        status: item.status || 'pending',
+        weekStart: new Date().toISOString().split('T')[0],
+      });
+      imported++;
+    });
+    
+    toast(`✅ 成功匯入 ${imported} 筆 Loop 任務！`, 'success');
+  } catch (err) {
+    toast(`❌ 匯入失敗：${err.message}`, 'error');
+  } finally {
+    e.target.value = ''; // 確保下次可重複選取同一檔案
+  }
 });
 
 function populateOwnerSelects() {
