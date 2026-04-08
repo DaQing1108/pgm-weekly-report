@@ -284,19 +284,27 @@ function _showCorruptBanner(key) {
 function _initDirtyTracking() {
   let _dirty = false;
 
-  // 任何 input/textarea/select 有變動就標為 dirty（排除 modal overlay 內，因 modal 為即時存檔）
-  document.addEventListener('input', e => {
-    const tag = e.target.tagName.toLowerCase();
-    if (['input', 'textarea', 'select'].includes(tag) && !e.target.closest('.modal__overlay')) {
+  // 任何 input/textarea/select 有變動就標為 dirty（排除 modal 與查詢過濾器）
+  function checkDirty(e) {
+    const el = e.target;
+    const tag = el.tagName.toLowerCase();
+    if (!['input', 'textarea', 'select'].includes(tag)) return;
+    if (el.closest('.modal__overlay')) return; // modal 內屬即時或獨立存檔操作
+
+    // 排除搜尋框、下拉排序、過濾器
+    const isSearchOrFilter = el.type === 'search' || 
+                             (el.id && el.id.toLowerCase().includes('search')) || 
+                             (el.id && el.id.toLowerCase().includes('filter')) ||
+                             (el.id && el.id.toLowerCase().includes('sort')) ||
+                             el.classList.contains('no-dirty');
+                             
+    if (!isSearchOrFilter) {
       _dirty = true;
     }
-  });
-  document.addEventListener('change', e => {
-    const tag = e.target.tagName.toLowerCase();
-    if (['input', 'textarea', 'select'].includes(tag) && !e.target.closest('.modal__overlay')) {
-      _dirty = true;
-    }
-  });
+  }
+
+  document.addEventListener('input', checkDirty);
+  document.addEventListener('change', checkDirty);
 
   // store:updated 表示資料已成功寫入 localStorage，清除 dirty flag
   window.addEventListener('store:updated', () => { _dirty = false; });
