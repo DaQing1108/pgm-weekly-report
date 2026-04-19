@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+# =============================================================================
+# scripts/release-week.sh
+# 週報系統每週發布腳本 — 確保 JSON 資料 + Markdown 週報同步提交上線
+#
+# 用法：
+#   ./scripts/release-week.sh W17
+#   ./scripts/release-week.sh        ← 自動偵測目前週次
+#
+# 腳本會：
+#   1. 確認 backend/data/weeks/<WEEK>.json 存在
+#   2. 偵測 backend/reports/ 中新增/修改的 .md 週報
+#   3. 列出將提交的內容讓你確認
+#   4. git add → git commit → git push
+# =============================================================================
+
+set -e  # 任何指令失敗即停止
+
+# ── 顏色輸出 ─────────────────────────────────────────────────────────────────
+RED='\033[0;31m'; YELLOW='\033[1;33m'; GREEN='\033[0;32m'
+CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
+
+info()    { echo -e "${CYAN}ℹ ${RESET}$*"; }
+success() { echo -e "${GREEN}✅ $*${RESET}"; }
+warn()    { echo -e "${YELLOW}⚠ $*${RESET}"; }
+error()   { echo -e "${RED}❌ $*${RESET}"; exit 1; }
+
+# ── 切換到 repo 根目錄 ────────────────────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${REPO_ROOT}"
+
+# ── 計算目前週次（與 store.js _weekLabel() 邏輯相同） ────────────────────────
+current_week_label() {
+  python3 - <<'PYEOF'
+import datetime, math, sys
+
+today = datetime.date.today()
+jan1  = datetime.date(today.year, 1, 1)
+# Python weekday(): Mon=0…Sun=6；JS getDay(): Sun=0…Sat=6
+# JS jan1.getDay() 等於 Python (jan1.weekday()+1) % 7
+js_jan1_day = (jan1.weekday() + 1) % 7
+days_diff   = (today - jan1).days
+week = math.ceil((days_diff + js_jan1_day + 1) / 7)
+print(f"W{week:02d}")
+PYEOF
+}
+
+# ── 解析參數 ──────────────────────────────────────────────────────────────────
+WEEK="${1:-}"
+
+if [[ -z "${WEEK}" ]]; then
+  WEEK="$(current_week_label)"
+  info "未指定週次，自動偵測為：${BOLD}${WEEK}${RESET}"
+else
+  # 標準化：w16 → W16
+  WEEK="${WEEK^^}"
+  # 驗證格式
+  if [[ ! "${WEEK}" =~ ^W[0-9]{2}$ ]]; then
+    error "週次格式錯誤：'${WEEK}'。應為 W09…W53，例如：W17"
+  fi
+fi
+
+echo ""
+echo -e "${BOLD}═══════════════════════════════════════════${RESET}"
+echo -e "${BOLD}  📦 Release Week：${WEEK}${RESET}"
+echo -e "${BOLD}═══════════════════════════════════════════${RESET}"
+echo ""
+
+# ── 確認 git 狀態乾淨（非必要，只是提示） ───────────────────────────────────
+DIRTY=$(git status --porcelain | grep -v "^??" || true)
+if [[ -n "${DIRTY}" ]]; then
+  warn "目前 working tree 有已修改但未暫存的檔案："
+  echo "${DIRTY}"
+  echo ""
+fi
+
+# ── 1. 確認 JSON 資料檔存在 ───────────────────────────────────────────────────
+JSON_PATH="backend/data/weeks/${WEEK}.json"
+if [[ ! -f "${JSON_PATH}" ]]; then
+  error "找不到 ${JSON_PATH}\n請先確認該週資料已匯出，或執行 store.exportAll() 後重試。"
+fi
+
+JSON_SIZE=$(wc -c < "${JSON_PATH}" | tr -d ' ')
+info "週次資料：${JSON_PATH}（${JSON_SIZE} bytes）"
+
+# 驗證 JSON 格式合法
+python3 -c "
+import json, sys
+with open('${JSON_PATH}') as f:
+    d = json.load(f)
+p = len(d.get('projects', []))
+r = len(d.get('risks', []))
+a = len(d.get('actions', []))
+m = len(d.get('milestones', []))
+print(f'   projects={p}  risks={r}  actions={a}  milestones={m}')
+" || error "${JSON_PATH} 不是合法的 JSON，請先修復再提交。"
+
+echo ""
+
+# ── 2. 找出 backend/reports/ 中未追蹤或已修改的 .md ────────────────────────
+NEW_REPORTS=()
+while IFS= read -r line; do
+  STATUS="${line:0:2}"
+  FILE="${line:3}"
+  # 只處理 backend/reports/*.md
+  if [[ "${FILE}" == backend/reports/*.md ]]; then
+    NEW_REPORTS+=("${FILE}")
+  fi
+done < <(git status --porcelain)
+
+if [[ ${#NEW_REPORTS[@]} -eq 0 ]]; then
+  warn "在 backend/reports/ 中找不到新增或修改的 .md 週報。"
+  echo "     如果週報已在上個 commit 中，這是正常的。"
+  echo "     如果應有新週報但未出現，請確認檔案是否已儲存到 backend/reports/ 目錄。"
+  echo ""
+  HAS_REPORT=false
+else
+  info "找到以下週報檔案："
+  for f in "${NEW_REPORTS[@]}"; do
+    echo "   📄 ${f}"
+  done
+  echo ""
+  HAS_REPORT=true
+fi
+
+# ── 3. 確認 JSON 是否已在 git（新檔 or 已修改） ──────────────────────────────
+JSON_GIT_STATUS=$(git status --porcelain "${JSON_PATH}" 2>/dev/null | cut -c1-2 | tr -d ' ')
+
+FILES_TO_ADD=()
+
+if [[ -z "${JSON_GIT_STATUS}" ]]; then
+  info "${JSON_PATH} 已是最新版本（無變動），跳過。"
+elif [[ "${JSON_GIT_STATUS}" == "??" || "${JSON_GIT_STATUS}" == "M" || "${JSON_GIT_STATUS}" == "A" ]]; then
+  FILES_TO_ADD+=("${JSON_PATH}")
+fi
+
+if [[ "${HAS_REPORT}" == true ]]; then
+  FILES_TO_ADD+=("${NEW_REPORTS[@]}")
+fi
+
+# ── 4. 如果沒有任何需要提交的檔案 ────────────────────────────────────────────
+if [[ ${#FILES_TO_ADD[@]} -eq 0 ]]; then
+  success "沒有需要提交的新檔案，${WEEK} 已是最新狀態。"
+  echo ""
+  echo "若需強制重新提交，請手動執行："
+  echo "  git add ${JSON_PATH}"
+  echo "  git commit --allow-empty -m 'data: re-release ${WEEK}'"
+  exit 0
+fi
+
+# ── 5. 顯示提交預覽 ────────────────────────────────────────────────────────────
+echo -e "${BOLD}以下檔案將被提交：${RESET}"
+for f in "${FILES_TO_ADD[@]}"; do
+  echo "   + ${f}"
+done
+echo ""
+
+COMMIT_MSG="data: release ${WEEK} weekly report and data"
+
+echo -e "${BOLD}Commit 訊息：${RESET}${COMMIT_MSG}"
+echo ""
+
+# ── 6. 確認 ───────────────────────────────────────────────────────────────────
+read -r -p "$(echo -e "${BOLD}確認提交並 push 到 origin/main？[y/N] ${RESET}")" CONFIRM
+echo ""
+
+if [[ "${CONFIRM}" != "y" && "${CONFIRM}" != "Y" ]]; then
+  warn "已取消。檔案未做任何修改。"
+  exit 0
+fi
+
+# ── 7. git add ────────────────────────────────────────────────────────────────
+info "執行 git add..."
+git add "${FILES_TO_ADD[@]}"
+
+# ── 8. git commit ─────────────────────────────────────────────────────────────
+info "執行 git commit..."
+git commit -m "${COMMIT_MSG}"
+
+# ── 9. git push ───────────────────────────────────────────────────────────────
+info "執行 git push origin main..."
+git push origin main
+
+echo ""
+success "完成！${WEEK} 週報已發布，Railway 將在約 1–2 分鐘後自動部署。"
+echo ""
+echo "     週次資料：https://pgm-weekly-report-production.up.railway.app/api/weeks/${WEEK}"
+echo "     歷史週報：https://pgm-weekly-report-production.up.railway.app（Dashboard → 歷史週報中心）"
+echo ""
