@@ -201,6 +201,7 @@ import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
 import { toast, renderBadge, formatDate, isOverdue, confirm } from './assets/js/ui.js';
 import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl, deleteReport, listWeeks, getWeekState, saveWeekState } from './assets/js/api.js';
+import { toPdf } from './assets/js/export.js';
 import { setSessionWeek } from './assets/js/app-init.js';
 import { modal } from './assets/js/ui.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
@@ -703,7 +704,8 @@ async function initArchive() {
         <div style="display:flex;gap:8px;">
           ${r.date ? `<span class="badge badge--neutral">${r.date}</span>` : ''}
           <button class="btn btn-outline btn-sm" onclick="openReport('${r.filename}')">📖 閱讀</button>
-          <a href="${downloadUrl(r.filename)}" class="btn btn-outline btn-sm" download>⬇ 下載</a>
+          <a href="${downloadUrl(r.filename)}" class="btn btn-outline btn-sm" download>⬇ MD</a>
+          <button class="btn btn-outline btn-sm" onclick="exportReportPdf('${r.filename}', this)">📥 PDF</button>
           <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="removeReport('${r.filename}')">🗑</button>
         </div>
       </div>
@@ -768,6 +770,46 @@ function initImport() {
     }
   });
 }
+
+// ── 從檔名推算週次標籤（Pgm_Weekly_Report_260417.md → W16）──────
+function _filenameToWeekLabel(filename) {
+  const m = filename.match(/(\d{6})(?:\.md)?$/);
+  if (!m) return 'W??';
+  const s = m[1];
+  const year  = 2000 + parseInt(s.slice(0, 2), 10);
+  const month = parseInt(s.slice(2, 4), 10) - 1;
+  const day   = parseInt(s.slice(4, 6), 10);
+  const date  = new Date(year, month, day);
+  const jan1  = new Date(year, 0, 1);
+  const daysDiff = Math.floor((date - jan1) / 86400000);
+  const week  = Math.ceil((daysDiff + jan1.getDay() + 1) / 7);
+  return `W${String(week).padStart(2, '0')}`;
+}
+
+// ── PDF 匯出 ───────────────────────────────────────────────────
+window.exportReportPdf = async function(filename, btn) {
+  const label = _filenameToWeekLabel(filename);
+  const outName = filename.replace('.md', '');
+
+  // 按鈕 loading 狀態
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳ 產生中…';
+
+  try {
+    const content = await fetchReportContent(filename);
+    await toPdf(content, {
+      filename:  outName,
+      weekLabel: label,
+    });
+    toast(`✅ PDF 已下載：${outName}.pdf`, 'success');
+  } catch (e) {
+    toast(`PDF 產生失敗：${e.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+};
 
 // ── 線上閱讀週報 ───────────────────────────────────────────────
 let _markedReady = false;

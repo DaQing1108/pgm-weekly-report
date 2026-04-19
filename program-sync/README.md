@@ -352,7 +352,8 @@ railway.json             # Railway 部署設定
 **歷史週報中心**（後端連線時顯示）
 - 自動偵測後端可用性
 - 顯示後端儲存的歷史週報清單
-- 支援線上預覽（Markdown 渲染）、下載、🗑 刪除（含確認對話框）
+- 支援線上預覽（Markdown 渲染）、⬇ MD 下載、📥 PDF 匯出、🗑 刪除（含確認對話框）
+- PDF 匯出：自動從檔名推算週次標籤（YYMMDD → W??），以 A4 格式輸出含頁碼與頁尾的 PDF
 
 **逾期 Actions KPI（歷史週修正）**
 - 歷史模式：優先使用快照內 `overdueActions` 欄位（與記錄當時一致）
@@ -1075,6 +1076,7 @@ location.reload();
 | **v3.13** | **UI/UX 優化第一輪（U-1～U-17）**：styled confirm modal 取代原生 `window.confirm`（U-1）；批次完成排除 blocked items（U-2/U-44）；刪除操作加 5 秒復原 toast（U-43，actions）；modal 開啟自動聚焦（U-30）；`btnLoading()` 工具函式（U-10）；`app-init.js` 加重試連線按鈕（U-21）；歷史模式加「🔒 唯讀」badge（U-48）；`toast()` 擴充 `onUndo` callback 支援（U-43）；風險升降級按鈕方向修正（U-6）；風險狀態改動加確認 modal 並可回滾 select（U-41）。 |
 | **v3.14** | **UI/UX 優化第二輪（U-4～U-50）**：`deleteRisk` / `deleteMs` 加 5 秒復原視窗（U-43）；里程碑拖曳 `cursor:grab` 提示（U-7）；badge 加 `text-overflow:ellipsis` 防溢（U-40）；tab-btn 加副標題說明（U-9）；input.html 新增 `maxlength`（U-24）、`required`（U-25）、Enter 鍵儲存（U-29）、過去日期警告（U-22）；risks.html modal 加 `maxlength`（U-24）、autofocus（U-30）、Enter 鍵（U-29）、過去日期警告（U-22）；Action status badge 顯示下一狀態 tooltip（U-42）；KPI 卡加單位標示（U-34）；首頁空狀態加 CTA「新增第一個專案」按鈕（U-35）；週次選擇器後端離線時仍顯示佔位（U-4）；歷史週報區離線提示（U-49）；匯入按鈕加拖放 title 說明（U-50）；report.html 生成模式說明（U-11）、token 費用參考（U-16）。 |
 | **v3.16** | **P0 資料安全修正**：**P0-1** `store.js _get()` 新增具名錯誤日誌 + 派出 `store:corrupt` 自訂事件，`app-init.js` 監聽後顯示紅色損壞警告 banner（含建議匯出備份說明）；**P0-2** `store.importAll()` 加入 schema 驗證（各 entity 必填欄位白名單），malformed items 被過濾並在 `{ok, skipped}` 回傳值中回報數量；**P0-3** `api.js saveWeekState()` 移除吞掉 error 的外層 try-catch，讓錯誤正確傳遞至 `store.startBackendSync` 的 `.catch()`；store.js 新增 `store:syncFailed` 事件（非 401 的網路/5xx 失敗），`app-init.js` 監聽後顯示可自動消失的橘色 banner；**P0-4** `app-init.js` 新增 `_initDirtyTracking()`：監聽全站 `input`/`change` 事件設定 dirty flag，`store:updated` 後清除；瀏覽器關閉/重新整理觸發 `beforeunload` 確認框；Navbar/麵包屑連結在 capture phase 攔截，dirty 時以 `window.confirm` 詢問確認。 |
+| **v3.17** | **歷史週報中心 PDF 匯出**：`⬇ 下載` 按鈕更名為 `⬇ MD`；新增 `📥 PDF` 按鈕，點擊後自動抓取週報內容，以 `_filenameToWeekLabel()` 從檔名推算週次（YYMMDD → W??），呼叫 `export.js toPdf()` 以 A4 格式輸出含頁碼與頁尾的 PDF 並自動下載；按鈕具 loading 狀態（`⏳ 產生中…`），完成後 toast 通知。 |
 | **v3.15** | **UI/UX 優化第三輪（V-1～V-18）**：**CSS**：必填欄位標籤加粗 + `*` 標示（V-1）；textarea min-height 提升至 120px + 字數計數器（warn/over 顏色提示）（V-4）；dark mode 次要/輔助文字對比度提升至 WCAG AA（V-8）；project-row / risk-row hover 加 box-shadow 邊框（V-9）；active navbar link 底部藍色 underline 指示器（V-18）。**行為**：全站手機 hamburger 選單（V-3，9 頁面 + layout.css）；Actions 新增 Action 日期欄預設為兩週後最近週五（V-5）；Quick Input owner select 加即時搜尋過濾輸入框（V-6）；review.html 評論框加字數計數器（V-4）；review.html Stepper 精簡為 4 步驟（V-12）；resources.html 搜尋過濾橫跨季度表與業務彙整表（V-13）；trends.html 圖表空狀態加 CTA 按鈕（V-15）；**導覽**：8 頁面加麵包屑返回路徑（V-14）；**表單驗證**：input.html / risks.html / actions.html 必填欄位加 `.inp--error` 紅框 + inline 錯誤訊息，取代純 toast 提示（V-2）；Actions 批次完成按鈕改為 btn-primary 並加描述性 title（V-11）。 |
 
 ---
