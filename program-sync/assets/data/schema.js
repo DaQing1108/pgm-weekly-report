@@ -62,25 +62,6 @@ export const REVIEW_STATUSES = [
   { value: 'rejected',  label: 'Rejected'  },
 ];
 
-export const TONE_OPTIONS = [
-  { value: 'formal',      label: '正式 (Formal)'         },
-  { value: 'concise',     label: '簡潔 (Concise)'        },
-  { value: 'executive',   label: '高管摘要 (Executive)'  },
-  { value: 'technical',   label: '技術細節 (Technical)'  },
-];
-
-export const REPORT_SECTIONS = [
-  { id: 'cover',     label: '封面',            defaultOn: true  },
-  { id: 'summary',   label: 'Executive Summary', defaultOn: true  },
-  { id: 'projects',  label: '專案進度',         defaultOn: true  },
-  { id: 'teams',     label: '子組進度',         defaultOn: true  },
-  { id: 'decisions', label: '決策與風險',       defaultOn: true  },
-  { id: 'next',      label: '下週計畫',         defaultOn: true  },
-  { id: 'risks',     label: 'Risk Register',   defaultOn: true  },
-  { id: 'actions',   label: 'Action Items',    defaultOn: true  },
-  { id: 'milestones',label: '里程碑',           defaultOn: false },
-];
-
 export const REVIEWERS = [
   { id: 'alex',    name: 'Alex',    title: 'Engineering Manager' },
   { id: 'michael', name: 'Michael', title: 'Product Director'    },

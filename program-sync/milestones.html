@@ -467,6 +467,8 @@ document.getElementById('btnAddMs').addEventListener('click', () => {
 });
 
 window.addEventListener('store:updated', renderAll);
+window.addEventListener('pageshow', (e) => { if (e.persisted) renderAll(); });
+window.addEventListener('storage', (e) => { if (e.key?.startsWith('pgm_sync_')) renderAll(); });
 renderAll();
 </script>
 <style>

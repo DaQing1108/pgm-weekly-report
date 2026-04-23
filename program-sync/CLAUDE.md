@@ -392,8 +392,17 @@ Object.keys(localStorage).filter(k => k.startsWith('pgm_sync_')).forEach(k => lo
 - report.html 三欄佈局 + AI 生成 + DOCX/PDF 匯出
 - trends.html Chart.js 趨勢圖表
 - review.html Stepper 審核流程
-- store.js 擴充：快照、草稿版本、API Key 管理
-- ai.js Claude API 串流整合
+- store.js 擴充：快照、草稿版本管理（API Key 方法於 v2.3 移除）
+- ai.js / report.js Claude API 串流整合（於 v2.3 移除）
+
+### v2.3
+- **全站 navbar**：移除所有頁面的「📝 生成週報」按鈕與 index.html 的「🔑 API Key」按鈕
+- **ai.js / report.js**：整支刪除（AI 生成功能已移除，無任何頁面 import）
+- **schema.js**：移除 `TONE_OPTIONS`、`REPORT_SECTIONS`（AI 生成功能死碼）
+- **store.js**：移除 `getApiKey / setApiKey / clearApiKey / hasApiKey` 四個 API Key 方法
+- **report.html**：加入「💾 儲存草稿」按鈕（呼叫 `store.newDraftVersion()`）；加入 `beforeunload` 離頁警告（有未儲存內容時觸發）；加入 `_isDirty` 旗標追蹤編輯狀態
+- **review.html**：「此週次尚無草稿」空白狀態補 CTA，引導至週報編輯頁面
+- **risks / actions / milestones.html**：補齊 `pageshow`（bfcache）與 `storage`（跨 tab）即時同步監聽器，與 index / trends 一致
 
 ### v2.2
 - **report.html**：移除 API Key 設定、自動生成週報（本地/AI）、語氣選擇、章節勾選、章節重生成、右側 AI 控制面板；改為雙欄佈局（260px 左側 + 1fr 主區）；頁面定位為手動貼入 / 編輯 Markdown + 匯出

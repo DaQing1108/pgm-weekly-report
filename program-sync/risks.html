@@ -520,6 +520,8 @@ function populateOwnerSelects() {
 }
 
 window.addEventListener('store:updated', () => { renderAll(); populateOwnerSelects(); });
+window.addEventListener('pageshow', (e) => { if (e.persisted) { renderAll(); populateOwnerSelects(); } });
+window.addEventListener('storage', (e) => { if (e.key?.startsWith('pgm_sync_')) { renderAll(); populateOwnerSelects(); } });
 renderAll();
 populateOwnerSelects();
 </script>

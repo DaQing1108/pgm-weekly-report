@@ -349,36 +349,6 @@ export const store = {
     return latest ? _weekLabel(latest) : null;
   },
 
-  // ── API Key 管理 ─────────────────────────────────────────────
-  // S-4 修正：改用 sessionStorage，避免 API Key 持久存於 localStorage 而外洩
-  // 代價：每次重開分頁需重新輸入；如需跨 session 保留，可改回 localStorage
-
-  getApiKey() {
-    // N-2 遷移：v3.6 改為 sessionStorage，首次呼叫若 sessionStorage 無值但 localStorage
-    // 有舊 key，靜默搬移後清除 localStorage，使用者不需重新輸入
-    const session = sessionStorage.getItem(PREFIX + 'api_key');
-    if (session) return session;
-    const legacy = localStorage.getItem(PREFIX + 'api_key');
-    if (legacy) {
-      sessionStorage.setItem(PREFIX + 'api_key', legacy);
-      localStorage.removeItem(PREFIX + 'api_key');
-      return legacy;
-    }
-    return null;
-  },
-
-  setApiKey(key) {
-    if (key) sessionStorage.setItem(PREFIX + 'api_key', key);
-  },
-
-  clearApiKey() {
-    sessionStorage.removeItem(PREFIX + 'api_key');
-  },
-
-  hasApiKey() {
-    return !!this.getApiKey();
-  },
-
 };
 
 // ── 工具函式（私有）─────────────────────────────────────────────

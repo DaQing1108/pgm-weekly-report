@@ -99,6 +99,7 @@
             <button class="btn btn-outline" id="btnExport" style="white-space:nowrap; padding:4px 12px;">⬇ 匯出</button>
           </div>
           <div class="divider"></div>
+          <button class="btn btn-primary btn-sm" id="btnSaveDraft" style="width:100%;">💾 儲存草稿</button>
           <div style="display:flex;gap:var(--space-sm);">
             <button class="btn btn-ghost btn-sm" id="btnCopyMd" style="flex:1;">📋 複製 MD</button>
             <button class="btn btn-primary btn-sm" id="btnSaveCloud" style="flex:1; display:none;">☁ 儲存到雲端</button>
@@ -235,6 +236,7 @@ document.getElementById('btnSyncHistory')?.addEventListener('click', async () =>
 
 let currentMd = '';
 let currentTab = 'preview';
+let _isDirty = false;
 
 // ── 渲染 Markdown ──────────────────────────────────────────────
 function renderMdPreview(md) {
@@ -305,9 +307,29 @@ document.getElementById('btnSaveCloud')?.addEventListener('click', async (e) => 
   }
 });
 
+// ── 儲存草稿 ───────────────────────────────────────────────────
+function saveDraft() {
+  if (!currentMd) { toast('請先輸入或貼上週報內容', 'error'); return; }
+  const weekStart = document.getElementById('weekSelect').value;
+  const author    = document.getElementById('author').value.trim();
+  store.newDraftVersion(weekStart, currentMd, { author });
+  _isDirty = false;
+  toast('💾 草稿已儲存', 'success');
+}
+document.getElementById('btnSaveDraft').addEventListener('click', saveDraft);
+
+// ── 離頁警告（有未儲存內容時）────────────────────────────────
+window.addEventListener('beforeunload', (e) => {
+  if (_isDirty && currentMd) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
 // ── mdSource 同步到 preview ────────────────────────────────────
 document.getElementById('mdSource').addEventListener('input', function() {
   currentMd = this.value;
+  _isDirty = true;
   if (currentTab === 'source') {
     document.getElementById('mdPreview').innerHTML = window.marked.parse(currentMd);
   }

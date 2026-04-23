@@ -259,6 +259,9 @@ function renderPreview() {
       el.innerHTML = `<div class="empty-state" style="min-height:300px;">
         <span class="empty-state__icon">📄</span>
         <p class="empty-state__msg">此週次尚無草稿</p>
+        <p class="text-secondary text-sm" style="margin-top:var(--space-sm);">
+          請至<a href="report.html" style="color:var(--color-info);text-decoration:underline;">週報編輯頁面</a>貼入或儲存草稿後再回此頁進行審核
+        </p>
       </div>`;
     }
     return;
