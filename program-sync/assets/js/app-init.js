@@ -83,7 +83,26 @@ export async function appInit() {
     const data = await getWeekState(targetLabel);
     if (data) {
       // Q-3 修正：直接傳 object，importAll 內部判斷型別，省去冗餘 JSON.stringify
-      store.importAll(data);
+      // P2 修正：比較本機最新 _updatedAt vs 後端 _savedAt
+      //   若本機較新（例如 Railway 重新部署後 git 舊版本把 _savedAt 清空），
+      //   保留本機資料並立即 push 到後端，避免新增資料消失。
+      const serverTs = data._savedAt || '';
+      const localTs  = (() => {
+        try {
+          const projs = JSON.parse(localStorage.getItem('pgm_sync_projects') || '[]');
+          const times = projs.map(p => p._updatedAt || '').filter(Boolean).sort();
+          return times.length ? times[times.length - 1] : '';
+        } catch { return ''; }
+      })();
+      // localTs 存在，且後端無時間戳 或 本機更新 → 保留本機
+      const _localIsNewer = !!(localTs && (!serverTs || localTs > serverTs));
+
+      if (_localIsNewer) {
+        console.info(`[appInit] 本機資料(${localTs}) 比後端(${serverTs || 'none'})新，保留本機，稍後推送`);
+        window._appInitLocalNewer = true;
+      } else {
+        store.importAll(data);
+      }
       loadedFromServer = true;
     }
   }
@@ -101,6 +120,11 @@ export async function appInit() {
       if (!targetLabel) return Promise.resolve();
       return saveWeekState(targetLabel, stateObj);
     });
+    // P2 修正：本機比後端新 → 立即觸發一次同步，把本機資料推送至後端
+    if (window._appInitLocalNewer) {
+      delete window._appInitLocalNewer;
+      window.dispatchEvent(new CustomEvent('store:updated', { detail: { key: '_initSync' } }));
+    }
     // N-3：後端 401 時顯示可見警告 banner，讓使用者知道同步未成功
     window.addEventListener('store:syncUnauthorized', _showAuthBanner);
     // P0-3：非 401 的一般同步失敗（網路中斷、5xx）也顯示 banner

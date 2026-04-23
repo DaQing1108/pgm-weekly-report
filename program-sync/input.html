@@ -774,8 +774,9 @@ document.getElementById('btnSaveQuick').addEventListener('click', () => {
     item = {
       id: generateId(),
       name,
-      team: document.getElementById('qNewTeam').value,
+      team:       document.getElementById('qNewTeam').value,
       targetDate: document.getElementById('qTargetDate').value,
+      weekStart:  new Date().toISOString().split('T')[0], // P2 修正：補上當週日期
       status, progress, progressMode, owner, weekDone, blockers,
     };
   } else if (projId) {
