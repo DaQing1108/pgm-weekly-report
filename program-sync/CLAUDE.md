@@ -133,7 +133,6 @@ program-sync/
 | `pgm_sync_milestones` | 里程碑陣列          |
 | `pgm_sync_snapshots`  | 週快照陣列          |
 | `pgm_sync_drafts`     | 週報草稿陣列        |
-| `pgm_sync_api_key`    | Anthropic API Key  |
 
 ---
 
@@ -234,24 +233,15 @@ window.addEventListener('storage', (e) => {
 
 ### v2 功能（report / trends / review）
 
-#### 週報生成（report.html）—— 三欄佈局
-- **左側（260px）**：報告設定（週次/彙整人）/ 章節勾選 / 格式選擇（MD/DOCX/PDF）/ 審核流程區
-- **中間（1fr）**：Markdown 預覽（使用 marked.js）/ 原始 MD 切換 / 可直接編輯
-- **右側（280px）**：API Key 狀態 / 生成模式（本地/AI）/ 語氣選擇 / 生成按鈕 / AI 狀態 / Token 計數 / 章節重生成
+#### 週報預覽（report.html）—— 雙欄佈局（v2.2）
+- **左側（260px）**：報告設定（週次/彙整人）/ 歷史週報引入 / 匯出（MD/DOCX/PDF）/ 儲存雲端
+- **中間（1fr）**：Markdown 預覽（marked.js）/ 原始 MD 切換（可手動貼入或直接編輯）
 
-##### 本地生成流程
-1. 選擇章節 + 語氣 + 週次 + 彙整人
-2. 點擊「生成週報」
-3. `generateReport()` 從 store 讀取資料，生成 9 章節 Markdown
-4. marked.js 渲染到預覽區
-5. 自動呼叫 `newDraftVersion()` 儲存草稿
+> ⚠️ v2.2 已移除：API Key 設定、自動生成週報（本地/AI 模式）、語氣選擇、章節勾選、章節重生成、右側 AI 控制面板。
 
-##### AI 生成流程
-1. 需先設定 API Key（`validateApiKey()` 驗證）
-2. `buildContext()` 從 store 組裝 context JSON
-3. `generateReportStream()` 串流呼叫 Claude API
-4. 每個 chunk 即時渲染到預覽區
-5. Token 計數顯示於右側
+##### 歷史週報引入（後端連線時顯示）
+- 列出後端可用歷史週報，勾選後點「引入至系統」
+- `syncToStore()` 將解析結果（專案/風險/Action/里程碑）寫入 localStorage store
 
 ##### 匯出
 - **MD**：直接下載 `.md` 檔案
@@ -302,36 +292,6 @@ function _injectCurrentWeek() {
 - 核准：`reviewStatus = 'approved'` + 呼叫 `createSnapshot()` 建立快照
 - 退回：`reviewStatus = 'rejected'`，必須填寫退回原因
 - 退回草稿：重置為 `draft` 狀態，可重新修改後送審
-
----
-
-## AI 整合（ai.js）
-
-### API 端點
-```
-POST https://api.anthropic.com/v1/messages
-Model: claude-sonnet-4-6
-```
-
-### Headers
-```javascript
-{
-  'Content-Type': 'application/json',
-  'x-api-key': '<USER_API_KEY>',
-  'anthropic-version': '2023-06-01',
-  'anthropic-dangerous-direct-browser-access': 'true'
-}
-```
-
-> 注意：直接從瀏覽器呼叫 Anthropic API 需要加上 `anthropic-dangerous-direct-browser-access: true` Header。
-
-### 語氣選項
-| 值         | 說明                           |
-|------------|--------------------------------|
-| `formal`   | 正式、專業，適合呈報上級        |
-| `concise`  | 精簡要點，每項 2 行以內         |
-| `executive`| 高管摘要，聚焦業務影響與決策    |
-| `technical`| 技術細節，包含架構與指標        |
 
 ---
 
@@ -434,6 +394,9 @@ Object.keys(localStorage).filter(k => k.startsWith('pgm_sync_')).forEach(k => lo
 - review.html Stepper 審核流程
 - store.js 擴充：快照、草稿版本、API Key 管理
 - ai.js Claude API 串流整合
+
+### v2.2
+- **report.html**：移除 API Key 設定、自動生成週報（本地/AI）、語氣選擇、章節勾選、章節重生成、右側 AI 控制面板；改為雙欄佈局（260px 左側 + 1fr 主區）；頁面定位為手動貼入 / 編輯 Markdown + 匯出
 
 ### v2.1
 - **index.html**：專案狀態 Tab 標籤改為英文（All / On Track / At Risk / Behind / Paused）；`_isHistoryView` 旗標取代 `!_viewState` 判斷；加入 `pageshow`（bfcache）與 `storage`（跨 tab）即時同步監聽器

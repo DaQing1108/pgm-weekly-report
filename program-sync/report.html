@@ -29,11 +29,10 @@
     <a href="resources.html" class="navbar__link">Resources</a>
   </div>
   <div class="navbar__actions">
-    <button class="btn btn-outline btn-sm three-col__ai-toggle" id="btnAiPanelToggle" title="AI 控制面板">⚙ AI 設定</button>
-    <button class="btn btn-outline btn-sm" id="btnApiKeyNav">🔑 API Key</button>
     <button class="btn btn-ghost btn-sm navbar__hamburger" id="navHamburger" aria-label="開啟選單" style="display:none;font-size:18px;padding:4px 8px;line-height:1;">☰</button>
   </div>
 </nav>
+
 <!-- V-3 修正：手機選單 -->
 <div id="mobileNav" style="display:none;position:fixed;top:var(--navbar-height);left:0;right:0;z-index:99;background:var(--color-bg-primary);border-bottom:1px solid var(--color-border-default);box-shadow:var(--shadow-md);padding:var(--space-md) var(--space-lg);flex-direction:column;gap:4px;">
   <a href="index.html"      class="navbar__link" style="padding:8px var(--space-md);">Dashboard</a>
@@ -47,7 +46,7 @@
 </div>
 
 <div class="page-container" style="padding-top:calc(var(--navbar-height) + var(--space-md));">
-  <div class="three-col" style="height:calc(100vh - var(--navbar-height) - 80px);">
+  <div class="three-col" style="grid-template-columns:260px 1fr;height:calc(100vh - var(--navbar-height) - 80px);">
 
     <!-- ── 左側：設定 ──────────────────────────────────────── -->
     <div class="sidebar-sticky stack" style="gap:var(--space-md);">
@@ -78,21 +77,10 @@
           <span class="badge badge--info text-xs" id="historyStatus">偵測中…</span>
         </div>
         <div class="panel__body stack-sm">
-          <p class="text-secondary text-xs">選擇要載入的歷史週報，AI 生成時將完全參考其內容與格式。</p>
+          <p class="text-secondary text-xs">選擇要引入的歷史週報，資料將同步至系統各模組。</p>
           <div id="historyList" style="max-height:140px;overflow-y:auto;"></div>
-          <button class="btn btn-outline btn-sm" id="btnSyncHistory" title="引入為背景參考，不會覆寫當前編輯進度">⬇ 引入為 AI 參考上下文</button>
+          <button class="btn btn-outline btn-sm" id="btnSyncHistory" title="將歷史週報資料引入系統（專案/風險/Action/里程碑）">⬇ 引入至系統</button>
           <p class="text-tertiary" id="syncResult" style="font-size:11px;"></p>
-        </div>
-      </div>
-
-      <!-- 章節勾選 -->
-      <div class="panel">
-        <div class="panel__header">
-          <span class="panel__title">包含章節</span>
-          <button class="btn btn-ghost btn-sm" id="btnToggleAll">全選/取消</button>
-        </div>
-        <div class="panel__body stack-sm" id="sectionChecks">
-          <!-- 動態生成 -->
         </div>
       </div>
 
@@ -118,7 +106,6 @@
         </div>
       </div>
 
-
     </div>
 
     <!-- ── 中間：Markdown 預覽 ─────────────────────────────── -->
@@ -134,114 +121,13 @@
         <div class="md-preview" id="mdPreview">
           <div class="empty-state" style="min-height:300px;">
             <span class="empty-state__icon">📝</span>
-            <p class="empty-state__msg" style="margin-bottom:var(--space-md);">尚未生成當週週報內容</p>
-            <button class="btn btn-primary" onclick="document.getElementById('btnGenerate').click()">▶ 立即生成週報</button>
+            <p class="empty-state__msg">請切換至「原始 MD」頁籤貼上或輸入週報內容</p>
           </div>
         </div>
         <textarea class="inp" id="mdSource" style="display:none;width:100%;height:100%;min-height:400px;font-family:monospace;font-size:12px;border:none;border-radius:0;resize:none;padding:var(--space-xl) var(--space-2xl);"></textarea>
       </div>
     </div>
 
-    <!-- ── 右側：AI 控制 ──────────────────────────────────── -->
-    <div class="sidebar-sticky stack three-col__ai-panel" id="aiControlPanel" style="gap:var(--space-md);">
-
-      <!-- API Key 狀態 -->
-      <div class="panel">
-        <div class="panel__header">
-          <span class="panel__title">API Key</span>
-        </div>
-        <div class="panel__body stack-sm">
-          <div class="ai-status" id="apiKeyStatus">
-            <span class="text-sm" id="apiKeyText">未設定</span>
-          </div>
-          <button class="btn btn-outline btn-sm" id="btnSetApiKey">🔑 設定 API Key</button>
-        </div>
-      </div>
-
-      <!-- 生成控制 -->
-      <div class="panel">
-        <div class="panel__header">
-          <span class="panel__title">生成設定</span>
-        </div>
-        <div class="panel__body stack-sm">
-          <div class="inp-group">
-            <label class="inp-label">生成模式</label>
-            <select class="inp" id="genMode">
-              <option value="local">🖥 本地生成（快速）</option>
-              <option value="ai">🤖 AI 智慧生成</option>
-            </select>
-          </div>
-          <div class="inp-group">
-            <label class="inp-label">語氣風格</label>
-            <select class="inp" id="toneSelect">
-              <option value="formal">正式 (Formal)</option>
-              <option value="concise">簡潔 (Concise)</option>
-              <option value="executive">高管摘要</option>
-              <option value="technical">技術細節</option>
-            </select>
-          </div>
-          <!-- U-11 修正：生成模式說明 tooltip -->
-          <p class="text-xs text-secondary" style="line-height:1.5;">
-            🖥 <strong>本地</strong>：即時生成，不需 API Key<br>
-            🤖 <strong>AI</strong>：Claude 潤飾，需設定 API Key
-          </p>
-          <div class="divider"></div>
-          <button class="btn btn-primary" id="btnGenerate">▶ 生成週報</button>
-        </div>
-      </div>
-
-      <!-- AI 狀態 -->
-      <div class="panel" id="aiStatusPanel">
-        <div class="panel__header">
-          <span class="panel__title">AI 狀態</span>
-        </div>
-        <div class="panel__body stack-sm">
-          <div class="ai-status ai-status--idle" id="aiStatusEl">
-            <span class="ai-status__text" id="aiStatusText">待機中</span>
-            <span class="ai-status__token" id="tokenCount"></span>
-          </div>
-          <!-- U-16 修正：顯示 token 費用參考 -->
-          <p class="text-xs text-secondary" id="tokenCostNote" style="display:none;line-height:1.5;margin-top:4px;">
-            參考費用：約 $0.003 / 1K tokens（claude-sonnet-4-6）
-          </p>
-          <div id="streamProgress" style="display:none;">
-            <div class="progress-bar"><div class="progress-bar__fill" id="streamBar" style="width:0%;transition:width 0.1s;"></div></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 章節重生成 -->
-      <div class="panel" id="regenPanel" style="display:none;">
-        <div class="panel__header">
-          <span class="panel__title">章節重生成</span>
-        </div>
-        <div class="panel__body stack-sm" id="regenSections">
-          <!-- 動態生成 -->
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- API Key Modal 模板 -->
-<div id="apiKeyModalTpl" style="display:none;">
-  <div class="modal__header">
-    <span class="modal__title">設定 Anthropic API Key</span>
-    <button class="modal__close" type="button">✕</button>
-  </div>
-  <div class="modal__body stack">
-    <p class="text-sm text-secondary">API Key 僅儲存於您的瀏覽器本地端（localStorage），不會傳送到任何伺服器。</p>
-    <div class="inp-group">
-      <label class="inp-label">API Key</label>
-      <input type="password" class="inp" id="apiKeyInput" placeholder="sk-ant-api03-…">
-    </div>
-    <div id="apiKeyValidation" style="display:none;" class="text-sm"></div>
-  </div>
-  <div class="modal__footer">
-    <button class="btn btn-outline" id="apiKeyCancel">取消</button>
-    <button class="btn btn-danger btn-sm" id="apiKeyClear" style="margin-right:auto;">清除</button>
-    <button class="btn btn-primary" id="apiKeySave">驗證並儲存</button>
   </div>
 </div>
 
@@ -250,36 +136,10 @@
 <script type="module">
 import { store }                   from './assets/js/store.js';
 import { appInit }                 from './assets/js/app-init.js';
-import { generateReport }          from './assets/js/report.js';
-import { toast, modal, formatDate, renderReviewBadge, btnLoading } from './assets/js/ui.js';
-import { REPORT_SECTIONS }         from './assets/data/schema.js';
+import { toast, btnLoading }       from './assets/js/ui.js';
 import { toDocx, toPdf }           from './assets/js/export.js';
 import { initApi, saveReport, isBackendAvailable, fetchReports, fetchReportContent, listWeeks } from './assets/js/api.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
-
-// ── AI 控制欄 toggle（1280px 以下使用 drawer 模式）────────────
-(function() {
-  const toggleBtn = document.getElementById('btnAiPanelToggle');
-  const panel     = document.getElementById('aiControlPanel');
-  if (!toggleBtn || !panel) return;
-
-  // 點擊 toggle 開關 drawer
-  toggleBtn.addEventListener('click', () => {
-    panel.classList.toggle('open');
-    toggleBtn.textContent = panel.classList.contains('open') ? '✕ 關閉' : '⚙ AI 設定';
-  });
-
-  // 點擊 panel 外部關閉
-  document.addEventListener('click', (e) => {
-    if (panel.classList.contains('open') &&
-        !panel.contains(e.target) &&
-        e.target !== toggleBtn) {
-      panel.classList.remove('open');
-      toggleBtn.textContent = '⚙ AI 設定';
-    }
-  });
-})();
-
 
 // 歷史週報快取
 let _historicalReports = [];   // [{ filename, content }]
@@ -317,6 +177,7 @@ initApi().then(async available => {
       const content = await fetchReportContent(r.filename);
       _historicalReports.push({ filename: r.filename, content });
     }
+
     // 預設全選
     _selectedHistory = new Set(reports.map(r => r.filename));
 
@@ -340,7 +201,6 @@ document.getElementById('btnSyncHistory')?.addEventListener('click', async () =>
 
   let totalCounts = { projects: 0, risks: 0, actions: 0, milestones: 0 };
 
-  // 從最新到最舊依序解析（最新的優先，避免被舊資料覆蓋）
   for (const r of selected) {
     const parsed = parseHistoricalReport(r.content, r.filename);
     const counts = syncToStore(parsed, store, { replaceAll: false });
@@ -361,15 +221,12 @@ document.getElementById('btnSyncHistory')?.addEventListener('click', async () =>
     sel.innerHTML = weeks.map(w =>
       `<option value="${w.weekStart}">${w.weekLabel} — ${w.weekStart.slice(5).replace('-','/')}</option>`
     ).join('');
-    // B-1 修正：初始化時將 weekBadge 同步為最新週次標籤
     const firstLabel = weeks[0]?.weekLabel;
     if (firstLabel) document.getElementById('weekBadge').textContent = firstLabel;
   } else {
     sel.innerHTML = '<option value="">— 後端未連線 —</option>';
   }
 
-  // B-1 修正：切換週次時即時同步 weekBadge（週次標籤），
-  // 確保生成週報封面的 weekLabel 與畫面選取一致
   sel.addEventListener('change', () => {
     const selected = weeks.find(w => w.weekStart === sel.value);
     if (selected) document.getElementById('weekBadge').textContent = selected.weekLabel;
@@ -378,205 +235,6 @@ document.getElementById('btnSyncHistory')?.addEventListener('click', async () =>
 
 let currentMd = '';
 let currentTab = 'preview';
-
-// ── 初始化章節勾選 ─────────────────────────────────────────────
-function initSections() {
-  const el = document.getElementById('sectionChecks');
-  el.innerHTML = REPORT_SECTIONS.map(s => `
-    <label style="display:flex;align-items:center;gap:var(--space-sm);cursor:pointer;padding:3px 0;">
-      <input type="checkbox" ${s.defaultOn ? 'checked' : ''} data-section="${s.id}">
-      <span class="text-sm">${s.label}</span>
-    </label>`).join('');
-}
-initSections();
-
-document.getElementById('btnToggleAll').addEventListener('click', () => {
-  const checks = document.querySelectorAll('#sectionChecks input[type=checkbox]');
-  const allChecked = Array.from(checks).every(c => c.checked);
-  checks.forEach(c => c.checked = !allChecked);
-});
-
-// ── 初始化重生成章節 ───────────────────────────────────────────
-function initRegenSections() {
-  const el = document.getElementById('regenSections');
-  el.innerHTML = REPORT_SECTIONS.map(s => `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-sm);">
-      <span class="text-sm">${s.label}</span>
-      <button class="btn btn-outline btn-sm" onclick="regenSection('${s.id}')">重生成</button>
-    </div>`).join('');
-}
-initRegenSections();
-
-// ── API Key 狀態 ───────────────────────────────────────────────
-function updateApiKeyStatus() {
-  const hasKey = store.hasApiKey();
-  const el = document.getElementById('apiKeyStatus');
-  const txt = document.getElementById('apiKeyText');
-
-  if (hasKey) {
-    el.className = 'ai-status ai-status--done';
-    txt.textContent = '✅ API Key 已設定';
-    document.getElementById('regenPanel').style.display = '';
-  } else {
-    el.className = 'ai-status ai-status--idle';
-    txt.textContent = '⚠️ 未設定 API Key';
-  }
-}
-updateApiKeyStatus();
-
-// ── API Key Modal ──────────────────────────────────────────────
-function openApiKeyModal() {
-  const html = document.getElementById('apiKeyModalTpl').innerHTML;
-  const { close, el } = modal(html);
-
-  const input = el.querySelector('#apiKeyInput');
-  const savedKey = store.getApiKey();
-  if (savedKey) input.value = savedKey;
-
-  el.querySelector('#apiKeyCancel').addEventListener('click', close);
-
-  el.querySelector('#apiKeyClear').addEventListener('click', () => {
-    store.clearApiKey();
-    toast('API Key 已清除', 'info');
-    close();
-    updateApiKeyStatus();
-  });
-
-  el.querySelector('#apiKeySave').addEventListener('click', async () => {
-    const key = input.value.trim();
-    if (!key || !key.startsWith('sk-ant-')) {
-      el.querySelector('#apiKeyValidation').style.display = '';
-      el.querySelector('#apiKeyValidation').innerHTML = '<span style="color:var(--color-danger)">格式不正確，應以 sk-ant- 開頭</span>';
-      return;
-    }
-
-    el.querySelector('#apiKeySave').disabled = true;
-    el.querySelector('#apiKeySave').textContent = '驗證中…';
-    el.querySelector('#apiKeyValidation').style.display = '';
-    el.querySelector('#apiKeyValidation').innerHTML = '<span style="color:var(--color-info)">驗證中，請稍候…</span>';
-
-    try {
-      const { validateApiKey } = await import('./assets/js/ai.js');
-      const result = await validateApiKey(key);
-      if (result.ok) {
-        store.setApiKey(key);
-        el.querySelector('#apiKeyValidation').innerHTML = `<span style="color:var(--color-success)">✅ ${result.message}</span>`;
-        setTimeout(() => { close(); updateApiKeyStatus(); }, 1200);
-      } else {
-        el.querySelector('#apiKeyValidation').innerHTML = `<span style="color:var(--color-danger)">❌ ${result.message}</span>`;
-        el.querySelector('#apiKeySave').disabled = false;
-        el.querySelector('#apiKeySave').textContent = '驗證並儲存';
-      }
-    } catch (e) {
-      el.querySelector('#apiKeyValidation').innerHTML = `<span style="color:var(--color-danger)">❌ ${e.message}</span>`;
-      el.querySelector('#apiKeySave').disabled = false;
-      el.querySelector('#apiKeySave').textContent = '驗證並儲存';
-    }
-  });
-}
-
-document.getElementById('btnSetApiKey').addEventListener('click', openApiKeyModal);
-document.getElementById('btnApiKeyNav').addEventListener('click', openApiKeyModal);
-
-// 處理 URL hash #apikey
-if (location.hash === '#apikey') openApiKeyModal();
-
-// ── 取得選中章節 ───────────────────────────────────────────────
-function getSelectedSections() {
-  return Array.from(document.querySelectorAll('#sectionChecks input[type=checkbox]:checked'))
-    .map(c => c.dataset.section);
-}
-
-// ── 生成週報 ───────────────────────────────────────────────────
-document.getElementById('btnGenerate').addEventListener('click', async () => {
-  const mode     = document.getElementById('genMode').value;
-  const tone     = document.getElementById('toneSelect').value;
-  const sections = getSelectedSections();
-  const weekStart= document.getElementById('weekSelect').value;
-  const author   = document.getElementById('author').value.trim() || 'Program Manager';
-
-  if (!sections.length) { toast('請至少選擇一個章節', 'error'); return; }
-
-  const btn = document.getElementById('btnGenerate');
-  btn.disabled = true;
-  btn.textContent = '⏳ 生成中…';
-  setAiStatus('working', '生成中…');
-
-  try {
-    if (mode === 'ai') {
-      if (!store.hasApiKey()) {
-        toast('請先設定 API Key', 'error');
-        openApiKeyModal();
-        return;
-      }
-
-      const { buildContext } = await import('./assets/js/ai.js');
-      const { generateWithAI } = await import('./assets/js/report.js');
-
-      document.getElementById('streamProgress').style.display = '';
-      let chars = 0;
-
-      // 只傳入使用者勾選的歷史週報
-      const selectedHistoryContent = _historicalReports
-        .filter(r => _selectedHistory.has(r.filename));
-
-      currentMd = await generateWithAI({
-        weekStart, author, sections, tone,
-        weekLabel: document.getElementById('weekBadge').textContent,
-        historicalReports: selectedHistoryContent,
-        ...buildContext(weekStart),
-        onChunk: (chunk, full) => {
-          chars += chunk.length;
-          currentMd = full;
-          renderMdPreview(full);
-          const estimated = 6000;
-          document.getElementById('streamBar').style.width = `${Math.min(chars / estimated * 100, 95)}%`;
-        },
-        onDone: (text) => {
-          document.getElementById('streamBar').style.width = '100%';
-          setTimeout(() => { document.getElementById('streamProgress').style.display = 'none'; }, 500);
-          currentMd = text;
-          renderMdPreview(text);
-          setAiStatus('done', '生成完成');
-          saveDraft();
-        },
-        onTokens: ({ input, output }) => {
-          const total = input + output;
-          document.getElementById('tokenCount').textContent = `${total} tokens`;
-          // U-16 修正：顯示費用參考提示
-          document.getElementById('tokenCostNote').style.display = '';
-        },
-        onError: (err) => {
-          setAiStatus('error', `錯誤：${err.message}`);
-          toast(`AI 生成失敗：${err.message}`, 'error');
-        },
-      });
-
-    } else {
-      // 本地生成
-      currentMd = generateReport({ weekStart, author, sections, tone,
-        weekLabel: document.getElementById('weekBadge').textContent });
-      renderMdPreview(currentMd);
-      setAiStatus('done', '本地生成完成');
-      saveDraft();
-    }
-
-  } catch (e) {
-    toast(`生成失敗：${e.message}`, 'error');
-    setAiStatus('error', e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '▶ 生成週報';
-  }
-});
-
-// ── 儲存草稿 ───────────────────────────────────────────────────
-function saveDraft() {
-  const weekStart = document.getElementById('weekSelect').value;
-  const author    = document.getElementById('author').value.trim();
-  store.newDraftVersion(weekStart, currentMd, { author });
-  toast('草稿已儲存', 'info', 1500);
-}
 
 // ── 渲染 Markdown ──────────────────────────────────────────────
 function renderMdPreview(md) {
@@ -593,84 +251,9 @@ window.switchTab = function(tab) {
   document.getElementById('tabSource').classList.toggle('active', tab === 'source');
 };
 
-// ── 章節重生成 ─────────────────────────────────────────────────
-window.regenSection = async function(sectionId) {
-  if (!store.hasApiKey()) { toast('請先設定 API Key', 'error'); return; }
-  if (!currentMd) { toast('請先生成週報', 'error'); return; }
-
-  const tone = document.getElementById('toneSelect').value;
-  const weekStart = document.getElementById('weekSelect').value;
-  setAiStatus('working', `重生成「${sectionId}」章節…`);
-
-  try {
-    const { regenerateSection } = await import('./assets/js/report.js');
-    const newSection = await regenerateSection(sectionId, { weekStart, tone });
-
-    // B-3 修正：以章節 ## 標題為邊界做智能替換，取代原本只 append 的做法
-    // 策略：找到對應 ## 標題後，截取到下一個 ## 或 --- 分隔線之前，整段替換
-    const sectionLabels = {
-      cover: 'VIA Technologies',   // 封面用 # 開頭，特別處理
-      summary: 'Executive Summary',
-      projects: '專案進度',
-      teams: '子組進度',
-      decisions: '決策',
-      next: '下週',
-      risks: 'Risk Register',
-      actions: 'Action Items',
-      milestones: '里程碑',
-    };
-    const label = sectionLabels[sectionId];
-    let merged = currentMd;
-    if (label) {
-      // 找到含關鍵字的 ## 標題行，到下一個 ---\n\n 或字串結尾
-      const headerRe = new RegExp(
-        `((?:^|\\n)(?:#{1,2}[^\\n]*${label}[^\\n]*\\n))([\\s\\S]*?)(?=\\n---\\n|$)`,
-        'i'
-      );
-      if (headerRe.test(merged)) {
-        merged = merged.replace(headerRe, () => '\n' + newSection);
-        currentMd = merged;
-        renderMdPreview(currentMd);
-        toast(`章節「${sectionId}」已更新`, 'success');
-      } else {
-        // 找不到對應章節：append 並提示
-        currentMd = currentMd + '\n\n---\n\n' + newSection;
-        renderMdPreview(currentMd);
-        toast(`章節「${sectionId}」重生成完成（附加在末尾）`, 'info');
-      }
-    } else {
-      currentMd = currentMd + '\n\n---\n\n' + newSection;
-      renderMdPreview(currentMd);
-      toast(`章節「${sectionId}」重生成完成`, 'success');
-    }
-    setAiStatus('done', '重生成完成');
-  } catch (e) {
-    setAiStatus('error', e.message);
-    toast(`重生成失敗：${e.message}`, 'error');
-  }
-};
-
-// ── AI 狀態 helper ─────────────────────────────────────────────
-function setAiStatus(state, text) {
-  const el = document.getElementById('aiStatusEl');
-  el.className = `ai-status ai-status--${state}`;
-  document.getElementById('aiStatusText').textContent = text;
-
-  const spinner = el.querySelector('.ai-status__spinner');
-  if (state === 'working') {
-    if (!spinner) {
-      const sp = document.createElement('div');
-      sp.className = 'ai-status__spinner';
-      el.prepend(sp);
-    }
-  } else {
-    spinner?.remove();
-  }
-}
-
 // ── 匯出 ───────────────────────────────────────────────────────
 document.getElementById('btnExport').addEventListener('click', async () => {
-  if (!currentMd) { toast('請先生成週報', 'error'); return; }
+  if (!currentMd) { toast('請先輸入或貼上週報內容', 'error'); return; }
   const fmt      = document.getElementById('exportFmt').value;
   const weekLabel = document.getElementById('weekBadge').textContent;
   const author   = document.getElementById('author').value.trim();
@@ -694,7 +277,7 @@ document.getElementById('btnExport').addEventListener('click', async () => {
 });
 
 document.getElementById('btnCopyMd').addEventListener('click', async () => {
-  if (!currentMd) { toast('請先生成週報', 'error'); return; }
+  if (!currentMd) { toast('請先輸入或貼上週報內容', 'error'); return; }
   try {
     await navigator.clipboard.writeText(currentMd);
     toast('✅ 已複製 Markdown', 'success');
@@ -704,12 +287,10 @@ document.getElementById('btnCopyMd').addEventListener('click', async () => {
 });
 
 // ── 儲存到雲端（V3）──────────────────────────────────────────
-// U-10 修正：加 btnLoading 防重複點擊，明確顯示上傳中狀態
 document.getElementById('btnSaveCloud')?.addEventListener('click', async (e) => {
-  if (!currentMd) { toast('請先生成週報', 'error'); return; }
+  if (!currentMd) { toast('請先輸入或貼上週報內容', 'error'); return; }
   if (!isBackendAvailable()) { toast('後端未連線', 'error'); return; }
 
-  // B-2 修正：getElementById('weekStart') 元素不存在，改用正確的 'weekSelect'
   const weekStart = document.getElementById('weekSelect').value.replace(/-/g, '');
   const filename  = `Pgm_Weekly_Report_${weekStart}.md`;
   const reset = btnLoading(e.currentTarget, '⏳ 上傳中…');
@@ -724,8 +305,7 @@ document.getElementById('btnSaveCloud')?.addEventListener('click', async (e) => 
   }
 });
 
-
-// mdSource 同步到 preview
+// ── mdSource 同步到 preview ────────────────────────────────────
 document.getElementById('mdSource').addEventListener('input', function() {
   currentMd = this.value;
   if (currentTab === 'source') {
@@ -733,6 +313,7 @@ document.getElementById('mdSource').addEventListener('input', function() {
   }
 });
 </script>
+
 <script>
 // V-3 修正：手機漢堡選單
 (function() {
