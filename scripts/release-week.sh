@@ -98,31 +98,92 @@ print(f'   projects={p}  risks={r}  actions={a}  milestones={m}')
 
 echo ""
 
-# ── 2. 找出 backend/reports/ 中未追蹤或已修改的 .md ────────────────────────
-NEW_REPORTS=()
-while IFS= read -r line; do
-  STATUS="${line:0:2}"
-  FILE="${line:3}"
-  # 只處理 backend/reports/*.md
-  if [[ "${FILE}" == backend/reports/*.md ]]; then
-    NEW_REPORTS+=("${FILE}")
-  fi
-done < <(git status --porcelain)
+# ── 2. 確認本週 MD 週報存在（已提交或新增均可）──────────────────────────────
+info "搜尋 ${WEEK} 的 MD 週報..."
 
-if [[ ${#NEW_REPORTS[@]} -eq 0 ]]; then
-  warn "在 backend/reports/ 中找不到新增或修改的 .md 週報。"
-  echo "     如果週報已在上個 commit 中，這是正常的。"
-  echo "     如果應有新週報但未出現，請確認檔案是否已儲存到 backend/reports/ 目錄。"
+WEEK_DATE_INFO=$(python3 - "${WEEK}" <<'PYEOF'
+import sys, math, datetime, glob, re
+
+week_label  = sys.argv[1]
+week_num    = int(week_label[1:])
+year        = datetime.date.today().year
+jan1        = datetime.date(year, 1, 1)
+js_jan1_day = (jan1.weekday() + 1) % 7   # 與 store.js _weekLabel() 一致
+
+# 枚舉本週所有日期（所有使 _weekLabel(d)==week_num 的日期）
+week_dates = []
+for offset in range(366):
+    d = jan1 + datetime.timedelta(days=offset)
+    w = math.ceil((offset + js_jan1_day + 1) / 7)
+    if w == week_num:
+        week_dates.append(d)
+    elif w > week_num:
+        break
+
+if not week_dates:
+    print(f"ERROR:無法計算 {week_label} 的日期範圍")
+    sys.exit(0)
+
+monday = week_dates[0]
+# 找本週實際的週五（weekday 4），找不到則取最後一天
+friday = next((d for d in week_dates if d.weekday() == 4), week_dates[-1])
+end_of_week = week_dates[-1]
+
+# 搜尋 backend/reports/ 中檔名日期落在本週的 MD 檔
+found_file = None
+for f in sorted(glob.glob("backend/reports/Pgm_Weekly_Report_*.md")):
+    m = re.search(r'(\d{6})\.md$', f)
+    if m:
+        s = m.group(1)
+        try:
+            fdate = datetime.date(2000 + int(s[:2]), int(s[2:4]), int(s[4:6]))
+            if fdate in week_dates:
+                found_file = f
+                break
+        except ValueError:
+            pass
+
+if found_file:
+    print(f"FOUND:{found_file}")
+else:
+    suggested = f"Pgm_Weekly_Report_{friday.strftime('%y%m%d')}.md"
+    print(f"MISSING:{monday.strftime('%Y/%m/%d')}-{end_of_week.strftime('%Y/%m/%d')}:{suggested}")
+PYEOF
+)
+
+REPORT_STATUS="${WEEK_DATE_INFO%%:*}"
+
+# 找不到 → 硬停，給出明確的補救說明
+if [[ "${REPORT_STATUS}" == "MISSING" || "${REPORT_STATUS}" == "ERROR" ]]; then
+  MISSING_INFO="${WEEK_DATE_INFO#*:}"
+  MISSING_DATES="${MISSING_INFO%%:*}"
+  SUGGESTED_NAME="${MISSING_INFO##*:}"
   echo ""
+  echo -e "${RED}❌ 找不到 ${WEEK} 的 MD 週報！${RESET}"
+  echo ""
+  echo -e "   週次範圍：${MISSING_DATES}"
+  echo -e "   預期檔名：${CYAN}backend/reports/${SUGGESTED_NAME}${RESET}"
+  echo ""
+  echo "   請先完成以下任一步驟，再重新執行 release-week.sh："
+  echo "     手動建立：vim backend/reports/${SUGGESTED_NAME}"
+  echo "     AI 輔助  ：python scripts/gen-report.py ${WEEK}  （尚未實作）"
+  echo ""
+  echo "   ⚠ JSON 資料與 MD 週報必須在同一個 commit 中發布。"
+  exit 1
+fi
+
+# 找到 → 確認是否需要加入 commit
+WEEK_REPORT_PATH="${WEEK_DATE_INFO#*:}"
+REPORT_GIT_STATUS=$(git status --porcelain "${WEEK_REPORT_PATH}" 2>/dev/null | cut -c1-2 | tr -d ' ')
+
+if [[ -z "${REPORT_GIT_STATUS}" ]]; then
+  info "本週週報：${WEEK_REPORT_PATH}（已提交，無變動）"
   HAS_REPORT=false
 else
-  info "找到以下週報檔案："
-  for f in "${NEW_REPORTS[@]}"; do
-    echo "   📄 ${f}"
-  done
-  echo ""
+  info "本週週報：${WEEK_REPORT_PATH}（新增/修改，將納入 commit）"
   HAS_REPORT=true
 fi
+echo ""
 
 # ── 3. 確認 JSON 是否已在 git（新檔 or 已修改） ──────────────────────────────
 JSON_GIT_STATUS=$(git status --porcelain "${JSON_PATH}" 2>/dev/null | cut -c1-2 | tr -d ' ')
@@ -136,7 +197,7 @@ elif [[ "${JSON_GIT_STATUS}" == "??" || "${JSON_GIT_STATUS}" == "M" || "${JSON_G
 fi
 
 if [[ "${HAS_REPORT}" == true ]]; then
-  FILES_TO_ADD+=("${NEW_REPORTS[@]}")
+  FILES_TO_ADD+=("${WEEK_REPORT_PATH}")
 fi
 
 # ── 4. 如果沒有任何需要提交的檔案 ────────────────────────────────────────────
