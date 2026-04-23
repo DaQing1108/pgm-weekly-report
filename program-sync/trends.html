@@ -260,7 +260,22 @@ async function renderCharts(snapshots) {
     const done  = s.snap.completedActions || 0;
     return total ? Math.round(done / total * 100) : null;
   });
-  const overdueData = snapshots.map(s => s.snap.overdueActions ?? 0);
+
+  // 從各週 actions 陣列搭配週末日期重新計算逾期數，
+  // 避免依賴快照建立時的 overdueActions（可能因快照建立時間點不同而失真）
+  function _weekEnd(weekStart) {
+    if (!weekStart) return null;
+    const d = new Date(weekStart + 'T12:00:00');
+    d.setDate(d.getDate() + 6);
+    return d.toISOString().split('T')[0];
+  }
+  const overdueData = snapshots.map(s => {
+    const we = _weekEnd(s.weekStart);
+    if (we && s.actions?.length) {
+      return s.actions.filter(a => a.dueDate && a.dueDate <= we && a.status !== 'done').length;
+    }
+    return s.snap.overdueActions ?? 0; // fallback
+  });
 
   // 健康度折線
   if (_chartHealth) _chartHealth.destroy();
@@ -379,6 +394,12 @@ async function renderCharts(snapshots) {
 
 // ── 快照明細表 ──────────────────────────────────────────────────
 function renderSnapshotTable(snapshots) {
+  function _weekEnd(weekStart) {
+    if (!weekStart) return null;
+    const d = new Date(weekStart + 'T12:00:00');
+    d.setDate(d.getDate() + 6);
+    return d.toISOString().split('T')[0];
+  }
   const rows = [...snapshots].reverse().map(s => {
     const snap = s.snap;
     const h = snap.onTrackPct;
@@ -386,6 +407,11 @@ function renderSnapshotTable(snapshots) {
                  : h >= 80  ? 'var(--color-success)'
                  : h >= 60  ? 'var(--color-warning)'
                  : 'var(--color-danger)';
+    // 與圖表一致：用週末日期從 actions 重新計算逾期數
+    const we = _weekEnd(s.weekStart);
+    const overdue = (we && s.actions?.length)
+      ? s.actions.filter(a => a.dueDate && a.dueDate <= we && a.status !== 'done').length
+      : (snap.overdueActions ?? '—');
     return `<tr>
       <td style="font-weight:600;">${s.weekLabel}</td>
       <td>${s.weekStart || '—'}</td>
@@ -393,7 +419,7 @@ function renderSnapshotTable(snapshots) {
       <td>${snap.totalProjects ?? '—'}</td>
       <td style="color:var(--color-danger);">${snap.highRisks ?? '—'}</td>
       <td style="color:var(--color-warning);">${snap.mediumRisks ?? '—'}</td>
-      <td>${snap.overdueActions ?? '—'}</td>
+      <td>${overdue}</td>
       <td>${snap.completedActions ?? '—'} / ${snap.totalActions ?? '—'}</td>
     </tr>`;
   }).join('');

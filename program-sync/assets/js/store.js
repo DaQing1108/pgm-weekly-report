@@ -227,7 +227,15 @@ export const store = {
    * @param {object} [overrides] - 額外欄位
    */
   createSnapshot(weekStart, overrides = {}) {
-    const stats = this.stats();
+    // 使用該週週末（weekStart + 6天）作為逾期判定基準，
+    // 確保無論何時建立快照，overdueActions 都反映「該週內」的逾期狀況
+    let weekEndDate;
+    if (weekStart) {
+      const d = new Date(weekStart + 'T12:00:00');
+      d.setDate(d.getDate() + 6);
+      weekEndDate = d.toISOString().split('T')[0];
+    }
+    const stats = this.stats(weekEndDate);
     const risks = _get('risks');
     const actions = _get('actions');
 
