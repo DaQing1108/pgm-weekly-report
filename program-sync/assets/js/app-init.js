@@ -87,10 +87,22 @@ export async function appInit() {
       //   若本機較新（例如 Railway 重新部署後 git 舊版本把 _savedAt 清空），
       //   保留本機資料並立即 push 到後端，避免新增資料消失。
       const serverTs = data._savedAt || '';
+      // P2-2 修正：跨所有實體（projects/actions/risks/milestones 等）取最新 _updatedAt
+      //   原本只比較 projects，導致 actions/risks/milestones 有修改時仍被後端覆蓋
       const localTs  = (() => {
         try {
-          const projs = JSON.parse(localStorage.getItem('pgm_sync_projects') || '[]');
-          const times = projs.map(p => p._updatedAt || '').filter(Boolean).sort();
+          const KEYS = ['projects','actions','risks','milestones','snapshots','drafts','members'];
+          const times = [];
+          KEYS.forEach(k => {
+            const raw = localStorage.getItem(`pgm_sync_${k}`);
+            if (!raw) return;
+            const arr = JSON.parse(raw);
+            if (!Array.isArray(arr)) return;
+            arr.forEach(item => {
+              if (item._updatedAt) times.push(item._updatedAt);
+            });
+          });
+          times.sort();
           return times.length ? times[times.length - 1] : '';
         } catch { return ''; }
       })();
