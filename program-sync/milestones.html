@@ -210,11 +210,32 @@ function renderTimeline() {
     const [y, mo] = month.split('-');
     html += `<div class="section-heading" style="margin-bottom:var(--space-md);">${y} 年 ${parseInt(mo)} 月</div>`;
 
+    const todayInThisMonth = (month === today.substring(0, 7));
+    let todayLineInserted  = false;
+
+    const _todayMarker = () => {
+      const mm = parseInt(today.slice(5, 7)), dd = parseInt(today.slice(8, 10));
+      return `<div class="today-marker"><span class="today-marker__label">▶ 今天 ${mm}/${dd}</span></div>`;
+    };
+
     list.forEach(m => {
+      // 今日橘色虛線：第一個日期 > today 的里程碑之前插入
+      if (todayInThisMonth && !todayLineInserted && m.date > today) {
+        html += _todayMarker();
+        todayLineInserted = true;
+      }
+
       const isPast   = m.date < today;
       const isToday  = m.date === today;
-      const msClass  = isPast ? 'milestone--done' : isToday ? 'milestone--today' : 'milestone--future';
-      const badge    = isPast ? '✅' : isToday ? '🎯' : '📅';
+      // status 優先：delayed → ⚠️；done → ✅（不受日期影響）；其餘按日期推算
+      const msClass  = m.status === 'delayed'                 ? 'milestone--delayed'
+                     : (m.status === 'done' || isPast)        ? 'milestone--done'
+                     : isToday                                ? 'milestone--today'
+                     :                                          'milestone--future';
+      const badge    = m.status === 'delayed'                 ? '⚠️'
+                     : (m.status === 'done' || isPast)        ? '✅'
+                     : isToday                                ? '🎯'
+                     :                                          '📅';
       const teamColor = TEAM_COLORS[m.team] || 'var(--color-text-tertiary)';
 
       html += `
@@ -246,12 +267,9 @@ function renderTimeline() {
         </div>`;
     });
 
-    // 今日橘色虛線（如果今天在此月份）
-    if (month === today.substring(0, 7)) {
-      const afterToday = list.find(m => m.date > today);
-      if (!afterToday) {
-        // 插入今日線在月份末尾
-      }
+    // 今日橘色虛線：若此月所有里程碑均已過，線插在月份末尾
+    if (todayInThisMonth && !todayLineInserted) {
+      html += _todayMarker();
     }
   });
 
@@ -413,6 +431,37 @@ renderAll();
 /* U-7 修正：可拖曳里程碑顯示 grab 游標提示 */
 .milestone[draggable="true"] { cursor: grab; }
 .milestone[draggable="true"]:active { cursor: grabbing; }
+
+/* ── milestone--delayed：延遲里程碑（橘黃邊框 + 背景）──────── */
+.milestone--delayed::before {
+  background: var(--color-warning, #e4a23c);
+  border-color: var(--color-warning, #e4a23c);
+  box-shadow: 0 0 0 3px var(--color-warning-bg, #fff8e1);
+}
+.milestone--delayed .milestone__date { color: var(--color-warning, #e4a23c); }
+.milestone--delayed .milestone__name { color: var(--color-warning, #e4a23c); }
+
+/* ── .today-marker：今日橘色虛線分隔線 ─────────────────────── */
+.today-marker {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed var(--color-warning, #e4a23c);
+  margin: 2px 0 var(--space-xl) -20px;
+  opacity: 0.85;
+}
+.today-marker__label {
+  position: absolute;
+  top: -9px;
+  left: 20px;
+  background: var(--color-bg-primary);
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-warning, #e4a23c);
+  letter-spacing: 0.04em;
+  line-height: 18px;
+  white-space: nowrap;
+}
 
 /* 歷史週唯讀模式 */
 body.is-history-readonly #btnAddMs,

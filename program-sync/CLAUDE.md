@@ -169,8 +169,12 @@ program-sync/
 
 #### 里程碑（milestones.html）
 - 垂直時間軸，月份分組標題
-- 今日橘色虛線標記
-- 里程碑狀態色：已完成（綠）/ 今日（橘）/ 未來（藍）
+- 今日橘色虛線分隔線（`.today-marker`）：自動插入今日前後節點之間
+- 里程碑節點顯示邏輯（`status` 優先，日期為輔）：
+  - `status='delayed'` → ⚠️ `.milestone--delayed`（橘黃，無論日期）
+  - `status='done'` 或 `date < today` → ✅ `.milestone--done`（綠）
+  - `date === today` → 🎯 `.milestone--today`（橘）
+  - `date > today`（且非 done/delayed）→ 📅 `.milestone--future`（藍）
 - 點擊展開關聯詳情與操作按鈕
 - HTML5 Drag & Drop（僅限同天排序，交換 `_order` 欄位）
 - 右欄月份概覽 + 子組分佈統計
