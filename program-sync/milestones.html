@@ -264,7 +264,6 @@ function renderTimeline() {
           <div class="milestone__name">${badge} ${m.name}</div>
           <div class="milestone__meta">
             <span style="color:${teamColor};font-weight:600;">${TEAM_NAMES[m.team] || m.team}</span>
-            ${m.project ? ` · ${m.project}` : ''}
           </div>
           <div class="milestone__detail" id="ms-${m.id}">
             <!-- 名稱 + 日期編輯列 -->

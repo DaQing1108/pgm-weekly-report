@@ -119,7 +119,6 @@ import { store }   from './assets/js/store.js';
 import { appInit, setSessionWeek } from './assets/js/app-init.js';
 import { listWeeks } from './assets/js/api.js';
 import { toast, renderBadge, formatDate, generateId, modal, isOverdue, confirm } from './assets/js/ui.js';
-import { TEAMS } from './assets/data/schema.js';
 
 (async () => {
   const currentLabel = await appInit();
@@ -448,9 +447,10 @@ window.editAction = function(id) {
 
   const members  = store.sortBy('members', 'name', 'asc');
 
-  // Objectives 固定清單（與 Dashboard 專案進度總覽篩選一致）
+  // 從 Dashboard 專案清單動態載入
+  const allProjects = store.getAll('projects');
   const projOpts = `<option value="">— 無 —</option>` +
-    TEAMS.map(t => `<option value="${t.name}" ${a.project === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
+    allProjects.map(p => `<option value="${p.name}" ${a.project === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
 
   const ownerOpts = `<option value="">— 選擇 —</option>` +
     members.map(m => `<option value="${m.name}" ${a.owner === m.name ? 'selected' : ''}>${m.name}</option>`).join('');
@@ -478,7 +478,7 @@ window.editAction = function(id) {
           <input class="inp" id="eTask" value="${a.task.replace(/"/g,'&quot;')}" placeholder="任務描述">
         </div>
         <div class="inp-group">
-          <label class="inp-label" style="color:var(--color-info);font-weight:700;">🗂 Objectives</label>
+          <label class="inp-label">🔗 關聯專案</label>
           <select class="inp" id="eProject">${projOpts}</select>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);">
