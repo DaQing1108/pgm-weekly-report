@@ -63,7 +63,7 @@
         <span>Risks</span>
       </div>
       <h1 class="page-header__title">風險管理</h1>
-      <p class="page-header__sub">追蹤並管理所有開放中的專案風險</p>
+      <p class="page-header__sub">追蹤並管理所有尚未處理的專案風險</p>
     </div>
     <div class="page-header__right">
       <button class="btn btn-primary" id="btnAddRisk">+ 新增風險</button>
@@ -103,7 +103,7 @@
     <button class="filter-chip" data-level="low">🟢 低風險</button>
     <div style="flex:1;"></div>
     <select class="inp" id="filterStatus" style="width:130px;">
-      <option value="open">開放中</option>
+      <option value="open">尚未處理</option>
       <option value="in-progress">處理中</option>
       <option value="all">全部狀態</option>
       <option value="closed">已關閉</option>
@@ -285,7 +285,7 @@ function renderList() {
       <div class="risk-row__date">${r.dueDate ? formatDate(r.dueDate) : '—'}</div>
       <div class="risk-row__status">
         <select class="inp" style="padding:3px;font-size:var(--font-size-xs);" data-id="${r.id}" onclick="event.stopPropagation()" onchange="changeStatus('${r.id}', this.value, this)">
-          <option value="open" ${r.status==='open'?'selected':''}>📌 開放</option>
+          <option value="open" ${r.status==='open'?'selected':''}>📌 尚未處理</option>
           <option value="in-progress" ${r.status==='in-progress'?'selected':''}>🔄 處理中</option>
           <option value="closed" ${r.status==='closed'?'selected':''}>✅ 關閉</option>
         </select>

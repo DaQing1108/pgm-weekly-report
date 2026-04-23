@@ -306,7 +306,7 @@ function _genRiskRegister({ risks }) {
   sorted.forEach(r => {
     const desc = r.description.substring(0, 50) + (r.description.length > 50 ? '…' : '');
     const due  = r.dueDate ? formatDate(r.dueDate) : 'TBD';
-    const stat = r.status === 'closed' ? '✅ 關閉' : r.status === 'in-progress' ? '🔄 處理中' : '📌 開放';
+    const stat = r.status === 'closed' ? '✅ 關閉' : r.status === 'in-progress' ? '🔄 處理中' : '📌 尚未處理';
     md += `| ${levelLabel[r.level] || r.level} | ${desc} | ${r.project || '—'} | ${r.owner || '—'} | ${due} | ${stat} |\n`;
   });
 
