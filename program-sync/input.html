@@ -357,6 +357,13 @@ import { MEMBERS, TEAMS } from './assets/data/schema.js';
 (async () => {
   await appInit();
   window.setProgressMode('auto');
+  // ── 初始渲染：必須在 appInit 完成（W17 資料載入 store）後才執行 ──
+  loadProjectSelect();
+  renderRecentList();
+  initMembers();
+  populateOwnerSelects();
+  renderMemberList();
+  initOwnerSearch();
 })();
 
 const TEAM_NAMES = {
@@ -567,8 +574,6 @@ function loadProjectSelect() {
     sel.appendChild(og);
   });
 }
-
-loadProjectSelect();
 
 // ── 專案選擇變更 ───────────────────────────────────────────────
 document.getElementById('qProject').addEventListener('change', function() {
@@ -844,8 +849,6 @@ function renderRecentList() {
       <span class="text-xs text-tertiary">${relativeTime(p._updatedAt)}</span>
     </div>`).join('');
 }
-renderRecentList();
-
 
 window.addEventListener('store:updated', e => {
   renderRecentList();
@@ -1003,11 +1006,6 @@ window.deleteMember = async function(id) {
   store.delete('members', id);
   toast('已刪除', 'success');
 };
-
-initMembers();
-populateOwnerSelects();
-renderMemberList();
-initOwnerSearch();
 
 // ── U-29 修正：Enter 鍵快速儲存（單行輸入欄）────────────────────
 ['qNewProjName', 'qEditProjName', 'qRiskDesc'].forEach(id => {
