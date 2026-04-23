@@ -403,7 +403,7 @@
 /* ── Risk Row ────────────────────────────────────────────────── */
 .risk-row {
   display: grid;
-  grid-template-columns: 80px 1fr 100px 90px 90px;
+  grid-template-columns: 80px 1fr 100px 90px 130px;
   align-items: center;
   gap: var(--space-md);
   padding: var(--space-md) var(--space-lg);
