@@ -227,21 +227,24 @@ function renderPanels() {
         const diff = (new Date(a.dueDate) - new Date(today)) / 86400000;
         urgent = diff >= 0 && diff <= 3;
       }
-      let rowClass = late ? 'a-late' : urgent ? 'a-urgent' : '';
+      let rowClass = late ? 'a-late overdue' : urgent ? 'a-urgent' : '';
       if (isDone) rowClass += ' is-done';
       
       const dueStyle = late ? 'color:var(--color-danger);font-weight:600;' : urgent ? 'color:var(--color-warning);font-weight:600;' : '';
-      const icon = late ? ' ⚠️' : urgent ? ' ⏳' : '';
+      const icon = late ? ' 🔥' : urgent ? ' ⏳' : '';
 
       return `
         <div class="action-row ${rowClass.trim()}" data-id="${a.id}" id="arow-${a.id}">
           <div class="action-row__drag">⋮⋮</div>
-          <div class="action-row__task">
+          <div class="action-row__task inline-edit">
             <span>${a.task}</span>
             ${a.project ? `<span class="badge badge-neutral" style="margin-left:4px;font-size:10px;">${a.project.substring(0,15)}</span>` : ''}
           </div>
-          <div class="action-row__owner text-xs text-secondary">${a.owner || '—'}</div>
-          <div class="action-row__due text-xs" style="${dueStyle}">
+          <div class="action-row__owner text-xs text-secondary inline-edit">
+            <span class="avatar" style="width:18px;height:18px;font-size:9px;margin-right:4px;">${a.owner ? a.owner.substring(0,1).toUpperCase() : '?'}</span>
+            ${a.owner || '—'}
+          </div>
+          <div class="action-row__due text-xs inline-edit" style="${dueStyle}">
             ${a.dueDate ? formatDate(a.dueDate) : '—'}
             ${icon}
           </div>

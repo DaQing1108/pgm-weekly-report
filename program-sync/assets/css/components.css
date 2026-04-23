@@ -1608,3 +1608,172 @@ select.inp {
   font-size: 10px;
   color: var(--color-text-tertiary);
 }
+
+/* ============================================================
+   UX/UI Upgrade v4 - 7 Item Features
+   ============================================================ */
+
+/* 1. Live Indicators (Pulse) */
+.pulse-dot {
+  position: relative;
+}
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  opacity: 0.7;
+}
+.project-row__dot--on-track.pulse-dot::after { background-color: var(--color-success); }
+.project-row__dot--at-risk.pulse-dot::after { background-color: var(--color-warning); }
+.project-row__dot--behind.pulse-dot::after { background-color: var(--color-danger); }
+
+@keyframes ping {
+  75%, 100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* 2. Quick Input Stepper */
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xl);
+  position: relative;
+}
+.stepper::before {
+  content: "";
+  position: absolute;
+  top: 50%; left: 0; right: 0;
+  height: 2px;
+  background: var(--color-border-default);
+  z-index: 0;
+}
+.step {
+  position: relative;
+  z-index: 1;
+  background: var(--color-bg-primary);
+  padding: 0 var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-tertiary);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+.step.active { color: var(--color-primary); }
+.step__circle {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border-default);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+}
+.step.active .step__circle {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.draft-saved {
+  position: fixed; bottom: 20px; right: 20px;
+  background: var(--color-success); color: white;
+  padding: 8px 16px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 600;
+  box-shadow: var(--shadow-md);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s; z-index: 1000;
+}
+.draft-saved.show { opacity: 1; }
+
+/* 3. Kanban Board (Risks) */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+.kanban-col {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  min-height: 400px;
+}
+.kanban-col__header {
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+  display: flex; justify-content: space-between;
+}
+.kanban-card {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md);
+  margin-bottom: var(--space-sm);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  transition: transform 0.2s;
+}
+.kanban-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+/* 4. Action Items (Overdue & Inline) */
+.action-item.overdue {
+  background-color: rgba(220, 38, 38, 0.05);
+  border-left-color: var(--color-danger);
+}
+.inline-edit:hover {
+  background-color: var(--color-bg-secondary);
+  cursor: text;
+  border-radius: 4px;
+  padding: 0 4px;
+  margin: 0 -4px;
+}
+
+/* 5. Timeline (Milestones) */
+.timeline {
+  border-left: 2px solid var(--color-border-default);
+  padding-left: var(--space-lg);
+  margin-left: var(--space-md);
+}
+.timeline-item {
+  position: relative;
+  padding-bottom: var(--space-xl);
+}
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--space-lg) * -1 - 6px);
+  top: 4px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid var(--color-bg-primary);
+}
+.timeline-item.passed::before { background: var(--color-success); }
+.timeline-item.today::before { background: var(--color-warning); box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2); }
+
+/* 6. Chart Animations (Trends) */
+.chart-animate {
+  animation: slideUpFade 0.6s ease-out forwards;
+  opacity: 0; transform: translateY(20px);
+}
+@keyframes slideUpFade {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 7. Resources (Heatmap & Avatar Stack) */
+.avatar-group {
+  display: flex;
+  align-items: center;
+}
+.avatar-group .avatar {
+  border: 2px solid var(--color-bg-primary);
+  margin-left: -8px;
+}
+.avatar-group .avatar:first-child { margin-left: 0; }
+
+.resource-hot {
+  background-color: rgba(220, 38, 38, 0.1) !important;
+  border: 1px solid var(--color-danger) !important;
+}

@@ -88,7 +88,7 @@
   <div id="chartsSection" style="display:none;">
     <div class="main-grid" style="margin-bottom:var(--space-xl);">
       <!-- 健康度折線圖 -->
-      <div class="panel">
+      <div class="panel chart-animate">
         <div class="panel__header">
           <span class="panel__title">🟢 整體健康度趨勢</span>
           <span class="text-xs text-secondary">On Track %</span>
@@ -98,7 +98,7 @@
         </div>
       </div>
       <!-- 風險堆疊長條圖 -->
-      <div class="panel">
+      <div class="panel chart-animate" style="animation-delay:0.1s;">
         <div class="panel__header">
           <span class="panel__title">🔴 風險分佈趨勢</span>
           <span class="text-xs text-secondary">High / Medium / Low</span>
@@ -110,7 +110,7 @@
     </div>
 
     <!-- Action 完成率（全寬） -->
-    <div class="panel" style="margin-bottom:var(--space-xl);">
+    <div class="panel chart-animate" style="margin-bottom:var(--space-xl);animation-delay:0.2s;">
       <div class="panel__header">
         <span class="panel__title">✅ Action 完成率趨勢</span>
         <span class="text-xs text-secondary">完成率 % / 逾期數</span>
@@ -121,7 +121,7 @@
     </div>
 
     <!-- 資源熱區圖 (Bottleneck Indicator) -->
-    <div class="panel" style="margin-bottom:var(--space-xl);">
+    <div class="panel chart-animate" style="margin-bottom:var(--space-xl);animation-delay:0.3s;">
       <div class="panel__header">
         <span class="panel__title">👥 資源瓶頸熱區 (單點故障觀測)</span>
         <span class="text-xs text-secondary" id="resourceSubtitle">Top 5 未完成任務 — 最新一週</span>

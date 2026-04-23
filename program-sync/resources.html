@@ -314,7 +314,8 @@ function renderQuarterly() {
     ? entries.map(e => {
         const mboLines = (e.mbo||'').split('\n');
         const mboPreview = mboLines.slice(0,3).join('\n') + (mboLines.length > 3 ? '\n…' : '');
-        return `<tr>
+        const isHot = e.total >= 40;
+        return `<tr class="${isHot ? 'resource-hot' : ''}">
           <td><span class="font-600">${e.productLine}</span></td>
           <td class="num">${e.cn||0}</td>
           <td class="num">${e.tw||0}</td>

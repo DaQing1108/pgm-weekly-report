@@ -73,6 +73,13 @@
           <span class="panel__title">更新專案進度</span>
         </div>
         <div class="panel__body">
+          <!-- V4 Stepper -->
+          <div class="stepper">
+            <div class="step active" onclick="document.querySelector('.stack').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;"><div class="step__circle">1</div>基本狀態</div>
+            <div class="step" onclick="document.getElementById('qStatus').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;"><div class="step__circle">2</div>進度更新</div>
+            <div class="step" onclick="document.getElementById('qRisksHeader').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;"><div class="step__circle">3</div>風險提報</div>
+            <div class="step" onclick="document.getElementById('qActionsHeader').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;"><div class="step__circle">4</div>行動項目</div>
+          </div>
           <div class="stack">
 
             <!-- 專案選擇 -->

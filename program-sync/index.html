@@ -519,7 +519,7 @@ function renderProjects(filter) {
 
     return `
     <div class="project-row project-row--${p.status} ${overdue ? 'a-late' : urgent ? 'a-urgent' : ''}" data-id="${p.id}" onclick="toggleDetail('${p.id}')">
-      <div class="project-row__dot project-row__dot--${p.status}"></div>
+      <div class="project-row__dot project-row__dot--${p.status} ${p.status !== 'paused' ? 'pulse-dot' : ''}"></div>
       <div class="project-row__name">${p.name}</div>
       <span class="badge badge-neutral text-xs">${TEAM_NAMES[p.team] || p.team}</span>
       ${overdue ? '<span class="badge badge-danger text-xs">⚠️ 逾期</span>' : urgent ? '<span class="badge badge-warning text-xs">⏳ 即將到期</span>' : ''}

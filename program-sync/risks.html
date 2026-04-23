@@ -267,41 +267,72 @@ function renderList() {
   }
 
   const levelLabel = { high:'🔴 高', medium:'🟡 中', low:'🟢 低' };
-  const statusLabel = { open:'📌 開放', 'in-progress':'🔄 處理中', closed:'✅ 關閉' };
+  const statusLabel = { open:'📌 尚未處理', 'in-progress':'🔄 處理中', closed:'✅ 已關閉' };
+  
+  // 分組邏輯
+  const cols = [
+    { id: 'open', title: '📌 尚未處理' },
+    { id: 'in-progress', title: '🔄 處理中' },
+    { id: 'closed', title: '✅ 已關閉' }
+  ];
 
-  el.innerHTML = risks.map(r => {
-    const overdue = r.dueDate && r.dueDate < new Date().toISOString().split('T')[0] && r.status !== 'closed';
-    return `
-    <div class="risk-row" data-id="${r.id}" onclick="toggleRiskDetail('${r.id}')">
-      <div class="risk-row__level risk-row__level--${r.level}">${levelLabel[r.level] || r.level}</div>
-      <div class="risk-row__desc">
-        ${r.description.substring(0,80)}${r.description.length>80?'…':''}
-        ${r.project ? `<span class="badge badge-neutral" style="margin-left:4px;">${r.project}</span>` : ''}
-        ${overdue ? `<span class="badge badge-danger" style="margin-left:4px;">逾期</span>` : ''}
+  let boardHtml = `<div class="kanban-board" style="grid-template-columns: repeat(3, 1fr);">`;
+  
+  cols.forEach(col => {
+    const colRisks = risks.filter(r => r.status === col.id);
+    boardHtml += `<div class="kanban-col">
+      <div class="kanban-col__header">
+        <span>${col.title}</span>
+        <span class="badge badge-neutral">${colRisks.length}</span>
       </div>
-      <div class="risk-row__owner">${r.owner || '—'}</div>
-      <div class="risk-row__date">${r.dueDate ? formatDate(r.dueDate) : '—'}</div>
-      <div class="risk-row__status">
-        <select class="inp" style="padding:3px;font-size:var(--font-size-xs);" data-id="${r.id}" onclick="event.stopPropagation()" onchange="changeStatus('${r.id}', this.value, this)">
-          <option value="open" ${r.status==='open'?'selected':''}>📌 尚未處理</option>
-          <option value="in-progress" ${r.status==='in-progress'?'selected':''}>🔄 處理中</option>
-          <option value="closed" ${r.status==='closed'?'selected':''}>✅ 關閉</option>
-        </select>
-      </div>
-    </div>
-    <div class="risk-row__detail" id="rdetail-${r.id}" style="display:none;padding:var(--space-md) var(--space-lg);background:var(--color-bg-secondary);border-radius:0 0 var(--radius-md) var(--radius-md);margin-bottom:var(--space-sm);border:1px solid var(--color-border-default);border-top:none;">
-      <div class="stack-sm">
-        <p class="text-sm"><strong>完整描述：</strong>${r.description}</p>
-        ${r.mitigation ? `<p class="text-sm"><strong>因應方案：</strong>${r.mitigation}</p>` : ''}
-        <div style="display:flex;gap:var(--space-sm);align-items:center;">
-          <!-- U-6 修正：標籤改為直覺方向（🔺升高嚴重度 / 🔻降低嚴重度），並加 title 說明 -->
-          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','up')" title="提高風險等級" style="padding:4px 10px;">🔺 升高</button>
-          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','down')" title="降低風險等級" style="padding:4px 10px;">🔻 降低</button>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRisk('${r.id}')" style="margin-left:auto;padding:4px 10px;">🗑 刪除</button>
+      <div class="kanban-col__body">`;
+      
+    boardHtml += colRisks.map(r => {
+      const overdue = r.dueDate && r.dueDate < new Date().toISOString().split('T')[0] && r.status !== 'closed';
+      return `
+      <div class="kanban-card" data-id="${r.id}" onclick="toggleRiskDetail('${r.id}')">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span class="risk-row__level risk-row__level--${r.level}" style="font-size:11px; padding:2px 6px;">${levelLabel[r.level] || r.level}</span>
+          ${overdue ? `<span class="badge badge-danger" style="font-size:10px;">逾期</span>` : ''}
         </div>
-      </div>
-    </div>`;
-  }).join('');
+        <div class="risk-row__desc" style="font-size:13px; margin-bottom:8px;">
+          ${r.description.substring(0,60)}${r.description.length>60?'…':''}
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--color-text-tertiary);">
+          <div class="avatar-group inline-edit" style="gap:4px;">
+            <span class="avatar" style="width:20px;height:20px;font-size:10px;">${r.owner ? r.owner.substring(0,1).toUpperCase() : '?'}</span>
+            ${r.owner || '—'}
+          </div>
+          <div class="inline-edit">
+            ${r.dueDate ? formatDate(r.dueDate) : '—'}
+          </div>
+        </div>
+        <div class="risk-row__detail" id="rdetail-${r.id}" style="display:none; margin-top:12px; padding-top:12px; border-top:1px dashed var(--color-border-default);">
+          <div class="stack-sm">
+            <p class="text-sm"><strong>完整描述：</strong>${r.description}</p>
+            ${r.mitigation ? `<p class="text-sm"><strong>因應方案：</strong>${r.mitigation}</p>` : ''}
+            <div style="margin-top:8px;">
+              <select class="inp" style="padding:3px;font-size:var(--font-size-xs);width:100%;" data-id="${r.id}" onclick="event.stopPropagation()" onchange="changeStatus('${r.id}', this.value, this)">
+                <option value="open" ${r.status==='open'?'selected':''}>📌 尚未處理</option>
+                <option value="in-progress" ${r.status==='in-progress'?'selected':''}>🔄 處理中</option>
+                <option value="closed" ${r.status==='closed'?'selected':''}>✅ 關閉</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:var(--space-sm);align-items:center;margin-top:8px;">
+              <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','up')" title="提高風險等級" style="padding:4px 8px;">🔺</button>
+              <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','down')" title="降低風險等級" style="padding:4px 8px;">🔻</button>
+              <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRisk('${r.id}')" style="margin-left:auto;padding:4px 8px;">🗑</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    
+    boardHtml += `</div></div>`;
+  });
+  
+  boardHtml += `</div>`;
+  el.innerHTML = boardHtml;
 }
 
 window.toggleRiskDetail = function(id) {

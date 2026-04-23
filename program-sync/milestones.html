@@ -215,7 +215,7 @@ function renderTimeline() {
     groups[month].push(m);
   });
 
-  let html = '<div class="milestone-timeline">';
+  let html = '<div class="timeline">';
 
   Object.entries(groups).forEach(([month, list]) => {
     const [y, mo] = month.split('-');
@@ -239,10 +239,10 @@ function renderTimeline() {
       const isPast   = m.date < today;
       const isToday  = m.date === today;
       // status 優先：delayed → ⚠️；done → ✅（不受日期影響）；其餘按日期推算
-      const msClass  = m.status === 'delayed'                 ? 'milestone--delayed'
-                     : (m.status === 'done' || isPast)        ? 'milestone--done'
-                     : isToday                                ? 'milestone--today'
-                     :                                          'milestone--future';
+      let baseClass  = m.status === 'delayed'                 ? 'milestone--delayed'
+                     : (m.status === 'done' || isPast)        ? 'passed'
+                     : isToday                                ? 'today'
+                     :                                          '';
       const badge    = m.status === 'delayed'                 ? '⚠️'
                      : (m.status === 'done' || isPast)        ? '✅'
                      : isToday                                ? '🎯'
@@ -250,7 +250,7 @@ function renderTimeline() {
       const teamColor = TEAM_COLORS[m.team] || 'var(--color-text-tertiary)';
 
       html += `
-        <div class="milestone ${msClass}"
+        <div class="timeline-item milestone ${baseClass}"
              draggable="true"
              data-id="${m.id}"
              data-date="${m.date}"
