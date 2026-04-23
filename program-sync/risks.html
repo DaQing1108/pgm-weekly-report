@@ -97,19 +97,18 @@
   <!-- 篩選工具列 -->
   <div class="filter-bar" id="filterBar" style="margin-bottom:var(--space-lg);">
     <span class="text-sm text-secondary">篩選：</span>
-    <button class="filter-chip active" data-level="all">全部</button>
-    <button class="filter-chip" data-level="high">🔴 高風險</button>
-    <button class="filter-chip" data-level="medium">🟡 中風險</button>
-    <button class="filter-chip" data-level="low">🟢 低風險</button>
+    <button class="filter-chip level-chip active" data-level="all">全部</button>
+    <button class="filter-chip level-chip" data-level="high">🔴 高風險</button>
+    <button class="filter-chip level-chip" data-level="medium">🟡 中風險</button>
+    <button class="filter-chip level-chip" data-level="low">🟢 低風險</button>
+    <span style="color:var(--color-border-default);align-self:center;margin:0 2px;">│</span>
+    <button class="filter-chip status-chip active" data-status="open">📌 尚未處理</button>
+    <button class="filter-chip status-chip" data-status="in-progress">🔄 處理中</button>
+    <button class="filter-chip status-chip" data-status="closed">✅ 已關閉</button>
+    <button class="filter-chip status-chip" data-status="all">全部狀態</button>
     <div style="flex:1;"></div>
-    <select class="inp" id="filterStatus" style="width:130px;">
-      <option value="open">尚未處理</option>
-      <option value="in-progress">處理中</option>
-      <option value="all">全部狀態</option>
-      <option value="closed">已關閉</option>
-    </select>
     <select class="inp" id="filterTeam" style="width:130px;">
-      <option value="all">全部子組</option>
+      <option value="all">Objectives</option>
       <option value="media-agent">Media Agent</option>
       <option value="learnmode">LearnMode</option>
       <option value="chuangzaoli">創造栗</option>
@@ -224,9 +223,9 @@ import { toast, renderBadge, formatDate, generateId, confirm } from './assets/js
   }
 })();
 
-let filterLevel  = 'all';
-let filterStatus = 'open';
-let filterTeam   = 'all';
+let filterLevel    = 'all';
+let filterStatuses = new Set(['open']); // 多選：'open'|'in-progress'|'closed'|'all'
+let filterTeam     = 'all';
 
 function renderAll() {
   renderStats();
@@ -248,9 +247,9 @@ function renderStats() {
 function renderList() {
   let risks = store.getAll('risks');
 
-  if (filterLevel  !== 'all')  risks = risks.filter(r => r.level === filterLevel);
-  if (filterStatus !== 'all')  risks = risks.filter(r => r.status === filterStatus);
-  if (filterTeam   !== 'all')  risks = risks.filter(r => r.team === filterTeam);
+  if (filterLevel  !== 'all')         risks = risks.filter(r => r.level === filterLevel);
+  if (!filterStatuses.has('all'))     risks = risks.filter(r => filterStatuses.has(r.status));
+  if (filterTeam   !== 'all')         risks = risks.filter(r => r.team === filterTeam);
 
   // 排序：高→中→低
   const levelOrder = { high:0, medium:1, low:2 };
@@ -399,16 +398,34 @@ function generateRiskSuggestions(risks) {
 
 // ── 篩選事件 ───────────────────────────────────────────────────
 document.getElementById('filterBar').addEventListener('click', e => {
-  const chip = e.target.closest('.filter-chip');
-  if (!chip) return;
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  chip.classList.add('active');
-  filterLevel = chip.dataset.level;
-  renderList();
-});
-
-document.getElementById('filterStatus').addEventListener('change', function() {
-  filterStatus = this.value;
+  // 等級 chips（單選）
+  const levelChip = e.target.closest('.level-chip');
+  if (levelChip) {
+    document.querySelectorAll('.level-chip').forEach(c => c.classList.remove('active'));
+    levelChip.classList.add('active');
+    filterLevel = levelChip.dataset.level;
+    renderList();
+    return;
+  }
+  // 狀態 chips（多選）
+  const statusChip = e.target.closest('.status-chip');
+  if (!statusChip) return;
+  const status = statusChip.dataset.status;
+  if (status === 'all') {
+    filterStatuses = new Set(['all']);
+  } else {
+    filterStatuses.delete('all');
+    if (filterStatuses.has(status)) {
+      filterStatuses.delete(status);
+      if (filterStatuses.size === 0) filterStatuses = new Set(['all']); // 若全取消則退回顯示全部
+    } else {
+      filterStatuses.add(status);
+    }
+  }
+  document.querySelectorAll('.status-chip').forEach(c => {
+    const isAll = filterStatuses.has('all');
+    c.classList.toggle('active', isAll ? c.dataset.status === 'all' : filterStatuses.has(c.dataset.status));
+  });
   renderList();
 });
 
