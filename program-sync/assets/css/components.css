@@ -378,7 +378,7 @@
 /* ── Action Row ──────────────────────────────────────────────── */
 .action-row {
   display: grid;
-  grid-template-columns: 1fr 100px 100px 90px;
+  grid-template-columns: 16px 1fr 100px 100px 90px; /* Added 16px for drag handle */
   align-items: center;
   gap: var(--space-md);
   padding: var(--space-sm) var(--space-md);
@@ -386,11 +386,35 @@
   border: 1px solid var(--color-border-default);
   background: var(--color-bg-primary);
   margin-bottom: var(--space-xs);
-  transition: box-shadow 0.12s;
+  transition: transform 0.2s, opacity 0.3s, box-shadow 0.2s, border-color 0.2s;
 }
 
 .action-row:hover {
   box-shadow: var(--shadow-sm);
+  border-color: var(--color-info);
+}
+
+.action-row.is-done {
+  opacity: 0.5;
+}
+.action-row.is-done .action-row__task {
+  text-decoration: line-through;
+  color: var(--color-text-tertiary);
+}
+
+.action-row__drag {
+  cursor: grab;
+  color: var(--color-border-default);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+.action-row:hover .action-row__drag {
+  color: var(--color-text-tertiary);
+}
+.action-row__drag:active {
+  cursor: grabbing;
 }
 
 .a-late {

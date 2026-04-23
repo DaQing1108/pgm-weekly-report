@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="assets/css/base.css">
   <link rel="stylesheet" href="assets/css/components.css">
   <link rel="stylesheet" href="assets/css/layout.css">
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 </head>
 <body>
 
@@ -92,6 +93,20 @@
     </div>
   </div>
 
+  <!-- 篩選列 -->
+  <div class="panel" style="margin-bottom:var(--space-xl);">
+    <div class="panel__body" style="padding:var(--space-sm) var(--space-xl); display:flex; gap:var(--space-md); align-items:center; flex-wrap:wrap;">
+      <input type="text" class="inp" id="filterKeyword" placeholder="🔍 搜尋任務名稱或專案..." style="flex:1; min-width: 200px;">
+      <select class="inp owner-select" id="filterOwner" style="width:160px;">
+        <option value="">👤 所有負責人</option>
+      </select>
+      <label style="display:flex; align-items:center; gap:var(--space-xs); cursor:pointer; font-size:var(--font-size-sm); user-select:none;">
+        <input type="checkbox" id="filterHideDone" checked>
+        隱藏已完成
+      </label>
+    </div>
+  </div>
+
   <!-- 三類別面板 -->
   <div class="grid-3" id="actionPanels"></div>
 
@@ -162,29 +177,66 @@ function renderProgressBar() {
     `待辦 ${all.filter(a=>a.status==='pending').length} / 進行中 ${all.filter(a=>a.status==='in-progress').length} / 阻塞 ${all.filter(a=>a.status==='blocked').length}`;
 }
 
+// ── 篩選狀態 ───────────────────────────────────────────────────
+let _filterKeyword = '';
+let _filterOwner = '';
+let _filterHideDone = true;
+
+document.getElementById('filterKeyword')?.addEventListener('input', e => { _filterKeyword = e.target.value.toLowerCase(); renderPanels(); });
+document.getElementById('filterOwner')?.addEventListener('change', e => { _filterOwner = e.target.value; renderPanels(); });
+document.getElementById('filterHideDone')?.addEventListener('change', e => { _filterHideDone = e.target.checked; renderPanels(); });
+
+window.toggleAddForm = function(catId) {
+  const form = document.getElementById(`addForm-${catId}`);
+  if (form) {
+    const isHidden = form.style.display === 'none';
+    form.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) document.getElementById(`newTask-${catId}`)?.focus();
+  }
+};
+
 // ── 三欄面板 ───────────────────────────────────────────────────
 function renderPanels() {
-  const all   = store.getAll('actions');
+  let all = store.getAll('actions');
+  // 依 sortIndex 排序，若無則排後面
+  all.sort((a, b) => (a.sortIndex ?? 9999) - (b.sortIndex ?? 9999));
+  
   const today = new Date().toISOString().split('T')[0];
   const el    = document.getElementById('actionPanels');
 
   el.innerHTML = CATEGORIES.map(cat => {
-    const items = all.filter(a => a.category === cat.id);
-    const done  = items.filter(a => a.status === 'done').length;
+    let items = all.filter(a => a.category === cat.id);
+    const doneCount  = items.filter(a => a.status === 'done').length;
+    const totalCount = items.length;
+
+    // Apply Filters
+    items = items.filter(a => {
+      if (_filterHideDone && a.status === 'done') return false;
+      if (_filterOwner && a.owner !== _filterOwner) return false;
+      if (_filterKeyword) {
+        const text = (a.task + ' ' + (a.project||'')).toLowerCase();
+        if (!text.includes(_filterKeyword)) return false;
+      }
+      return true;
+    });
 
     const rows = items.map(a => {
-      const late = isOverdue(a.dueDate) && a.status !== 'done';
+      const isDone = a.status === 'done';
+      const late = !isDone && isOverdue(a.dueDate);
       let urgent = false;
-      if (!late && a.dueDate && a.status !== 'done') {
+      if (!late && a.dueDate && !isDone) {
         const diff = (new Date(a.dueDate) - new Date(today)) / 86400000;
         urgent = diff >= 0 && diff <= 3;
       }
-      const rowClass = late ? 'a-late' : urgent ? 'a-urgent' : '';
+      let rowClass = late ? 'a-late' : urgent ? 'a-urgent' : '';
+      if (isDone) rowClass += ' is-done';
+      
       const dueStyle = late ? 'color:var(--color-danger);font-weight:600;' : urgent ? 'color:var(--color-warning);font-weight:600;' : '';
       const icon = late ? ' ⚠️' : urgent ? ' ⏳' : '';
 
       return `
-        <div class="action-row ${rowClass}" id="arow-${a.id}">
+        <div class="action-row ${rowClass.trim()}" data-id="${a.id}" id="arow-${a.id}">
+          <div class="action-row__drag">⋮⋮</div>
           <div class="action-row__task">
             <span>${a.task}</span>
             ${a.project ? `<span class="badge badge-neutral" style="margin-left:4px;font-size:10px;">${a.project.substring(0,15)}</span>` : ''}
@@ -195,10 +247,12 @@ function renderPanels() {
             ${icon}
           </div>
           <div style="display:flex;align-items:center;gap:var(--space-xs);">
-            <!-- U-42 修正：顯示下一狀態提示，讓循環操作更直覺 -->
             <span class="badge ${statusBadgeCls(a.status)}"
-                  style="cursor:pointer;"
+                  style="cursor:pointer; transition: transform 0.15s; display:inline-block;"
                   onclick="cycleStatus('${a.id}')"
+                  onmousedown="this.style.transform='scale(0.95)'"
+                  onmouseup="this.style.transform='scale(1)'"
+                  onmouseleave="this.style.transform='scale(1)'"
                   title="點擊切換 → ${statusLabel(STATUS_CYCLE[(STATUS_CYCLE.indexOf(a.status)+1)%STATUS_CYCLE.length])}">
               ${statusLabel(a.status)}
             </span>
@@ -208,9 +262,9 @@ function renderPanels() {
         </div>`;
     }).join('');
 
-    // Inline 新增表單
+    // Inline 新增表單 (置頂且預設隱藏)
     const addForm = `
-      <div style="margin-top:var(--space-sm);">
+      <div id="addForm-${cat.id}" style="display:none; margin-bottom:var(--space-md); padding-bottom:var(--space-md); border-bottom:1px solid var(--color-border-default);">
         <div class="inline-form">
           <input type="text" class="inp" id="newTask-${cat.id}" placeholder="新增 ${cat.label} 行動…">
           <select class="inp owner-select" id="newOwner-${cat.id}" style="width:110px;">
@@ -219,22 +273,86 @@ function renderPanels() {
           <input type="date" class="inp" id="newDue-${cat.id}" style="width:130px;" title="截止日期">
           <button class="btn btn-primary btn-sm" onclick="addAction('${cat.id}')">+</button>
         </div>
-        <!-- V-2 修正：驗證錯誤訊息 -->
         <div class="inp-error" id="newTaskError-${cat.id}" style="display:none;">請輸入行動任務</div>
       </div>`;
 
     return `
       <div class="panel">
-        <div class="panel__header" style="border-left:3px solid ${cat.color};">
-          <span class="panel__title">${cat.label}</span>
-          <span class="badge badge-neutral">${done}/${items.length}</span>
+        <div class="panel__header" style="border-left:3px solid ${cat.color}; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <span class="panel__title">${cat.label}</span>
+            <span class="badge badge-neutral">${doneCount}/${totalCount}</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="toggleAddForm('${cat.id}')" title="新增行動">＋ 新增</button>
         </div>
         <div class="panel__body" style="padding:var(--space-md) var(--space-lg);">
-          ${rows || `<p class="text-sm text-secondary">尚無${cat.label}行動項</p>`}
           ${addForm}
+          <div id="sortList-${cat.id}" class="sortable-list" data-cat="${cat.id}">
+            ${rows || `<p class="text-sm text-secondary">尚無符合條件的行動項</p>`}
+          </div>
         </div>
       </div>`;
   }).join('');
+  
+  populateOwnerSelects();
+  initSortable();
+}
+
+// ── 初始化 SortableJS ──────────────────────────────────────────
+function initSortable() {
+  document.querySelectorAll('.sortable-list').forEach(list => {
+    // 若畫面為篩選狀態，暫不允許拖曳排序以免順序錯亂
+    const isFiltered = _filterKeyword !== '' || _filterOwner !== '' || _filterHideDone === true;
+    
+    new Sortable(list, {
+      group: 'actions',
+      handle: '.action-row__drag',
+      animation: 150,
+      disabled: isFiltered, 
+      onEnd: function (evt) {
+        if (isFiltered) {
+          toast('搜尋或過濾狀態下無法儲存排序', 'warning');
+          return;
+        }
+        const itemEl = evt.item;
+        const newCatId = evt.to.getAttribute('data-cat');
+        const id = itemEl.getAttribute('data-id');
+        
+        // 取得同列表的所有 ID 順序
+        const allIdsInList = Array.from(evt.to.children)
+                                  .map(el => el.getAttribute('data-id'))
+                                  .filter(Boolean);
+        
+        let a = store.getById('actions', id);
+        if (a) {
+          a.category = newCatId;
+          store.save('actions', a);
+        }
+        
+        // 重新分配這個 category 底下所有 action 的 sortIndex
+        const allActions = store.getAll('actions');
+        let currentSortIndex = 0;
+        
+        allIdsInList.forEach(actionId => {
+          let act = allActions.find(x => x.id === actionId);
+          if (act) {
+            act.sortIndex = currentSortIndex++;
+            store.save('actions', act);
+          }
+        });
+        
+        renderProgressBar(); // Update progress bar if category changed
+      }
+    });
+  });
+  
+  if (_filterKeyword !== '' || _filterOwner !== '' || _filterHideDone === true) {
+    document.querySelectorAll('.action-row__drag').forEach(el => {
+      el.style.opacity = '0.2';
+      el.style.cursor = 'not-allowed';
+      el.title = '篩選模式下停用拖曳排序';
+    });
+  }
 }
 
 function statusBadgeCls(status) {
@@ -252,8 +370,22 @@ window.cycleStatus = function(id) {
   const idx = STATUS_CYCLE.indexOf(a.status);
   const next = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
   store.save('actions', { ...a, status: next });
-  // 不重繪全頁，只更新 badge
-  renderAll();
+  
+  // 為了保留動畫過渡效果，只更新 DOM，若有影響到 Filter (例如從未完成變完成且 Filter 開著)，則重新 renderAll
+  const row = document.getElementById(`arow-${id}`);
+  if (row) {
+    if (next === 'done') row.classList.add('is-done');
+    else row.classList.remove('is-done');
+    
+    // 如果隱藏已完成被開啟，且狀態變為 done，則延遲 0.3s 後重新渲染以讓動畫播完
+    if (_filterHideDone && next === 'done') {
+      setTimeout(() => renderAll(), 300);
+    } else {
+      renderAll();
+    }
+  } else {
+    renderAll();
+  }
 };
 
 // V-5 修正：預設截止日期（兩週後的周五）
