@@ -80,7 +80,7 @@
         <div class="panel__body stack-sm">
           <p class="text-secondary text-xs">選擇要載入的歷史週報，AI 生成時將完全參考其內容與格式。</p>
           <div id="historyList" style="max-height:140px;overflow-y:auto;"></div>
-          <button class="btn btn-outline btn-sm" id="btnSyncHistory">⬇ 同步到本地資料</button>
+          <button class="btn btn-outline btn-sm" id="btnSyncHistory" title="引入為背景參考，不會覆寫當前編輯進度">⬇ 引入為 AI 參考上下文</button>
           <p class="text-tertiary" id="syncResult" style="font-size:11px;"></p>
         </div>
       </div>
@@ -99,22 +99,22 @@
       <!-- 格式選擇 + 匯出 -->
       <div class="panel">
         <div class="panel__header">
-          <span class="panel__title">匯出格式</span>
+          <span class="panel__title">匯出與儲存</span>
         </div>
         <div class="panel__body stack-sm">
-          <label style="display:flex;align-items:center;gap:var(--space-sm);cursor:pointer;">
-            <input type="radio" name="exportFmt" value="md" checked> <span class="text-sm">Markdown (.md)</span>
-          </label>
-          <label style="display:flex;align-items:center;gap:var(--space-sm);cursor:pointer;">
-            <input type="radio" name="exportFmt" value="docx"> <span class="text-sm">Word (.docx)</span>
-          </label>
-          <label style="display:flex;align-items:center;gap:var(--space-sm);cursor:pointer;">
-            <input type="radio" name="exportFmt" value="pdf"> <span class="text-sm">PDF (.pdf)</span>
-          </label>
+          <div style="display:flex;gap:var(--space-sm);">
+            <select class="inp" id="exportFmt" style="flex:1; padding:4px 8px; font-size:var(--font-size-sm);">
+              <option value="pdf">PDF (.pdf)</option>
+              <option value="md">Markdown (.md)</option>
+              <option value="docx">Word (.docx)</option>
+            </select>
+            <button class="btn btn-outline" id="btnExport" style="white-space:nowrap; padding:4px 12px;">⬇ 匯出</button>
+          </div>
           <div class="divider"></div>
-          <button class="btn btn-outline" id="btnExport">⬇ 匯出</button>
-          <button class="btn btn-ghost btn-sm" id="btnCopyMd">📋 複製 MD</button>
-          <button class="btn btn-primary btn-sm" id="btnSaveCloud" style="display:none">☁ 儲存到雲端</button>
+          <div style="display:flex;gap:var(--space-sm);">
+            <button class="btn btn-ghost btn-sm" id="btnCopyMd" style="flex:1;">📋 複製 MD</button>
+            <button class="btn btn-primary btn-sm" id="btnSaveCloud" style="flex:1; display:none;">☁ 儲存到雲端</button>
+          </div>
         </div>
       </div>
 
@@ -134,7 +134,8 @@
         <div class="md-preview" id="mdPreview">
           <div class="empty-state" style="min-height:300px;">
             <span class="empty-state__icon">📝</span>
-            <p class="empty-state__msg">點擊右側「生成週報」按鈕<br>或使用「AI 智慧生成」</p>
+            <p class="empty-state__msg" style="margin-bottom:var(--space-md);">尚未生成當週週報內容</p>
+            <button class="btn btn-primary" onclick="document.getElementById('btnGenerate').click()">▶ 立即生成週報</button>
           </div>
         </div>
         <textarea class="inp" id="mdSource" style="display:none;width:100%;height:100%;min-height:400px;font-family:monospace;font-size:12px;border:none;border-radius:0;resize:none;padding:var(--space-xl) var(--space-2xl);"></textarea>
@@ -670,7 +671,7 @@ function setAiStatus(state, text) {
 // ── 匯出 ───────────────────────────────────────────────────────
 document.getElementById('btnExport').addEventListener('click', async () => {
   if (!currentMd) { toast('請先生成週報', 'error'); return; }
-  const fmt      = document.querySelector('input[name=exportFmt]:checked').value;
+  const fmt      = document.getElementById('exportFmt').value;
   const weekLabel = document.getElementById('weekBadge').textContent;
   const author   = document.getElementById('author').value.trim();
 
