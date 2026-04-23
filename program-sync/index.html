@@ -238,19 +238,21 @@ window.toggleArchive = function() {
 };
 
 // ── 歷史週次瀏覽狀態 ────────────────────────────────────────────
-let _viewState   = null;  // null = 本週；object = 歷史週次資料
-let _viewingLabel = null; // 目前瀏覽的週次標籤
-let _prevSnap    = null;  // 上一週快照（用於 KPI delta 比較）
+let _viewState    = null;  // null = 本週；object = 歷史週次資料
+let _viewingLabel = null;  // 目前瀏覽的週次標籤
+let _prevSnap     = null;  // 上一週快照（用於 KPI delta 比較）
+let _isHistoryView = false; // true=瀏覽歷史週次，false=最新週（從 store 即時讀取）
 
 // ── 從 viewState 或 store 取得顯示資料 ─────────────────────────
+// 歷史模式：讀 _viewState 快照；最新週：直接讀 store（確保 Quick Input 等即時修改能反映）
 function _displayProjects() {
-  return _viewState ? (_viewState.projects || []) : store.getAll('projects');
+  return _isHistoryView ? (_viewState?.projects || []) : store.getAll('projects');
 }
 function _displayRisks() {
-  return _viewState ? (_viewState.risks || []) : store.getAll('risks');
+  return _isHistoryView ? (_viewState?.risks    || []) : store.getAll('risks');
 }
 function _displaySnap() {
-  if (!_viewState) return null;
+  if (!_isHistoryView || !_viewState) return null; // 最新週強制用 store.stats() 計算 KPI
   return (_viewState.snapshots || []).find(s => s.weekLabel === _viewingLabel)
       || (_viewState.snapshots || []).slice(-1)[0]
       || null;
@@ -378,7 +380,7 @@ function renderKPIs() {
     overdue = snap.overdueActions;
   } else {
     const _refDate = snap?.weekStart ?? new Date().toISOString().split('T')[0];
-    const _actions = _viewState ? (_viewState.actions || []) : store.getAll('actions');
+    const _actions = _isHistoryView ? (_viewState?.actions || []) : store.getAll('actions');
     overdue = _actions.filter(a => a.dueDate && a.dueDate < _refDate && a.status !== 'done').length;
   }
 
@@ -421,7 +423,7 @@ let currentTeamFilter = 'all';
 function renderProjects(filter) {
   if (filter !== undefined) currentFilter = filter;
   const all = _displayProjects();
-  const allActions = _viewState ? (_viewState.actions || []) : store.getAll('actions');
+  const allActions = _isHistoryView ? (_viewState?.actions || []) : store.getAll('actions');
 
   // 計算每個專案的進度
   function effectiveProgress(p) {
@@ -492,7 +494,7 @@ function renderProjects(filter) {
 
     const pActions = allActions.filter(a => a.project === p.name);
     // U-2 跨模組關聯：加上 risks
-    const allRisks = _viewState ? (_viewState.risks || []) : store.getAll('risks');
+    const allRisks = _isHistoryView ? (_viewState?.risks || []) : store.getAll('risks');
     const pRisks = allRisks.filter(r => r.project === p.name);
 
     let relatedHtml = '';
@@ -653,6 +655,7 @@ window.loadWeekView = async function(weekLabel) {
   // 判斷是否為「最新週次」（API weeks[0]）
   const weeks = await listWeeks();
   const isLatest = weeks.length > 0 && weekLabel === weeks[0].weekLabel;
+  _isHistoryView = !isLatest; // 最新週：從 store 即時讀取；歷史週：從 _viewState 快照讀取
 
   // 更新前一週快照供 KPI delta 對比
   const curIdx = weeks.findIndex(w => w.weekLabel === weekLabel);
@@ -705,7 +708,7 @@ window.returnToCurrentWeek = async function() {
 
 // ── store:updated 事件 ─────────────────────────────────────────
 window.addEventListener('store:updated', () => {
-  if (!_viewState) renderAll();  // 歷史瀏覽中不因 store 更新而重繪
+  if (!_isHistoryView) renderAll();  // 歷史瀏覽中不因 store 更新而重繪；最新週即時重算
 });
 
 // ── API Key 按鈕 ───────────────────────────────────────────────
