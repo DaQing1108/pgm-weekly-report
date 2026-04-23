@@ -527,10 +527,26 @@ function renderSnapshotTable(snapshots) {
     </table>`;
 }
 
-// ── store 即時更新：重新注入當週資料並重繪圖表 ──────────────────
+// ── store 即時更新（同頁面內任何 store.save() 觸發）────────────
 window.addEventListener('store:updated', () => {
   _injectCurrentWeek();
   if (_allSnapshots.length) renderAll();
+});
+
+// ── bfcache 還原（按瀏覽器返回鍵時頁面不重載，需手動重繪）────
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) {
+    _injectCurrentWeek();
+    if (_allSnapshots.length) renderAll();
+  }
+});
+
+// ── 跨分頁 localStorage 同步（Risks/Actions 等其他分頁修改資料時通知）
+window.addEventListener('storage', (e) => {
+  if (e.key?.startsWith('pgm_sync_')) {
+    _injectCurrentWeek();
+    if (_allSnapshots.length) renderAll();
+  }
 });
 
 // ── 週次範圍切換 ────────────────────────────────────────────────

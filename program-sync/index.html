@@ -706,9 +706,19 @@ window.returnToCurrentWeek = async function() {
   if (weeks.length > 0) await loadWeekView(weeks[0].weekLabel);
 };
 
-// ── store:updated 事件 ─────────────────────────────────────────
+// ── store:updated 事件（同頁面內任何 store.save() 觸發）────────
 window.addEventListener('store:updated', () => {
   if (!_isHistoryView) renderAll();  // 歷史瀏覽中不因 store 更新而重繪；最新週即時重算
+});
+
+// ── bfcache 還原（按瀏覽器返回鍵時頁面不重載，需手動重繪）────
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted && !_isHistoryView) renderAll();
+});
+
+// ── 跨分頁 localStorage 同步（Risks/Actions 等其他分頁修改資料時通知）
+window.addEventListener('storage', (e) => {
+  if (e.key?.startsWith('pgm_sync_') && !_isHistoryView) renderAll();
 });
 
 // ── API Key 按鈕 ───────────────────────────────────────────────
