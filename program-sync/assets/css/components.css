@@ -378,7 +378,7 @@
 /* ── Action Row ──────────────────────────────────────────────── */
 .action-row {
   display: grid;
-  grid-template-columns: 16px 1fr 100px 100px 90px; /* Added 16px for drag handle */
+  grid-template-columns: 16px 1fr 150px 150px 120px; /* Adjusted for full-width horizontal layout */
   align-items: center;
   gap: var(--space-md);
   padding: var(--space-sm) var(--space-md);
