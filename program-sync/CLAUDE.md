@@ -175,7 +175,10 @@ program-sync/
   - `status='done'` 或 `date < today` → ✅ `.milestone--done`（綠）
   - `date === today` → 🎯 `.milestone--today`（橘）
   - `date > today`（且非 done/delayed）→ 📅 `.milestone--future`（藍）
-- 點擊展開關聯詳情與操作按鈕
+- 點擊展開 inline 編輯面板：名稱輸入 + 日期選擇 + 狀態下拉 + 💾 儲存 / 刪除
+  - 狀態切換即時存檔；名稱 / 日期需點「儲存」才寫入
+  - 重繪時自動還原已展開的 detail（`renderAll` 記憶 openIds）
+  - 歷史唯讀模式下編輯欄位與按鈕全部 `pointer-events:none`
 - HTML5 Drag & Drop（僅限同天排序，交換 `_order` 欄位）
 - 右欄月份概覽 + 子組分佈統計
 - inline 新增表單

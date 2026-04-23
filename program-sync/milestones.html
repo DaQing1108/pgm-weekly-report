@@ -174,9 +174,18 @@ let filterTeam = 'all';
 let dragSrcId  = null;
 
 function renderAll() {
+  // 記住目前展開中的 detail ID，重繪後還原
+  const openIds = new Set(
+    [...document.querySelectorAll('.milestone__detail.open')]
+      .map(el => el.id.replace('ms-', ''))
+  );
   renderTimeline();
   renderMonthOverview();
   renderTeamDist();
+  openIds.forEach(id => {
+    const el = document.getElementById(`ms-${id}`);
+    if (el) el.classList.add('open');
+  });
 }
 
 // ── 時間軸 ─────────────────────────────────────────────────────
@@ -255,13 +264,25 @@ function renderTimeline() {
             ${m.project ? ` · ${m.project}` : ''}
           </div>
           <div class="milestone__detail" id="ms-${m.id}">
-            <div style="display:flex;gap:var(--space-sm);align-items:center;">
+            <!-- 名稱 + 日期編輯列 -->
+            <div class="ms-edit-row">
+              <input type="text"  class="inp ms-edit-name"
+                     value="${m.name.replace(/"/g,'&quot;')}"
+                     placeholder="里程碑名稱"
+                     onclick="event.stopPropagation()">
+              <input type="date"  class="inp ms-edit-date"
+                     value="${m.date}"
+                     onclick="event.stopPropagation()">
+            </div>
+            <!-- 狀態 + 儲存 + 刪除 -->
+            <div style="display:flex;gap:var(--space-sm);align-items:center;flex-wrap:wrap;">
               <select onchange="changeStatus('${m.id}',this.value)" onclick="event.stopPropagation()" class="inp" style="width:120px;padding:4px;">
                 <option value="upcoming" ${m.status==='upcoming'?'selected':''}>即將到來</option>
-                <option value="done" ${m.status==='done'?'selected':''}>已完成</option>
-                <option value="delayed" ${m.status==='delayed'?'selected':''}>延遲</option>
+                <option value="done"     ${m.status==='done'    ?'selected':''}>已完成</option>
+                <option value="delayed"  ${m.status==='delayed' ?'selected':''}>延遲</option>
               </select>
-              <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteMs('${m.id}')">刪除</button>
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();saveMs('${m.id}')">💾 儲存</button>
+              <button class="btn btn-danger  btn-sm" onclick="event.stopPropagation();deleteMs('${m.id}')">刪除</button>
             </div>
           </div>
         </div>`;
@@ -281,6 +302,19 @@ window.toggleMs = function(id) {
   const el = document.getElementById(`ms-${id}`);
   if (!el) return;
   el.classList.toggle('open');
+};
+
+window.saveMs = function(id) {
+  const m = store.getById('milestones', id);
+  if (!m) return;
+  const detail  = document.getElementById(`ms-${id}`);
+  if (!detail) return;
+  const newName = detail.querySelector('.ms-edit-name')?.value.trim();
+  const newDate = detail.querySelector('.ms-edit-date')?.value;
+  if (!newName) { toast('名稱不能為空', 'error'); return; }
+  if (!newDate) { toast('請選擇日期', 'error');   return; }
+  store.save('milestones', { ...m, name: newName, date: newDate });
+  toast('✅ 里程碑已更新', 'success');
 };
 
 window.changeStatus = function(id, status) {
@@ -463,11 +497,33 @@ renderAll();
   white-space: nowrap;
 }
 
+/* ── .ms-edit-row：名稱 + 日期編輯列 ────────────────────────── */
+.ms-edit-row {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-sm);
+}
+.ms-edit-row .ms-edit-name {
+  flex: 1;
+  min-width: 140px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+.ms-edit-row .ms-edit-date {
+  width: 140px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
 /* 歷史週唯讀模式 */
 body.is-history-readonly #btnAddMs,
 body.is-history-readonly .panel__footer,
 body.is-history-readonly .milestone__detail .btn-danger,
-body.is-history-readonly .milestone__detail select { opacity:.35; pointer-events:none; cursor:not-allowed; }
+body.is-history-readonly .milestone__detail .btn-primary,
+body.is-history-readonly .milestone__detail select,
+body.is-history-readonly .ms-edit-name,
+body.is-history-readonly .ms-edit-date { opacity:.35; pointer-events:none; cursor:not-allowed; }
 </style>
 <script>
 // V-3 修正：手機漢堡選單
