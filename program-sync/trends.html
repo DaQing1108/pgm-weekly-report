@@ -145,9 +145,11 @@
 <script type="module">
 import { appInit } from './assets/js/app-init.js';
 import { listWeeks, getWeekState } from './assets/js/api.js';
+import { store } from './assets/js/store.js';
 
 let _range = 4;
 let _allSnapshots = []; // [{ weekLabel, weekStart, snap }]
+let _latestWeek   = null; // 最新週次 { weekLabel, weekStart }，用於注入 store 即時資料
 let _chartHealth = null, _chartRisk = null, _chartActions = null, _chartResource = null;
 
 (async () => {
@@ -164,6 +166,7 @@ async function loadTrends() {
   document.getElementById('noDataState').style.display     = 'none';
 
   const weeks = await listWeeks();
+  _latestWeek = weeks.length ? weeks[0] : null;
   if (!weeks.length) {
     document.getElementById('trendsLoading').style.display = 'none';
     document.getElementById('noDataState').style.display   = '';
@@ -194,6 +197,9 @@ async function loadTrends() {
 
   document.getElementById('trendsLoading').style.display = 'none';
 
+  // 最新週次：以 store 即時資料覆蓋後端快照，確保 Quick Input 的變動即時反映
+  _injectCurrentWeek();
+
   if (!_allSnapshots.length) {
     document.getElementById('noDataState').style.display = '';
     return;
@@ -204,6 +210,28 @@ async function loadTrends() {
 
 function getVisible() {
   return _allSnapshots.slice(-_range);
+}
+
+// ── 注入當週即時資料（從 store）─────────────────────────────────
+// 最新週的 projects / risks / actions 以 store.getAll() 覆蓋後端快照，
+// 確保 Quick Input / 任何 store.save() 的變動立即反映在圖表上。
+function _injectCurrentWeek() {
+  if (!_latestWeek) return;
+  const liveEntry = {
+    weekLabel: _latestWeek.weekLabel,
+    weekStart: _latestWeek.weekStart,
+    snap:      null,                    // 強制 _computeMetrics 從 projects/risks/actions 重算
+    projects:  store.getAll('projects'),
+    risks:     store.getAll('risks'),
+    actions:   store.getAll('actions'),
+  };
+  const idx = _allSnapshots.findIndex(s => s.weekLabel === liveEntry.weekLabel);
+  if (idx >= 0) {
+    _allSnapshots[idx] = liveEntry;     // 覆蓋後端快照
+  } else {
+    _allSnapshots.push(liveEntry);
+    _allSnapshots.sort((a, b) => a.weekLabel.localeCompare(b.weekLabel));
+  }
 }
 
 function renderAll() {
@@ -498,6 +526,12 @@ function renderSnapshotTable(snapshots) {
       <tbody>${rows}</tbody>
     </table>`;
 }
+
+// ── store 即時更新：重新注入當週資料並重繪圖表 ──────────────────
+window.addEventListener('store:updated', () => {
+  _injectCurrentWeek();
+  if (_allSnapshots.length) renderAll();
+});
 
 // ── 週次範圍切換 ────────────────────────────────────────────────
 document.querySelectorAll('.range-btn').forEach(btn => {
