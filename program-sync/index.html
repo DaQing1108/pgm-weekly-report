@@ -154,24 +154,28 @@
 
   <!-- V3：歷史週報中心（後端已連線時顯示） -->
   <div id="archiveSection" style="display:none;margin-top:var(--space-xl);">
-    <div class="panel">
-      <div class="panel__header" style="display:flex;justify-content:space-between;align-items:center;">
-        <span class="panel__title">☁ 歷史週報中心</span>
-        <div style="display:flex;align-items:center;gap:8px;">
+    <div class="panel" style="overflow:hidden;">
+      <div class="panel__header" id="archiveHeader" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;transition:background 0.2s;" onclick="toggleArchive()" onmouseover="this.style.background='var(--color-bg-secondary)'" onmouseout="this.style.background='transparent'">
+        <div style="display:flex;align-items:center;gap:var(--space-sm);">
+          <span class="panel__title">☁ 歷史週報歸檔庫</span>
           <span class="badge badge--info" id="archiveBadge">載入中…</span>
-          <!-- U-50 修正：匯入按鈕加 title 提示支援拖放 -->
+          <span id="archiveToggleIcon" style="font-size:10px;color:var(--color-text-tertiary);transition:transform 0.3s;">▼</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation()">
           <button class="btn btn-primary btn-sm" id="btnImportMd" title="點擊選擇或拖放 .md 檔案至此區域">⬆ 匯入週報</button>
           <input type="file" id="mdFileInput" accept=".md" style="display:none;">
         </div>
       </div>
-      <!-- U-49 修正：後端離線提示 -->
-      <div id="archiveOfflineHint" style="display:none;background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:8px var(--space-lg);font-size:12px;color:var(--color-text-tertiary);">
-        ⚠ 後端離線時無法查看歷史週報。請<a href="input.html#archive" style="color:var(--color-info);">前往 Quick Input → 週報歸檔</a>頁面上傳歸檔。
-      </div>
-      <div class="panel__body" id="archiveList" style="padding:var(--space-md) var(--space-lg);">
-        <div class="empty-state">
-          <span class="empty-state__icon">☁</span>
-          <p class="empty-state__msg">尚無雲端週報</p>
+      
+      <div id="archiveWrapper" style="display:none; border-top:1px solid var(--color-border-default);">
+        <div id="archiveOfflineHint" style="display:none;background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:8px var(--space-lg);font-size:12px;color:var(--color-text-tertiary);">
+          ⚠ 後端離線時無法查看歷史週報。請<a href="input.html#archive" style="color:var(--color-info);">前往 Quick Input → 週報歸檔</a>頁面上傳歸檔。
+        </div>
+        <div class="panel__body" id="archiveList" style="padding:var(--space-md) var(--space-lg); display:flex; flex-direction:column; gap:var(--space-sm);">
+          <div class="empty-state">
+            <span class="empty-state__icon">☁</span>
+            <p class="empty-state__msg">尚無雲端週報</p>
+          </div>
         </div>
       </div>
     </div>
@@ -205,6 +209,18 @@ import { toPdf } from './assets/js/export.js';
 import { setSessionWeek } from './assets/js/app-init.js';
 import { modal } from './assets/js/ui.js';
 import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js';
+
+window.toggleArchive = function() {
+  const wrapper = document.getElementById('archiveWrapper');
+  const icon = document.getElementById('archiveToggleIcon');
+  if (wrapper.style.display === 'none') {
+    wrapper.style.display = 'block';
+    icon.style.transform = 'rotate(-180deg)';
+  } else {
+    wrapper.style.display = 'none';
+    icon.style.transform = 'rotate(0deg)';
+  }
+};
 
 // ── 歷史週次瀏覽狀態 ────────────────────────────────────────────
 let _viewState   = null;  // null = 本週；object = 歷史週次資料
@@ -696,17 +712,19 @@ async function initArchive() {
     }
 
     list.innerHTML = reports.map(r => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--color-border-default);">
-        <div>
-          <span style="font-weight:500;font-size:13px;">${r.filename.replace('.md','')}</span>
-          ${r.period ? `<span class="text-secondary text-xs" style="margin-left:8px;">${r.period}</span>` : ''}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--color-bg-secondary);border:1px solid var(--color-border-default);border-radius:var(--radius-md);transition:box-shadow 0.2s, border-color 0.2s;" onmouseover="this.style.borderColor='var(--color-info)';this.style.boxShadow='var(--shadow-sm)'" onmouseout="this.style.borderColor='var(--color-border-default)';this.style.boxShadow='none'">
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-weight:600;font-size:14px;color:var(--color-text-primary);">${r.filename.replace('.md','')}</span>
+            ${r.date ? `<span class="badge badge--neutral" style="font-size:10px;">${r.date}</span>` : ''}
+          </div>
+          ${r.period ? `<span class="text-secondary text-xs" style="display:flex;align-items:center;gap:4px;">📅 ${r.period}</span>` : ''}
         </div>
-        <div style="display:flex;gap:8px;">
-          ${r.date ? `<span class="badge badge--neutral">${r.date}</span>` : ''}
-          <button class="btn btn-outline btn-sm" onclick="openReport('${r.filename}')">📖 閱讀</button>
-          <a href="${downloadUrl(r.filename)}" class="btn btn-outline btn-sm" download>⬇ MD</a>
-          <button class="btn btn-outline btn-sm" onclick="exportReportPdf('${r.filename}', this)">📥 PDF</button>
-          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="removeReport('${r.filename}')">🗑</button>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="btn btn-ghost btn-sm" style="color:var(--color-info);" onclick="openReport('${r.filename}')">📖 閱讀</button>
+          <a href="${downloadUrl(r.filename)}" class="btn btn-ghost btn-sm" download title="下載 MD">⬇ MD</a>
+          <button class="btn btn-ghost btn-sm" onclick="exportReportPdf('${r.filename}', this)" title="匯出 PDF">📥 PDF</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="removeReport('${r.filename}')" title="刪除">🗑</button>
         </div>
       </div>
     `).join('');
