@@ -29,8 +29,6 @@
 
   </div>
   <div class="navbar__actions">
-    <button class="btn btn-outline btn-sm" id="btnApiKey">🔑 API Key</button>
-    <a href="report.html" class="btn btn-primary btn-sm">📝 生成週報</a>
     <button class="btn btn-ghost btn-sm navbar__hamburger" id="navHamburger" aria-label="開啟選單" style="display:none;font-size:18px;padding:4px 8px;line-height:1;">☰</button>
   </div>
 </nav>
@@ -721,11 +719,6 @@ window.addEventListener('storage', (e) => {
   if (e.key?.startsWith('pgm_sync_') && !_isHistoryView) renderAll();
 });
 
-// ── API Key 按鈕 ───────────────────────────────────────────────
-document.getElementById('btnApiKey').addEventListener('click', () => {
-  // 簡化：導引到 report.html
-  window.location.href = 'report.html#apikey';
-});
 
 // ── 歷史週報中心（V3 後端整合）────────────────────────────────
 async function initArchive() {
