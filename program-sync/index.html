@@ -73,127 +73,142 @@
   </div>
 
   <!-- KPI Row -->
-  <!-- U-34 修正：KPI 卡片加單位標示，讓數字意義更清晰 -->
   <div class="kpi-row" id="kpiRow">
-    <div class="kpi-card kpi-ok">
-      <div class="kpi-card__label">專案健康度</div>
-      <div class="kpi-card__value" id="kpiHealth">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">%</span></div>
-      <span class="kpi-delta-wrap" id="kpiHealthDelta"></span>
-      <div class="kpi-card__sub" id="kpiHealthSub">載入中…</div>
+    <div class="kpi-card kpi-card--interactive kpi-ok" id="kpiHealthCard" onclick="document.querySelector('#statusFilter button[data-filter=\'all\']').click()" title="點擊顯示所有專案">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="kpi-card__label">專案健康度</div>
+          <div class="kpi-card__value" id="kpiHealth">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">%</span></div>
+          <span class="kpi-delta-wrap" id="kpiHealthDelta"></span>
+          <div class="kpi-card__sub" id="kpiHealthSub">載入中…</div>
+        </div>
+        <div class="kpi-ring" id="kpiHealthRing" style="--p: 0%;"></div>
+      </div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card kpi-card--interactive" id="kpiTotalCard" onclick="document.querySelector('#statusFilter button[data-filter=\'all\']').click()" title="點擊顯示所有專案">
       <div class="kpi-card__label">進行中專案</div>
       <div class="kpi-card__value" id="kpiTotal">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">個</span></div>
       <span class="kpi-delta-wrap" id="kpiTotalDelta"></span>
       <div class="kpi-card__sub" id="kpiTotalSub"></div>
     </div>
-    <div class="kpi-card" id="kpiRisksCard">
+    <div class="kpi-card kpi-card--interactive" id="kpiRisksCard" onclick="document.querySelector('#statusFilter button[data-filter=\'at-risk\']').click()" title="點擊篩選風險專案">
       <div class="kpi-card__label">需關注專案</div>
       <div class="kpi-card__value" id="kpiRisks">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">個</span></div>
       <span class="kpi-delta-wrap" id="kpiRisksDelta"></span>
-      <div class="kpi-card__sub" id="kpiRisksSub">At Risk + 落後</div>
+      <div class="kpi-card__sub" id="kpiRisksSub">At Risk + 落後 (點擊篩選)</div>
     </div>
-    <div class="kpi-card" id="kpiActionsCard">
+    <div class="kpi-card kpi-card--interactive" id="kpiActionsCard" onclick="window.location.href='actions.html'" title="前往 Actions 頁面">
       <div class="kpi-card__label">逾期 Actions</div>
       <div class="kpi-card__value" id="kpiActions">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">項</span></div>
       <span class="kpi-delta-wrap" id="kpiActionsDelta"></span>
-      <div class="kpi-card__sub" id="kpiActionsSub">待追蹤</div>
+      <div class="kpi-card__sub" id="kpiActionsSub">待追蹤 (點擊前往)</div>
     </div>
   </div>
 
 
-  <!-- Main Grid：僅專案列表，全寬 -->
-  <div class="main-grid" style="grid-template-columns:1fr;">
+  <!-- Main Grid：兩欄式佈局 (Bento Grid) -->
+  <div class="main-grid" style="grid-template-columns: 2.5fr 1fr; align-items: start;">
 
-    <!-- 專案列表 -->
-    <div class="panel">
-      <div class="panel__header" style="flex-wrap:wrap;gap:var(--space-sm);">
-        <span class="panel__title">專案進度總覽</span>
-        <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;margin-left:auto;">
-          <!-- 進階搜尋與排序 -->
-          <div class="inp-group" style="margin:0;position:relative;">
-            <input type="text" class="inp" id="projectSearch" placeholder="🔍 搜尋專案或負責人..." style="width:170px;padding:4px 8px;font-size:var(--font-size-sm);" autocomplete="off">
+    <!-- Left Column (70%) -->
+    <div style="display: flex; flex-direction: column; gap: var(--space-xl);">
+      
+      <!-- 專案列表 -->
+      <div class="panel">
+        <div class="panel__header" style="flex-wrap:wrap;gap:var(--space-sm);">
+          <span class="panel__title">專案進度總覽</span>
+          <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;margin-left:auto;">
+            <!-- 進階搜尋與排序 -->
+            <div class="inp-group" style="margin:0;position:relative;">
+              <input type="text" class="inp" id="projectSearch" placeholder="🔍 搜尋..." style="width:140px;padding:4px 8px;font-size:var(--font-size-sm);" autocomplete="off">
+            </div>
+            <select class="inp" id="projectSort" style="width:110px;padding:4px 8px;font-size:var(--font-size-sm);">
+              <option value="default">預設排序</option>
+              <option value="update-desc">最近更新</option>
+              <option value="health-asc">需關注</option>
+              <option value="progress-desc">進度最高</option>
+            </select>
+            <select class="inp" id="teamFilter" style="width:110px;padding:4px 8px;font-size:var(--font-size-sm);">
+              <option value="all">全部子組</option>
+              <option value="media-agent">Media Agent</option>
+              <option value="learnmode">LearnMode</option>
+              <option value="chuangzaoli">創造栗</option>
+              <option value="tv-solution">TV Solution</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="org-mgmt">組織管理</option>
+            </select>
+            <div class="tab-bar" id="statusFilter" style="margin-left:4px;">
+              <button class="tab-btn active" data-filter="all">全部</button>
+              <button class="tab-btn" data-filter="on-track" style="font-size:var(--font-size-xs);">🟢 正常</button>
+              <button class="tab-btn" data-filter="at-risk" style="font-size:var(--font-size-xs);">🟡 風險</button>
+              <button class="tab-btn" data-filter="behind" style="font-size:var(--font-size-xs);">🔴 落後</button>
+              <button class="tab-btn" data-filter="paused" style="font-size:var(--font-size-xs);">⏸️ 暫緩</button>
+            </div>
           </div>
-          <select class="inp" id="projectSort" style="width:120px;padding:4px 8px;font-size:var(--font-size-sm);">
-            <option value="default">預設排序</option>
-            <option value="update-desc">最近更新</option>
-            <option value="health-asc">需關注優先</option>
-            <option value="progress-desc">進度最高</option>
-          </select>
-          <select class="inp" id="teamFilter" style="width:130px;padding:4px 8px;font-size:var(--font-size-sm);">
-            <option value="all">全部子組</option>
-            <option value="media-agent">Media Agent</option>
-            <option value="learnmode">LearnMode</option>
-            <option value="chuangzaoli">創造栗</option>
-            <option value="tv-solution">TV Solution</option>
-            <option value="healthcare">Healthcare</option>
-            <option value="org-mgmt">組織管理</option>
-          </select>
-          <div class="tab-bar" id="statusFilter">
-            <button class="tab-btn active" data-filter="all">全部</button>
-            <button class="tab-btn" data-filter="on-track">🟢 正常</button>
-            <button class="tab-btn" data-filter="at-risk">🟡 風險</button>
-            <button class="tab-btn" data-filter="behind">🔴 落後</button>
-            <button class="tab-btn" data-filter="paused">⏸️ 暫緩</button>
+        </div>
+        <div class="panel__body" id="projectList" style="padding:var(--space-md) var(--space-lg);">
+          <!-- Skeleton Loading -->
+          <div class="skeleton-block" style="height:60px;margin-bottom:12px;border-radius:var(--radius-sm);"></div>
+          <div class="skeleton-block" style="height:60px;margin-bottom:12px;border-radius:var(--radius-sm);"></div>
+          <div class="skeleton-block" style="height:60px;margin-bottom:12px;border-radius:var(--radius-sm);"></div>
+        </div>
+        <div class="panel__footer">
+          <span class="text-sm text-secondary" id="projectCount">0 個專案</span>
+          <a href="input.html" class="btn btn-outline btn-sm" style="margin-left:auto;">+ 新增專案</a>
+        </div>
+      </div>
+
+      <!-- V3：歷史週報中心（後端已連線時顯示） -->
+      <div id="archiveSection" style="display:none;">
+        <div class="panel" style="overflow:hidden;">
+          <div class="panel__header" id="archiveHeader" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;transition:background 0.2s;" onclick="toggleArchive()" onmouseover="this.style.background='var(--color-bg-secondary)'" onmouseout="this.style.background='transparent'">
+            <div style="display:flex;align-items:center;gap:var(--space-sm);">
+              <span class="panel__title">☁ 歷史週報歸檔庫</span>
+              <span class="badge badge--info" id="archiveBadge">載入中…</span>
+              <span id="archiveToggleIcon" style="font-size:10px;color:var(--color-text-tertiary);transition:transform 0.3s;">▼</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation()">
+              <button class="btn btn-primary btn-sm" id="btnImportMd" title="點擊選擇或拖放 .md 檔案至此區域">⬆ 匯入週報</button>
+              <input type="file" id="mdFileInput" accept=".md" style="display:none;">
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="panel__body" id="projectList" style="padding:var(--space-md) var(--space-lg);">
-        <div class="empty-state">
-          <span class="empty-state__icon">⏳</span>
-          <p class="empty-state__msg">載入中…</p>
-        </div>
-      </div>
-      <div class="panel__footer">
-        <span class="text-sm text-secondary" id="projectCount">0 個專案</span>
-        <a href="input.html" class="btn btn-outline btn-sm" style="margin-left:auto;">+ 新增專案</a>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- V3：歷史週報中心（後端已連線時顯示） -->
-  <div id="archiveSection" style="display:none;margin-top:var(--space-xl);">
-    <div class="panel" style="overflow:hidden;">
-      <div class="panel__header" id="archiveHeader" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;transition:background 0.2s;" onclick="toggleArchive()" onmouseover="this.style.background='var(--color-bg-secondary)'" onmouseout="this.style.background='transparent'">
-        <div style="display:flex;align-items:center;gap:var(--space-sm);">
-          <span class="panel__title">☁ 歷史週報歸檔庫</span>
-          <span class="badge badge--info" id="archiveBadge">載入中…</span>
-          <span id="archiveToggleIcon" style="font-size:10px;color:var(--color-text-tertiary);transition:transform 0.3s;">▼</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;" onclick="event.stopPropagation()">
-          <button class="btn btn-primary btn-sm" id="btnImportMd" title="點擊選擇或拖放 .md 檔案至此區域">⬆ 匯入週報</button>
-          <input type="file" id="mdFileInput" accept=".md" style="display:none;">
+          
+          <div id="archiveWrapper" style="display:none; border-top:1px solid var(--color-border-default);">
+            <div id="archiveOfflineHint" style="display:none;background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:8px var(--space-lg);font-size:12px;color:var(--color-text-tertiary);">
+              ⚠ 後端離線時無法查看歷史週報。請<a href="input.html#archive" style="color:var(--color-info);">前往 Quick Input → 週報歸檔</a>頁面上傳歸檔。
+            </div>
+            <div class="panel__body" id="archiveList" style="padding:var(--space-md) var(--space-lg); display:flex; flex-direction:column; gap:var(--space-sm);">
+              <div class="skeleton-block" style="height:50px;border-radius:var(--radius-sm);"></div>
+              <div class="skeleton-block" style="height:50px;border-radius:var(--radius-sm);"></div>
+            </div>
+          </div>
         </div>
       </div>
       
-      <div id="archiveWrapper" style="display:none; border-top:1px solid var(--color-border-default);">
-        <div id="archiveOfflineHint" style="display:none;background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:8px var(--space-lg);font-size:12px;color:var(--color-text-tertiary);">
-          ⚠ 後端離線時無法查看歷史週報。請<a href="input.html#archive" style="color:var(--color-info);">前往 Quick Input → 週報歸檔</a>頁面上傳歸檔。
-        </div>
-        <div class="panel__body" id="archiveList" style="padding:var(--space-md) var(--space-lg); display:flex; flex-direction:column; gap:var(--space-sm);">
-          <div class="empty-state">
-            <span class="empty-state__icon">☁</span>
-            <p class="empty-state__msg">尚無雲端週報</p>
+    </div>
+
+    <!-- Right Column (30%) -->
+    <div style="display: flex; flex-direction: column; gap: var(--space-xl);">
+      
+      <!-- 需決策事項 -->
+      <div class="panel panel--alert" style="border-left: 4px solid var(--color-danger);">
+        <div class="panel__header" style="justify-content: space-between;border-bottom:1px solid var(--color-border-default);padding-bottom:12px;margin-bottom:0;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="panel__title" style="color:var(--color-danger);font-weight:700;">🚨 需決策事項</span>
+            <span class="badge badge-danger" id="decisionCount">0</span>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 需決策事項（歷史週報下方） -->
-  <div style="margin-top:var(--space-xl);">
-    <div class="panel">
-      <div class="panel__header">
-        <span class="panel__title">需決策事項</span>
-      </div>
-      <div class="panel__body" id="decisionList" style="padding:var(--space-md) var(--space-lg);">
-        <div class="empty-state">
-          <span class="empty-state__icon">📋</span>
-          <p class="empty-state__msg">無待決策事項</p>
+        <div class="panel__body" id="decisionList" style="padding:var(--space-md) var(--space-lg); display:flex; flex-direction:column; gap:8px;">
+          <!-- Skeleton Loading -->
+          <div class="skeleton-block" style="height:40px;border-radius:var(--radius-sm);"></div>
+          <div class="skeleton-block" style="height:40px;border-radius:var(--radius-sm);"></div>
+        </div>
+        <div class="panel__footer" style="padding:12px var(--space-lg);">
+          <a href="risks.html" class="btn btn-ghost btn-sm" style="width:100%;text-align:center;color:var(--color-danger);">前往 Risk 總覽 →</a>
         </div>
       </div>
+
     </div>
+
   </div>
 </div>
 
@@ -373,6 +388,13 @@ function renderKPIs() {
   document.getElementById('kpiHealthDelta').innerHTML  = _deltaBadge(onTrackPct, _prevSnap?.onTrackPct);
   document.getElementById('kpiHealthSub').textContent  =
     `${onTrack} 正常 / ${atRisk} 風險 / ${behind} 落後${paused ? ` / ${paused} 暫緩` : ''}`;
+  
+  const ringEl = document.getElementById('kpiHealthRing');
+  if (ringEl) {
+    ringEl.style.setProperty('--p', `${onTrackPct}%`);
+    ringEl.style.background = `conic-gradient(var(--color-${onTrackPct >= 80 ? 'success' : onTrackPct >= 60 ? 'warning' : 'danger'}) 0%, var(--color-${onTrackPct >= 80 ? 'success' : onTrackPct >= 60 ? 'warning' : 'danger'}) var(--p, 0%), var(--color-bg-secondary) var(--p, 0%), var(--color-bg-secondary) 100%)`;
+  }
+
   document.getElementById('kpiTotal').innerHTML       = `${total}${_unit('個')}`;
   document.getElementById('kpiTotalDelta').innerHTML   = _deltaBadge(total, _prevSnap?.totalProjects);
   document.getElementById('kpiTotalSub').textContent   = `${behind} 落後 / ${paused} 暫緩`;
@@ -381,15 +403,15 @@ function renderKPIs() {
   document.getElementById('kpiRisksDelta').innerHTML   = _deltaBadge(needAttn, _pNeedAttn, true);
   document.getElementById('kpiRisksSub').textContent   = `${atRisk} At Risk / ${behind} 落後`;
   document.getElementById('kpiRisksCard').className    =
-    `kpi-card ${needAttn === 0 ? 'kpi-ok' : needAttn <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
+    `kpi-card kpi-card--interactive ${needAttn === 0 ? 'kpi-ok' : needAttn <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
   document.getElementById('kpiActions').innerHTML     = `${overdue}${_unit('項')}`;
   document.getElementById('kpiActionsDelta').innerHTML = _deltaBadge(overdue, _prevSnap?.overdueActions ?? null, true);
   document.getElementById('kpiActionsSub').textContent =
     overdue > 0 ? `${overdue} 項已逾期` : '無逾期項目';
   document.getElementById('kpiActionsCard').className  =
-    `kpi-card ${overdue === 0 ? 'kpi-ok' : overdue <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
+    `kpi-card kpi-card--interactive ${overdue === 0 ? 'kpi-ok' : overdue <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
   healthCard.className =
-    `kpi-card ${onTrackPct >= 80 ? 'kpi-ok' : onTrackPct >= 60 ? 'kpi-warn' : 'kpi-bad'}`;
+    `kpi-card kpi-card--interactive ${onTrackPct >= 80 ? 'kpi-ok' : onTrackPct >= 60 ? 'kpi-warn' : 'kpi-bad'}`;
 }
 
 // ── 專案列表 ────────────────────────────────────────────────────
@@ -501,11 +523,14 @@ function renderProjects(filter) {
       <div class="project-row__name">${p.name}</div>
       <span class="badge badge-neutral text-xs">${TEAM_NAMES[p.team] || p.team}</span>
       ${overdue ? '<span class="badge badge-danger text-xs">⚠️ 逾期</span>' : urgent ? '<span class="badge badge-warning text-xs">⏳ 即將到期</span>' : ''}
-      <div class="project-row__progress-wrap">
-        <div class="project-row__progress-bar">
-          <div class="project-row__progress-fill" style="width:${pct}%;background:${barColor}"></div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:12px;">
+        <div class="avatar" title="${p.owner || '未指定'}">${p.owner ? p.owner.substring(0,1).toUpperCase() : '?'}</div>
+        <div class="project-row__progress-wrap" style="margin-left:0;">
+          <div class="mini-progress">
+            <div class="mini-progress__bar" style="width:${pct}%;background:${barColor}"></div>
+          </div>
+          <div class="project-row__progress-pct">${pct}%${isAuto ? '<span title="依 Actions 自動計算" style="font-size:10px;margin-left:2px;opacity:.7;">🤖</span>' : ''}</div>
         </div>
-        <div class="project-row__progress-pct">${pct}%${isAuto ? '<span title="依 Actions 自動計算" style="font-size:10px;margin-left:2px;opacity:.7;">🤖</span>' : ''}</div>
       </div>
     </div>
     <div class="project-row__detail" id="detail-${p.id}">
@@ -528,6 +553,8 @@ function renderDecisions() {
   const allRisks = _displayRisks();
   const risks = allRisks.filter(r => r.level === 'high' && r.status !== 'closed');
   const el = document.getElementById('decisionList');
+  const countEl = document.getElementById('decisionCount');
+  if (countEl) countEl.textContent = risks.length;
 
   if (risks.length === 0) {
     el.innerHTML = `<div class="empty-state">
