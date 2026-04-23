@@ -95,7 +95,7 @@
       <div class="kpi-card__label">需關注專案</div>
       <div class="kpi-card__value" id="kpiRisks">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">個</span></div>
       <span class="kpi-delta-wrap" id="kpiRisksDelta"></span>
-      <div class="kpi-card__sub" id="kpiRisksSub">At Risk + 落後 (點擊篩選)</div>
+      <div class="kpi-card__sub" id="kpiRisksSub">At Risk + Behind (點擊篩選)</div>
     </div>
     <div class="kpi-card kpi-card--interactive" id="kpiActionsCard" onclick="window.location.href='actions.html'" title="前往 Actions 頁面">
       <div class="kpi-card__label">逾期 Actions</div>
@@ -137,11 +137,11 @@
               <option value="org-mgmt">組織管理</option>
             </select>
             <div class="tab-bar" id="statusFilter" style="margin-left:4px;">
-              <button class="tab-btn active" data-filter="all">全部</button>
-              <button class="tab-btn" data-filter="on-track" style="font-size:var(--font-size-xs);">🟢 正常</button>
-              <button class="tab-btn" data-filter="at-risk" style="font-size:var(--font-size-xs);">🟡 風險</button>
-              <button class="tab-btn" data-filter="behind" style="font-size:var(--font-size-xs);">🔴 落後</button>
-              <button class="tab-btn" data-filter="paused" style="font-size:var(--font-size-xs);">⏸️ 暫緩</button>
+              <button class="tab-btn active" data-filter="all">All</button>
+              <button class="tab-btn" data-filter="on-track" style="font-size:var(--font-size-xs);">🟢 On Track</button>
+              <button class="tab-btn" data-filter="at-risk" style="font-size:var(--font-size-xs);">🟡 At Risk</button>
+              <button class="tab-btn" data-filter="behind" style="font-size:var(--font-size-xs);">🔴 Behind</button>
+              <button class="tab-btn" data-filter="paused" style="font-size:var(--font-size-xs);">⏸️ Paused</button>
             </div>
           </div>
         </div>
@@ -387,7 +387,7 @@ function renderKPIs() {
   document.getElementById('kpiHealth').innerHTML      = `${onTrackPct}${_unit('%')}`;
   document.getElementById('kpiHealthDelta').innerHTML  = _deltaBadge(onTrackPct, _prevSnap?.onTrackPct);
   document.getElementById('kpiHealthSub').textContent  =
-    `${onTrack} 正常 / ${atRisk} 風險 / ${behind} 落後${paused ? ` / ${paused} 暫緩` : ''}`;
+    `${onTrack} On Track / ${atRisk} At Risk / ${behind} Behind${paused ? ` / ${paused} Paused` : ''}`;
   
   const ringEl = document.getElementById('kpiHealthRing');
   if (ringEl) {
@@ -397,11 +397,11 @@ function renderKPIs() {
 
   document.getElementById('kpiTotal').innerHTML       = `${total}${_unit('個')}`;
   document.getElementById('kpiTotalDelta').innerHTML   = _deltaBadge(total, _prevSnap?.totalProjects);
-  document.getElementById('kpiTotalSub').textContent   = `${behind} 落後 / ${paused} 暫緩`;
+  document.getElementById('kpiTotalSub').textContent   = `${behind} Behind / ${paused} Paused`;
   document.getElementById('kpiRisks').innerHTML       = `${needAttn}${_unit('個')}`;
   const _pNeedAttn = _prevSnap ? (_prevSnap.atRiskCount || 0) + (_prevSnap.behindCount || 0) : null;
   document.getElementById('kpiRisksDelta').innerHTML   = _deltaBadge(needAttn, _pNeedAttn, true);
-  document.getElementById('kpiRisksSub').textContent   = `${atRisk} At Risk / ${behind} 落後`;
+  document.getElementById('kpiRisksSub').textContent   = `${atRisk} At Risk / ${behind} Behind`;
   document.getElementById('kpiRisksCard').className    =
     `kpi-card kpi-card--interactive ${needAttn === 0 ? 'kpi-ok' : needAttn <= 3 ? 'kpi-warn' : 'kpi-bad'}`;
   document.getElementById('kpiActions').innerHTML     = `${overdue}${_unit('項')}`;
