@@ -170,15 +170,18 @@ const TEAM_COLORS = {
   'tv-solution':'#9c6fcc','healthcare':'#d94f4f','org-mgmt':'#6b7280'
 };
 
-let filterTeam = 'all';
-let dragSrcId  = null;
+let filterTeam   = 'all';
+let dragSrcId    = null;
+let _pendingClose = new Set(); // 儲存後需要收合的 detail ID
 
 function renderAll() {
-  // 記住目前展開中的 detail ID，重繪後還原
+  // 記住目前展開中的 detail ID，重繪後還原（排除 _pendingClose 中的項目）
   const openIds = new Set(
     [...document.querySelectorAll('.milestone__detail.open')]
       .map(el => el.id.replace('ms-', ''))
+      .filter(id => !_pendingClose.has(id))
   );
+  _pendingClose.clear();
   renderTimeline();
   renderMonthOverview();
   renderTeamDist();
@@ -313,6 +316,7 @@ window.saveMs = function(id) {
   const newDate = detail.querySelector('.ms-edit-date')?.value;
   if (!newName) { toast('名稱不能為空', 'error'); return; }
   if (!newDate) { toast('請選擇日期', 'error');   return; }
+  _pendingClose.add(id); // 儲存後收合此 detail
   store.save('milestones', { ...m, name: newName, date: newDate });
   toast('✅ 里程碑已更新', 'success');
 };
@@ -384,14 +388,20 @@ function renderMonthOverview() {
   const groups = {};
   milestones.forEach(m => {
     const month = m.date.substring(0, 7);
-    if (!groups[month]) groups[month] = { upcoming:0, done:0, delayed:0 };
-    groups[month][m.status] = (groups[month][m.status] || 0) + 1;
+    if (!groups[month]) groups[month] = { done: 0, upcoming: 0, delayed: 0 };
+    // 與時間軸顯示邏輯一致：status 優先，日期為輔
+    const isPast = m.date < today;
+    const effective = m.status === 'delayed'          ? 'delayed'
+                    : (m.status === 'done' || isPast) ? 'done'
+                    :                                   'upcoming';
+    groups[month][effective]++;
   });
 
   const el = document.getElementById('monthOverview');
   el.innerHTML = Object.entries(groups).map(([month, counts]) => {
     const [y, mo] = month.split('-');
-    const total = Object.values(counts).reduce((a,b) => a+b, 0);
+    const total = counts.done + counts.upcoming + counts.delayed;
+    const donePct = total > 0 ? Math.round(counts.done / total * 100) : 0;
     return `
       <div style="margin-bottom:var(--space-md);">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
@@ -399,12 +409,12 @@ function renderMonthOverview() {
           <span class="text-xs text-secondary">${total} 個</span>
         </div>
         <div class="progress-bar" style="height:6px;">
-          <div class="progress-bar__fill" style="width:${counts.done/total*100}%;background:var(--color-success)"></div>
+          <div class="progress-bar__fill" style="width:${donePct}%;background:var(--color-success)"></div>
         </div>
         <div style="display:flex;gap:var(--space-sm);margin-top:4px;">
-          <span class="text-xs" style="color:var(--color-success)">✅ ${counts.done||0}</span>
-          <span class="text-xs" style="color:var(--color-info)">📅 ${counts.upcoming||0}</span>
-          ${counts.delayed ? `<span class="text-xs" style="color:var(--color-danger)">⚠️ ${counts.delayed}</span>` : ''}
+          <span class="text-xs" style="color:var(--color-success)">✅ ${counts.done}</span>
+          <span class="text-xs" style="color:var(--color-info)">📅 ${counts.upcoming}</span>
+          ${counts.delayed ? `<span class="text-xs" style="color:var(--color-warning)">⚠️ ${counts.delayed}</span>` : ''}
         </div>
       </div>`;
   }).join('') || '<p class="text-sm text-secondary">尚無資料</p>';
