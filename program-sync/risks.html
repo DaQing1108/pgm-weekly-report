@@ -281,12 +281,13 @@ function renderList() {
       </div>
       <div class="risk-row__owner">${r.owner || '—'}</div>
       <div class="risk-row__date">${r.dueDate ? formatDate(r.dueDate) : '—'}</div>
-      <div class="risk-row__status">
+      <div class="risk-row__status" style="display:flex; gap:4px; align-items:center;">
         <select class="inp" style="padding:3px;font-size:var(--font-size-xs);" data-id="${r.id}" onclick="event.stopPropagation()" onchange="changeStatus('${r.id}', this.value, this)">
           <option value="open" ${r.status==='open'?'selected':''}>📌 尚未處理</option>
           <option value="in-progress" ${r.status==='in-progress'?'selected':''}>🔄 處理中</option>
           <option value="closed" ${r.status==='closed'?'selected':''}>✅ 關閉</option>
         </select>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteRisk('${r.id}')" title="刪除" style="padding:2px 6px;font-size:14px;color:var(--color-danger);">🗑</button>
       </div>
     </div>
     <div class="risk-row__detail" id="rdetail-${r.id}" style="display:none;padding:var(--space-md) var(--space-lg);background:var(--color-bg-secondary);border-radius:0 0 var(--radius-md) var(--radius-md);margin-bottom:var(--space-sm);border:1px solid var(--color-border-default);border-top:none;">
