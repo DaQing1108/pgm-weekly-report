@@ -125,7 +125,7 @@
     <div class="panel" style="margin-bottom:var(--space-xl);">
       <div class="panel__header">
         <span class="panel__title">👥 資源瓶頸熱區 (單點故障觀測)</span>
-        <span class="text-xs text-secondary">最新一週 Top 5 待辦任務所屬負責人</span>
+        <span class="text-xs text-secondary" id="resourceSubtitle">Top 5 未完成任務 — 最新一週</span>
       </div>
       <div class="panel__body" style="padding:var(--space-lg);">
         <canvas id="chartResource" height="100"></canvas>
@@ -357,27 +357,55 @@ async function renderCharts(snapshots) {
     }
   });
 
-  // 資源瓶頸熱區 (最新一週 Top 5 負責人)
+  // 資源瓶頸熱區：聚合所有可見週次的未完成 Actions，按負責人統計最高峰值（取可見範圍內各週最大值）
+  // 這樣切換 4/8/12 週範圍時，圖表隨之反映不同時間跨度的負擔分布
   const latestSnap = snapshots[snapshots.length - 1];
-  const pendingActions = (latestSnap?.actions || []).filter(a => a.status !== 'done' && a.owner);
-  
-  const ownerCounts = {};
-  pendingActions.forEach(a => {
-    ownerCounts[a.owner] = (ownerCounts[a.owner] || 0) + 1;
-  });
-  const topOwners = Object.entries(ownerCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
+  const latestLabel = latestSnap?.weekLabel || '—';
+
+  // 每個 owner 在可見週次中最繁忙的那週任務數（peak load）
+  const ownerPeak = {};   // owner → { count, weekLabel }
+  for (const s of snapshots) {
+    const weekOwner = {};
+    (s.actions || []).filter(a => a.status !== 'done' && a.owner).forEach(a => {
+      weekOwner[a.owner] = (weekOwner[a.owner] || 0) + 1;
+    });
+    for (const [owner, cnt] of Object.entries(weekOwner)) {
+      if (!ownerPeak[owner] || cnt > ownerPeak[owner].count) {
+        ownerPeak[owner] = { count: cnt, weekLabel: s.weekLabel };
+      }
+    }
+  }
+
+  const topOwners = Object.entries(ownerPeak)
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 8);  // 最多顯示 8 人，讓瓶頸更全面可見
+
+  // 動態更新副標題：顯示範圍與資料來源週
+  const rangeLabel = snapshots.length > 1
+    ? `${snapshots[0].weekLabel}–${latestLabel}`
+    : latestLabel;
+  const subtitleEl = document.getElementById('resourceSubtitle');
+  if (subtitleEl) subtitleEl.textContent = `Top ${topOwners.length} 未完成任務峰值（${rangeLabel} 可見範圍）`;
 
   if (_chartResource) _chartResource.destroy();
+
+  if (!topOwners.length) {
+    document.getElementById('chartResource').parentElement.innerHTML =
+      '<p class="text-sm text-secondary" style="padding:16px 0;">本範圍內無未完成 Actions 資料</p>';
+    return;
+  }
+
   _chartResource = new Chart(document.getElementById('chartResource'), {
     type: 'bar',
     data: {
-      labels: topOwners.map(o => o[0]),
+      labels: topOwners.map(o => `${o[0]} (${o[1].weekLabel})`),
       datasets: [{
-        label: '待辦任務總數',
-        data: topOwners.map(o => o[1]),
-        backgroundColor: topOwners.map((o, i) => i === 0 && o[1] > 3 ? '#d94f4f' : '#e4a23c'),
+        label: '未完成任務峰值',
+        data: topOwners.map(o => o[1].count),
+        // 顏色依數值（非排名）：≥5 紅色警示，≥3 橘色提醒，其餘藍色
+        backgroundColor: topOwners.map(o =>
+          o[1].count >= 5 ? '#d94f4f' : o[1].count >= 3 ? '#e4a23c' : '#378add'
+        ),
         borderRadius: 4
       }]
     },
@@ -385,9 +413,23 @@ async function renderCharts(snapshots) {
       indexAxis: 'y',
       responsive: true,
       scales: {
-        x: { ticks: { stepSize: 1 }, title: { display: true, text: '進行中 Actions 數量' } }
+        x: {
+          min: 0,
+          ticks: { stepSize: 1, precision: 0 },
+          title: { display: true, text: '未完成 Actions 數量（峰值週）' }
+        }
       },
-      plugins: { legend: { display: false } }
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const o = topOwners[ctx.dataIndex];
+              return ` ${ctx.raw} 項未完成（${o[1].weekLabel} 峰值）`;
+            }
+          }
+        }
+      }
     }
   });
 }
