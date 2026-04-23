@@ -119,6 +119,7 @@ import { store }   from './assets/js/store.js';
 import { appInit, setSessionWeek } from './assets/js/app-init.js';
 import { listWeeks } from './assets/js/api.js';
 import { toast, renderBadge, formatDate, generateId, modal, isOverdue, confirm } from './assets/js/ui.js';
+import { TEAMS } from './assets/data/schema.js';
 
 (async () => {
   const currentLabel = await appInit();
@@ -445,11 +446,11 @@ window.editAction = function(id) {
   const a = store.getById('actions', id);
   if (!a) return;
 
-  const projects = store.sortBy('projects', 'name', 'asc');
-  const members  = store.sortBy('members',  'name', 'asc');
+  const members  = store.sortBy('members', 'name', 'asc');
 
+  // Objectives 固定清單（與 Dashboard 專案進度總覽篩選一致）
   const projOpts = `<option value="">— 無 —</option>` +
-    projects.map(p => `<option value="${p.name}" ${a.project === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
+    TEAMS.map(t => `<option value="${t.name}" ${a.project === t.name ? 'selected' : ''}>${t.name}</option>`).join('');
 
   const ownerOpts = `<option value="">— 選擇 —</option>` +
     members.map(m => `<option value="${m.name}" ${a.owner === m.name ? 'selected' : ''}>${m.name}</option>`).join('');
