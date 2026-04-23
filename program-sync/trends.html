@@ -178,7 +178,14 @@ async function loadTrends() {
       if (!data?.snapshots?.length) return;
       // 取該週最新快照
       const snap = data.snapshots[data.snapshots.length - 1];
-      _allSnapshots.push({ weekLabel: w.weekLabel, weekStart: w.weekStart, snap, actions: data.actions || [] });
+      _allSnapshots.push({
+        weekLabel: w.weekLabel,
+        weekStart: w.weekStart,
+        snap,
+        actions:  data.actions  || [],
+        projects: data.projects || [],
+        risks:    data.risks    || [],
+      });
     })
   );
 
@@ -210,10 +217,50 @@ function renderAll() {
   document.getElementById('snapshotPanel').style.display = '';
 }
 
+// ── 共用：從原始資料重算各項指標（不依賴快照存值）──────────────
+function _weekEnd(weekStart) {
+  if (!weekStart) return null;
+  const d = new Date(weekStart + 'T12:00:00');
+  d.setDate(d.getDate() + 6);
+  return d.toISOString().split('T')[0];
+}
+
+function _computeMetrics(s) {
+  if (!s) return {};
+  const projs = s.projects || [];
+  const risks  = s.risks    || [];
+  const acts   = s.actions  || [];
+  const we     = _weekEnd(s.weekStart);
+
+  // 健康度：(on-track) / (total - paused)
+  const paused  = projs.filter(p => p.status === 'paused').length;
+  const active  = projs.length - paused;
+  const onTrack = projs.filter(p => p.status === 'on-track').length;
+  const health  = active > 0 ? Math.round(onTrack / active * 100) : (s.snap?.onTrackPct ?? null);
+
+  // 風險：只計非 closed
+  const open   = risks.filter(r => r.status !== 'closed');
+  const high   = open.filter(r => r.level === 'high').length;
+  const medium = open.filter(r => r.level === 'medium').length;
+  const low    = open.filter(r => r.level === 'low').length;
+
+  // 逾期：dueDate ≤ 週末 且 not done
+  const overdue = (we && acts.length)
+    ? acts.filter(a => a.dueDate && a.dueDate <= we && a.status !== 'done').length
+    : (s.snap?.overdueActions ?? 0);
+
+  // Action 完成率
+  const total = acts.length;
+  const done  = acts.filter(a => a.status === 'done').length;
+
+  return { onTrackPct: health, highRisks: high, mediumRisks: medium, lowRisks: low,
+           overdueActions: overdue, totalActions: total, completedActions: done };
+}
+
 // ── 本週 vs 上週 KPI ────────────────────────────────────────────
 function renderKPI(snapshots) {
-  const curr = snapshots[snapshots.length - 1]?.snap || {};
-  const prev = snapshots.length >= 2 ? snapshots[snapshots.length - 2]?.snap : null;
+  const curr = _computeMetrics(snapshots[snapshots.length - 1]);
+  const prev = snapshots.length >= 2 ? _computeMetrics(snapshots[snapshots.length - 2]) : null;
 
   function diffBadge(key, goodUp) {
     if (!prev) return '';
@@ -250,32 +297,17 @@ async function renderCharts(snapshots) {
     });
   }
 
+  // 所有指標一律從原始 projects / risks / actions 重算，捨棄快照存值
   const labels     = snapshots.map(s => s.weekLabel);
-  const healthData = snapshots.map(s => s.snap.onTrackPct ?? null);
-  const highData   = snapshots.map(s => s.snap.highRisks   ?? 0);
-  const medData    = snapshots.map(s => s.snap.mediumRisks  ?? 0);
-  const lowData    = snapshots.map(s => s.snap.lowRisks     ?? 0);
-  const actionRate = snapshots.map(s => {
-    const total = s.snap.totalActions || 0;
-    const done  = s.snap.completedActions || 0;
-    return total ? Math.round(done / total * 100) : null;
-  });
-
-  // 從各週 actions 陣列搭配週末日期重新計算逾期數，
-  // 避免依賴快照建立時的 overdueActions（可能因快照建立時間點不同而失真）
-  function _weekEnd(weekStart) {
-    if (!weekStart) return null;
-    const d = new Date(weekStart + 'T12:00:00');
-    d.setDate(d.getDate() + 6);
-    return d.toISOString().split('T')[0];
-  }
-  const overdueData = snapshots.map(s => {
-    const we = _weekEnd(s.weekStart);
-    if (we && s.actions?.length) {
-      return s.actions.filter(a => a.dueDate && a.dueDate <= we && a.status !== 'done').length;
-    }
-    return s.snap.overdueActions ?? 0; // fallback
-  });
+  const metrics    = snapshots.map(s => _computeMetrics(s));
+  const healthData = metrics.map(m => m.onTrackPct ?? null);
+  const highData   = metrics.map(m => m.highRisks   ?? 0);
+  const medData    = metrics.map(m => m.mediumRisks  ?? 0);
+  const lowData    = metrics.map(m => m.lowRisks     ?? 0);
+  const actionRate = metrics.map(m =>
+    m.totalActions ? Math.round(m.completedActions / m.totalActions * 100) : null
+  );
+  const overdueData = metrics.map(m => m.overdueActions ?? 0);
 
   // 健康度折線
   if (_chartHealth) _chartHealth.destroy();
@@ -436,33 +468,22 @@ async function renderCharts(snapshots) {
 
 // ── 快照明細表 ──────────────────────────────────────────────────
 function renderSnapshotTable(snapshots) {
-  function _weekEnd(weekStart) {
-    if (!weekStart) return null;
-    const d = new Date(weekStart + 'T12:00:00');
-    d.setDate(d.getDate() + 6);
-    return d.toISOString().split('T')[0];
-  }
   const rows = [...snapshots].reverse().map(s => {
-    const snap = s.snap;
-    const h = snap.onTrackPct;
+    const m = _computeMetrics(s);
+    const h = m.onTrackPct;
     const hColor = h == null ? 'var(--color-text-secondary)'
                  : h >= 80  ? 'var(--color-success)'
                  : h >= 60  ? 'var(--color-warning)'
                  : 'var(--color-danger)';
-    // 與圖表一致：用週末日期從 actions 重新計算逾期數
-    const we = _weekEnd(s.weekStart);
-    const overdue = (we && s.actions?.length)
-      ? s.actions.filter(a => a.dueDate && a.dueDate <= we && a.status !== 'done').length
-      : (snap.overdueActions ?? '—');
     return `<tr>
       <td style="font-weight:600;">${s.weekLabel}</td>
       <td>${s.weekStart || '—'}</td>
       <td style="color:${hColor};font-weight:600;">${h != null ? h + '%' : '—'}</td>
-      <td>${snap.totalProjects ?? '—'}</td>
-      <td style="color:var(--color-danger);">${snap.highRisks ?? '—'}</td>
-      <td style="color:var(--color-warning);">${snap.mediumRisks ?? '—'}</td>
-      <td>${overdue}</td>
-      <td>${snap.completedActions ?? '—'} / ${snap.totalActions ?? '—'}</td>
+      <td>${s.projects?.length ?? '—'}</td>
+      <td style="color:var(--color-danger);">${m.highRisks ?? '—'}</td>
+      <td style="color:var(--color-warning);">${m.mediumRisks ?? '—'}</td>
+      <td>${m.overdueActions ?? '—'}</td>
+      <td>${m.completedActions ?? '—'} / ${m.totalActions ?? '—'}</td>
     </tr>`;
   }).join('');
 
