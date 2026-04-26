@@ -72,9 +72,9 @@ app.get('/api/reports', (req, res) => {
       .filter(f => f.endsWith('.md') && !f.includes(REPORT_EXCLUDE_TAG))
       .map(f => {
         const content = fs.readFileSync(path.join(REPORTS_DIR, f), 'utf-8');
-        const versionMatch = f.match(/v(\d+)/);
-        const dateMatch = content.match(/報告日期[：:]\s*([\d/]+)/);
-        const periodMatch = content.match(/報告週期[：:]\s*([^\n]+)/);
+        const versionMatch = f.match(/(?:v|_)(\d+)/) || f.match(/\d{6}/); // try to catch v1 or date
+        const dateMatch = content.match(/報告日期[：:]\s*(?:\*\*\s*)?([\d/]+)/);
+        const periodMatch = content.match(/報告週期[：:]\s*(?:\*\*\s*)?([^\n\*]+)/);
         return {
           filename: f,
           version: versionMatch ? `v${versionMatch[1]}` : f,

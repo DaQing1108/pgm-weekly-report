@@ -5,12 +5,12 @@
 
 專案名稱：VIA Technologies PgM Weekly Report System
 建置日期：2026/03/19
-更新日期：2026/04/06
-技術棧：React + Vite（frontend）/ Node.js + Express（backend）
-         program-sync：Vanilla JS SPA（主管理後台）
+更新日期：2026/04/24
+技術棧：Node.js + Express（backend）/ Vanilla JS SPA（program-sync）
 部署平台：Railway
 公開網址：https://pgm-weekly-report-production.up.railway.app
 GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
+本地路徑：/Users/daqingliao/Documents/AI-Workspace/projects/pgm-weekly-report
 
 --------------------------------------------------------------------------------
   系統架構
@@ -21,23 +21,30 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
   Railway（單一服務）
   ├── Express Server (port 3001)
   │   ├── GET  /api/health
-  │   ├── GET  /api/reports       ← 讀取 backend/reports/*.md
-  │   ├── GET  /api/weeks         ← 歷史週次清單
-  │   ├── GET  /api/weeks/:label  ← 指定週次 JSON
-  │   └── /*  → 提供靜態檔案
-  ├── backend/reports/*.md        ← 週報 Markdown 來源
-  ├── backend/data/weeks/*.json   ← 歷史週次快照
-  └── program-sync/               ← 主管理後台（Vanilla JS SPA）
+  │   ├── GET  /api/reports            ← 讀取 backend/reports/*.md
+  │   ├── GET  /api/reports/:filename  ← 讀取單份週報
+  │   ├── GET  /api/reports/:filename/download
+  │   ├── POST /api/reports            ← 儲存週報（需 ADMIN_TOKEN）
+  │   ├── GET  /api/weeks              ← 歷史週次清單
+  │   ├── GET  /api/weeks/:label       ← 指定週次 JSON
+  │   ├── POST /api/weeks/:label       ← 儲存週次快照（需 ADMIN_TOKEN）
+  │   ├── GET  /api/state              ← 跨瀏覽器同步狀態
+  │   ├── POST /api/state              ← 儲存狀態（需 ADMIN_TOKEN）
+  │   ├── GET  /read                   ← NotebookLM 爬取用純 HTML
+  │   └── /*  → serve program-sync/（Fallback SPA）
+  ├── backend/reports/*.md             ← 週報 Markdown 來源
+  ├── backend/data/weeks/*.json        ← 歷史週次快照
+  └── program-sync/                    ← 主管理後台（Vanilla JS SPA）
 
   program-sync 子模組：
   ├── index.html      Dashboard（KPI + 專案列表）
   ├── input.html      快速輸入 / 批次貼上
-  ├── risks.html      風險管理
+  ├── risks.html      風險管理（多選篩選）
   ├── actions.html    Action Items
-  ├── milestones.html 里程碑
+  ├── milestones.html 里程碑時間軸
   ├── review.html     審核 / 快照建立
   ├── trends.html     歷史趨勢圖表
-  ├── report.html     AI 週報生成
+  ├── report.html     週報草稿編輯（儲存草稿 + 離頁警告）
   └── assets/
       ├── css/
       │   ├── base.css        CSS variables / reset / typography
@@ -47,30 +54,45 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
           ├── store.js        localStorage CRUD + 統計 + 快照
           ├── ui.js           Toast / Modal / 通用 UI helpers
           ├── api.js          後端 API 串接
-          ├── app-init.js     跨頁初始化
-          ├── report.js       週報生成邏輯（本地 + AI）
-          └── schema.js       資料結構定義
+          ├── app-init.js     跨頁初始化 + 歷史週切換
+          ├── export.js       資料匯出
+          ├── import.js       資料匯入 / 批次解析
+          ├── parse-history.js 歷史紀錄解析
+          └── schema.js       資料結構定義（Objectives / 狀態）
+
+--------------------------------------------------------------------------------
+  資料模型說明
+--------------------------------------------------------------------------------
+
+  Objectives（team）層級：
+    Media Agent / LearnMode / 創造栗 / TV Solution / Healthcare / 組織管理
+
+  專案狀態（英文）：On Track / At Risk / Behind / Paused
+
+  Actions.project：關聯 Dashboard 實際專案名稱（動態下拉，選填）
+  Milestones.project：欄位已從時間軸移除（不顯示）
+
+  KPI 定義：
+    需關注專案 = status 為 "At Risk" + "Behind" 的專案數
+    逾期 Actions = dueDate < 今天 且 status ≠ done
+    健康度 / 進行中 = 從 store.getAll() 即時計算（非後端快照）
 
 --------------------------------------------------------------------------------
   本地開發啟動
 --------------------------------------------------------------------------------
 
   # 安裝依賴（首次）
-  cd backend  && npm install && cd ..
-  cd frontend && npm install && cd ..
+  cd backend && npm install && cd ..
 
-  # Terminal 1：後端 (port 3001)
+  # 啟動後端 (port 3001)
   cd backend && npm run dev
 
-  # Terminal 2：前端 React viewer (port 5173)
-  cd frontend && npm run dev
-
-  # program-sync 直接用瀏覽器開啟 program-sync/index.html
-  # 或透過後端做 static serve
+  # program-sync 透過後端自動 serve
+  # 開啟瀏覽器：http://localhost:3001
 
   環境變數（backend/.env）：
     ADMIN_TOKEN=<設定管理員 token>
-    CORS_ORIGIN=http://localhost:5173
+    CORS_ORIGIN=http://localhost:3001
     REPORT_EXCLUDE_TAG=_v7     # 過濾舊版週報
 
 --------------------------------------------------------------------------------
@@ -80,7 +102,7 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
   git add .
   git commit -m "update"
   git push
-  # Railway 自動偵測並重新部署（約 2 分鐘）
+  # Railway 自動偵測 Dockerfile 並重新部署（約 2 分鐘）
 
   詳細建置步驟請見：PgM_週報系統_建置指南.md
 
@@ -89,59 +111,115 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
 --------------------------------------------------------------------------------
 
   1. 將新週報 .md 放至 backend/reports/
-  2. git add backend/reports/ && git commit -m "add vN weekly report"
+  2. git add backend/reports/ && git commit -m "add YYMMDD weekly report"
   3. git push（Railway 自動部署）
 
-  檔名規則：含 _vN（如 _v9）才會被識別版本號
+  檔名規則：Pgm_Weekly_Report_YYMMDD.md
   必填欄位：報告週期：YYYY/MM/DD – YYYY/MM/DD
+
+--------------------------------------------------------------------------------
+  Skills
+--------------------------------------------------------------------------------
+
+  program-sync-report.skill  週報生成 Skill
+    觸發詞：「生成週報」「更新週報」「升版」「整合這份 PDF」
+    輸出路徑：backend/reports/
+
+  pptx-template.skill        PPT 範本生成 Skill
+    觸發詞：「做成範本」「做 PPT 範本」「參考這份做 PPT」
+    輸出路徑：AI-Workspace/<ProjectFolder>/
 
 --------------------------------------------------------------------------------
   Changelog
 --------------------------------------------------------------------------------
 
-  ── 2026/04/06  UI/UX 改善（高優先 5 項）by Alex Liao / Antigravity ──
+  ── 2026/04/24  專案整理與路徑遷移 by Alex Liao ──
 
-  [Fix #1] KPI WoW Delta Badge（index.html + components.css）
-    - 新增 _prevSnap 模組變數追蹤前一週快照
-    - 新增 _deltaBadge(cur, prev, lowerIsBetter) helper
-    - init() 和 loadWeekView() 都會自動更新 _prevSnap
-    - 4 張 KPI 卡片加入 .kpi-delta-wrap slot
-    - 綠色（▲ 上升好）/ 紅色（▼ 下降壞）pill badge CSS
-    - overdueActions / needAttn 設 lowerIsBetter=true（越少越好）
-    - 無前一週快照時，delta slot 為空，不影響現有排版
+  [架構] 工作路徑遷移
+    - 專案路徑由 Claude Contxet/ 改為 AI-Workspace/projects/pgm-weekly-report/
+    - Claude Memory 系統重建（my-context.md / project-pgm-weekly-report.md / feedback-dev-rules.md）
 
-  [Fix #2] 刪除專案改用 Styled Confirm Modal（input.html）
-    - btnDeleteProj click handler 改為 async
-    - window.confirm() 替換為 await uiConfirm()
-    - uiConfirm 已在 imports 中（與 removeReport 同一版本）
-    - 解決 Safari 原生 alert 可能被 blocked 的問題
+  [清理] 廢棄檔案移除
+    - 刪除 frontend/（React + Vite，已由 program-sync Vanilla JS 取代）
+    - 刪除 PPT_Template/、PPT範本/（與週報系統無關）
+    - 刪除 automation/、LOOP_INTEGRATION.md（舊 Loop 整合，已棄用）
+    - 刪除 program-sync-report-src/（.skill 打包後原始資料夾）
+    - 刪除 pptx-template-eval-review.html、loop_extracted_actions.json
+    - 刪除根目錄所有 MediaAgent_週報_*.md 舊格式歷史檔案
 
-  [Fix #3] Project Row 展開動畫（components.css）
-    - .project-row__detail 從 display:none/block 改為 max-height transition
-    - max-height: 0 → 300px，opacity: 0 → 1，duration: 0.25s ease
-    - padding 同步 animate（0 → var(--space-md)）
-    - 無需改任何 JS，toggle class 'open' 邏輯不變
+  [修正] backend/package.json
+    - build script 移除 cd ../frontend 殘留死碼
 
-  [Fix #4] report.html 三欄 Responsive（layout.css + report.html）
-    - 新增 @media (max-width: 1280px) breakpoint
-    - 1280px 以下：三欄變兩欄（左+中），右側 AI 控制欄收起
-    - 右側欄改為 .three-col__ai-panel，1280px 以下為 position:fixed right drawer
-    - Navbar 加入 "⚙ AI 設定" toggle button（≥1281px 自動隱藏）
-    - 點擊 toggle 開關 drawer，點擊 panel 外部自動關閉
+  [Skills] 路徑更新與整合
+    - program-sync-report.skill：更新輸出/參考文件路徑至 AI-Workspace
+    - program-sync-report 2.skill：刪除（與主 skill 合併）
+    - pptx-template.skill：更新 npm 工作目錄與輸出路徑
 
-  [Fix #5] 批次輸入重複專案偵測（input.html）
-    - renderParseResult() 加入 _normalize() + _isDuplicate() 模糊比對
-    - 比對規則：lowercase + 移除空格/dash/underscore 後 includes 互查
-    - 偵測到重複：橙黃背景、"⚠ 可能重複" badge、預設不勾選（須手動確認）
-    - 未重複：沿用原本白底 + 預設勾選
+  ── 2026/04/08  穩定性升級 by Alex Liao ──
 
-  [Bonus] CSS Lint Fix（components.css）
-    - .inp-range 補加標準 appearance: none（原只有 -webkit-appearance）
+  [System] 表單未儲存防呆（Dirty Tracking）
+    - 全站 _initDirtyTracking，有未儲存變更時攔截離頁
+    - 搜尋框及過濾欄位加入豁免機制
+
+  [System] 壞檔自救機制（Corrupt Data Self-Healing）
+    - localStorage 損毀時提供一鍵「重置該變數」按鈕
+
+  [System] 全局連線狀態監視器（Sync Status Indicator）
+    - store.js 廣播 syncing / syncSuccess 事件
+    - Navbar 右上角加入呼吸燈狀態綠點（Offline / Syncing / Saved / Failed）
+
+  ── 2026/04/06  UI/UX 改善（Phase 2）by Alex Liao ──
+
+  [Dashboard] 進階排序與過濾
+    - 加入搜尋框與下拉排序選單（健康度 / 最近更新）
+
+  [Dashboard] 跨模組關聯聚合
+    - 專案展開面板自動呈現隸屬 Risks 與 Actions 預覽
+
+  [Dashboard] 週次選擇器視覺改善
+    - 橫向捲動 Tab 取代舊文字下拉選單
+
+  [Dashboard / Actions] 逾期與即將到期視覺強化
+    - 3 天內到期未完成：整行黃底 + ⏳ 預警
+    - 專案標題右側顯示 ⚠️逾期 / ⏳即將到期
+
+  [System] Dark Mode 切換
+    - 各頁頂部加入黑白模式快捷切換開關
+
+  [Trends] 資源瓶頸熱區（Resource Matrix）
+    - 動態抓取當週 Pending Actions，Top 5 負責人柱狀圖
+    - 超過 3 項時自動高亮紅色（單點故障警示）
+
+  ── 2026/04/06  UI/UX 改善（Phase 1）by Alex Liao ──
+
+  [Dashboard] KPI WoW Delta Badge
+    - 4 張 KPI 卡片加入週對週變化 badge（綠升 / 紅降）
+
+  [Input] 刪除專案改用 Styled Confirm Modal（移除原生 window.confirm）
+
+  [Dashboard] Project Row 展開動畫（max-height transition）
+
+  [System] 移除 API Key 管理與 AI 週報生成功能
+    - 全站 9 頁面移除 🔑 API Key / 📝 生成週報 按鈕
+    - 刪除死碼：ai.js、report.js、TONE_OPTIONS、REPORT_SECTIONS
+
+  [Risks] 狀態篩選改為多選 chips；子組標籤統一為 Objectives
+
+  [Actions] project 欄位改為關聯 Dashboard 專案下拉（非 Objectives 層級）
+
+  [Milestones] 時間軸移除永遠為空的 project 欄位顯示
+
+  [Dashboard] 專案狀態改為英文：On Track / At Risk / Behind / Paused
+
+  [System] 跨頁資料同步補齊
+    - risks / actions / milestones / trends 加入 pageshow + storage 事件監聽
+    - 引入 _isHistoryView flag 區分最新週 vs 歷史週資料來源
 
   ── 2026/03/19  初始建置 by Alex Liao ──
-    - React Vite 前端 + Express 後端建立
-    - Railway 部署設定
-    - program-sync Vanilla JS SPA 建立
+    - Express 後端 + program-sync Vanilla JS SPA 建立
+    - Railway 部署設定（Dockerfile）
+    - GitHub repo 建立：DaQing1108/pgm-weekly-report
+    - NotebookLM 整合（/read 純 HTML 路由）
     - 詳見 PgM_週報系統_建置指南.md
 
 --------------------------------------------------------------------------------
@@ -151,52 +229,19 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
   Q：Railway build 失敗，npm: command not found
   A：確認 railway.json 的 builder 設為 DOCKERFILE。
 
-  Q：前端無法連到 API（本地開發）
-  A：確認 backend 已在 port 3001，vite.config.js proxy 設定正確。
-
   Q：新增週報沒出現
-  A：檔名含 _vN、放在 backend/reports/、push 後等 2 分鐘。
+  A：檔名格式 Pgm_Weekly_Report_YYMMDD.md，放在 backend/reports/，push 後等 2 分鐘。
 
   Q：KPI delta 不顯示
   A：需後端有至少 2 個歷史週次 JSON（backend/data/weeks/）才有對比值。
 
-  Q：report.html AI 控制欄不見了
-  A：螢幕寬度 ≤1280px 時改為 drawer 模式，點 navbar 的 "⚙ AI 設定" 開啟。
+  Q：跨頁資料沒更新
+  A：從其他分頁或返回鍵進入頁面時，pageshow 事件會自動重新載入資料。
+
+  Q：POST /api/reports 回傳 401
+  A：需在 request header 加入 x-admin-token: <ADMIN_TOKEN>。
 
 --------------------------------------------------------------------------------
   建置人：Alex Liao
   維護人：Alex Liao
 ================================================================================
-
-## 2026-04-06 UI/UX 改善實裝 (Phase 2)
-1. **[Dashboard] 進階排序與過濾 (#1)**
-   - 加入了「🔍 搜尋」與下拉式「排序選單」。
-   - 支援專案近況摘要模糊搜尋，並能針對「健康度（拉響警報）」與「最近更新」等維度聰明排序。
-2. **[Dashboard] 跨模組關聯聚合 (#2)**
-   - 當專案折疊面板展開時，會自動呈現隸屬於該專案的 Risks 與 Actions 預覽。
-   - 針對風險警示會顯示 Level 與標題，而行動方案會提供前三筆快速確認加上總結狀態。
-3. **[Dashboard] 週次選擇器視覺改善 (#3)**
-   - 全新的週次切換器（取代了舊的文字下拉選單），透過靈活的橫向捲動 Tab 呈現近四次的快速週次切換。超過過往週期的將透過縮減的菜單顯示。
-4. **[Dashboard / Actions] 逾期與即將到期視覺強化 (#4)**
-   - `Actions` 若在三天內將到期但尚未完成，整行會黃底且顯示 ⏳ 預警。
-   - `Dashboard 專案` 同理，小於 3 天到期與逾期的狀態現在都會直接反饋至專案標題右側（⚠️逾期 / ⏳即將到期）。
-5. **[System] 一鍵切換 Dark Mode 黑暗模式 (#5)**
-   - 各頁頂部新增了黑白模式快捷切換開關，徹底去除閃爍白光的 Bug 並優化對比度呈現！
-
-## 2026-04-06 商業邏輯升級：歷史經驗視覺化 (Trends)
-1. **[Trends] 資源瓶頸熱區 (Resource Matrix)**
-   - 於趨勢分析頁整合了全新的資源負載觀測面板。
-   - 動態抓取當週所有的 Pending Actions，即時統計並呈現 Top 5 任務負責人。
-   - 當單一處理人負擔超過 3 項目時，柱狀圖將自動高亮呈危險紅色（單點故障警示）。
-2. **[System] 全局面板導航銜接**
-   - 將 Trends (趨勢分析) 視圖以第一級選單姿態加入全站所有的 Navbar 中，無縫俯視專案脈絡。
-
-## 2026-04-08 穩定性與防護體驗升級 (Resilience Engineering)
-1. **表單未儲存防呆 (Dirty Tracking)**
-   - 實裝全站 `_initDirtyTracking`，在使用者有未儲存變更時進行離頁攔截。
-   - 針對搜尋框 (`type="search"`) 及過濾狀態欄位加入了豁免機制，確保查詢時不誤觸防呆。
-2. **壞檔自救機制 (Corrupt Data Self-Healing)**
-   - 強化 `_showCorruptBanner`：當 localStorage 欄位損毀無法解析時，提供一鍵「重置該變數」按鈕，幫助專案經理省去進開發者工具除錯的繁瑣步驟。
-3. **全局連線狀態監視器 (Sync Status Indicator)**
-   - 修改 `store.js` 使其向上廣播 `syncing` 與 `syncSuccess` 事件。
-   - 在全站 Navbar 右上角導入類似現代協作軟體的呼吸燈狀態綠點 (Offline / Syncing / Saved / Failed)，大幅提升與後端同步時的安全感與 UX 透明度。

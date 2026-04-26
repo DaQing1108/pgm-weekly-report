@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "build": "cd ../frontend && npm install && npm run build"
+    "build": "echo 'No build step required (Vanilla JS)'"
   },
   "dependencies": {
     "cors": "^2.8.5",

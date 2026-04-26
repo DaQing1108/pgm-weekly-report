@@ -1,56 +1,47 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm install:*)",
-      "mcp__Claude_Preview__preview_start",
-      "Bash(curl -s http://localhost:3001/api/reports)",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(r[''''version''''], r[''''filename'''']\\) for r in d[''''reports'''']]\")",
-      "Bash(gh auth:*)",
-      "Bash(brew install:*)",
-      "Bash(sudo npm:*)",
-      "Bash(~/.local/bin/railway --version)",
-      "Read(//Users/daqingliao/.railway/**)",
-      "Read(//Users/daqingliao/.config/**)",
-      "Bash(RAILWAY_TOKEN=5ed994aa-c845-4463-bf8a-470cabf4d970 ~/.local/bin/railway whoami)",
-      "Bash(RAILWAY_TOKEN=5ed994aa-c845-4463-bf8a-470cabf4d970 ~/.local/bin/railway --help)",
-      "Bash(~/.local/bin/railway login:*)",
-      "Bash(curl -s https://pgm-weekly-report-production.up.railway.app/api/health)",
-      "Bash(curl -s https://pgm-weekly-report-production.up.railway.app/api/reports)",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(r[''''version''''], r[''''period'''']\\) for r in d[''''reports'''']]\")",
-      "Bash(cd /Users/daqingliao/Documents/Claude Contxet/Claude_Outputs/Pgm_Weekly_Report/program-sync)",
-      "Bash(grep -n '<img' *.html)",
-      "Read(//sessions/upbeat-sweet-hawking/mnt/**)",
-      "Bash(ls /sessions/)",
-      "Bash(ls /mnt/)",
-      "Bash(python3 -c ':*)",
-      "Bash(python3 -c ' *)",
-      "Bash(chmod +x \"/Users/daqingliao/Documents/Claude Contxet/Claude_Outputs/Pgm_Weekly_Report/scripts/release-week.sh\")",
-      "Bash(bash -n scripts/release-week.sh)",
-      "Bash(python3 -)",
-      "Bash(RAILWAY_TOKEN=5ed994aa-c845-4463-bf8a-470cabf4d970 ~/.local/bin/railway status)",
-      "Bash(~/.local/bin/railway status *)",
-      "Bash(RAILWAY_TOKEN=5ed994aa-c845-4463-bf8a-470cabf4d970 ~/.local/bin/railway list)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://pgm-weekly-report-production.up.railway.app/api/health)",
-      "Bash(python3 -m json.tool)",
-      "mcp__PDF_Tools_-_View__Fill__Merge__Split__Manage_Pages__Extract__read_pdf_content",
-      "Bash(git -C \"/Users/daqingliao/Documents/Claude Contxet/Claude_Outputs/Pgm_Weekly_Report\" status --short backend/reports/)",
-      "Bash(bash -n \"/Users/daqingliao/Documents/Claude Contxet/Claude_Outputs/Pgm_Weekly_Report/scripts/release-week.sh\")",
-      "Bash(python3 scripts/gen-report.py W17 --force)",
-      "Bash(python3 scripts/gen-report.py W18)"
-    ]
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"/Users/daqingliao/Documents/Claude Contxet/Claude_Outputs/Pgm_Weekly_Report/.claude/readme-reminder.sh\"",
-            "timeout": 10
-          }
-        ]
-      }
+      "Read(//Users/daqingliao/.claude/**)",
+      "Read(//Users/daqingliao/Documents/AI-Workspace/**)",
+      "Read(//Users/daqingliao/**)",
+      "Bash(python3)",
+      "Read(//private/tmp/**)",
+      "Bash(mkdir -p skill_extract)",
+      "Bash(grep -E \"\\(週報|組織\\)\" find /Users/daqingliao/Documents -maxdepth 5 -name \"Program Sync 週報生成系統*\" find /Users/daqingliao/Documents -maxdepth 5 -name \"組織架構*\")",
+      "Bash(zip -r /Users/daqingliao/Documents/AI-Workspace/projects/pgm-weekly-report/program-sync-report.skill program-sync-report-src/)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(echo \"Deleted: $?\")",
+      "Bash(zip -r /Users/daqingliao/Documents/AI-Workspace/projects/pgm-weekly-report/pptx-template.skill pptx-template-skill/)",
+      "Bash(zip -r /Users/daqingliao/Documents/AI-Workspace/products/olamedia/demo-docs/media-agent-mrd.skill media-agent-mrd/)",
+      "Bash(sort find *)",
+      "Bash(rm '/Users/daqingliao/Documents/AI-Workspace/projects/pgm-weekly-report/MediaAgent_週報_*.md' /Users/daqingliao/Documents/AI-Workspace/projects/pgm-weekly-report/MediaAgent_週報_v8_infographic.html)",
+      "Bash(echo \"Done: $?\")",
+      "Bash(xargs -0 ls -lhR)",
+      "Bash(awk '{print $0}')",
+      "Bash(grep -v '^\\\\.$')",
+      "Bash(find . -not -path '*/node_modules/*' -type f -exec ls -lh {} \\\\;)",
+      "Bash(awk '{print $9, \"\\(\" $5 \"\\)\"}')",
+      "Bash(npm --version)",
+      "Bash(pnpm --version)",
+      "Bash(bun --version)",
+      "Bash(go version *)",
+      "Bash(rustc --version)",
+      "Bash(cargo --version)",
+      "Bash(terraform --version)",
+      "Bash(ansible --version)",
+      "Bash(ollama --version)",
+      "Bash(claude --version)",
+      "Bash(nvcc --version)",
+      "Bash(python3 -c \"import torch; print\\('torch', torch.__version__\\)\")",
+      "Bash(python3 -c \"import transformers; print\\('transformers', transformers.__version__\\)\")",
+      "Bash(az --version)",
+      "Bash(.venv/bin/python -c \"from services.api_gateway.main import app; print\\('FastAPI app import OK'\\)\")",
+      "Bash(.venv/bin/python -c ' *)",
+      "Bash(mv .venv .venv.nosync)",
+      "Bash(ln -s .venv.nosync .venv)",
+      "Bash(python3 -c \"import sys; print\\(sys.executable\\)\")",
+      "Bash(/Users/daqingliao/Documents/AI-Workspace/.venv/bin/python --version)",
+      "Bash(/Users/daqingliao/Documents/AI-Workspace/projects/media-agent/.venv/bin/python --version)"
     ]
   }
 }
