@@ -347,6 +347,12 @@ Please read the relevant files and apply fixes for each issue you can safely res
 }
 
 main().catch(e => {
+  const isBilling = e.message?.includes('credit balance') || e.message?.includes('billing') || e.status === 402;
+  if (isBilling) {
+    process.stderr.write(`[fix-agent] Skipped: Anthropic API credit balance too low. Add credits at console.anthropic.com/billing\n`);
+    setOutput('has_fixes', 'false');
+    process.exit(0); // not a workflow failure — just skipped
+  }
   process.stderr.write(`[fix-agent] Fatal: ${e.message}\n${e.stack}\n`);
   setOutput('has_fixes', 'false');
   process.exit(2);
