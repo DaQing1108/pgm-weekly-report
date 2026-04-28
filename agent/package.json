@@ -1,0 +1,13 @@
+{
+  "name": "pgm-health-agent",
+  "version": "1.0.0",
+  "description": "Weekly health check + auto-fix agent for PgM Weekly Report",
+  "type": "module",
+  "scripts": {
+    "health-check": "node health-check.js",
+    "fix-agent": "node fix-agent.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0"
+  }
+}

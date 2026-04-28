@@ -1,6 +1,9 @@
 node_modules/
 frontend/node_modules/
 backend/node_modules/
+agent/node_modules/
+agent/health-report.json
+agent/fix-summary.md
 frontend/dist/
 .DS_Store
 *.log
