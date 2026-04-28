@@ -250,10 +250,27 @@ Please read the relevant files and apply fixes for each issue you can safely res
   let iterations = 0;
   const MAX_ITERATIONS = 20;
 
+  async function callWithRetry(params, maxRetries = 3) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await client.messages.create(params);
+      } catch (e) {
+        const isRateLimit = e.status === 429 || e.message?.includes('rate_limit');
+        if (isRateLimit && attempt < maxRetries) {
+          const wait = attempt * 30000; // 30s, 60s, 90s
+          process.stderr.write(`[fix-agent] Rate limit hit, waiting ${wait / 1000}s before retry ${attempt}/${maxRetries}\n`);
+          await new Promise(r => setTimeout(r, wait));
+          continue;
+        }
+        throw e;
+      }
+    }
+  }
+
   while (iterations < MAX_ITERATIONS) {
     iterations++;
 
-    const response = await client.messages.create({
+    const response = await callWithRetry({
       model: 'claude-sonnet-4-6',
       max_tokens: 8096,
       system: systemPrompt,
@@ -347,11 +364,17 @@ Please read the relevant files and apply fixes for each issue you can safely res
 }
 
 main().catch(e => {
-  const isBilling = e.message?.includes('credit balance') || e.message?.includes('billing') || e.status === 402;
+  const isBilling   = e.message?.includes('credit balance') || e.message?.includes('billing') || e.status === 402;
+  const isRateLimit = e.status === 429 || e.message?.includes('rate_limit');
   if (isBilling) {
     process.stderr.write(`[fix-agent] Skipped: Anthropic API credit balance too low. Add credits at console.anthropic.com/billing\n`);
     setOutput('has_fixes', 'false');
-    process.exit(0); // not a workflow failure — just skipped
+    process.exit(0);
+  }
+  if (isRateLimit) {
+    process.stderr.write(`[fix-agent] Skipped: Anthropic API rate limit exceeded after retries. Will retry next scheduled run.\n`);
+    setOutput('has_fixes', 'false');
+    process.exit(0);
   }
   process.stderr.write(`[fix-agent] Fatal: ${e.message}\n${e.stack}\n`);
   setOutput('has_fixes', 'false');
