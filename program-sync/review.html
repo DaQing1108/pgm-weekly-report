@@ -392,6 +392,8 @@ window.addEventListener('store:updated', () => {
     renderVersionList();
   }
 });
+window.addEventListener('pageshow', e => { if (e.persisted && currentWeekStart) { currentDraft = store.getLatestDraft(currentWeekStart); renderVersionList(); } });
+window.addEventListener('storage', e => { if (e.key?.startsWith('pgm_sync_') && currentWeekStart) { currentDraft = store.getLatestDraft(currentWeekStart); renderVersionList(); } });
 
 initWeekSelect();
 

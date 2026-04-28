@@ -857,6 +857,8 @@ window.addEventListener('store:updated', e => {
     renderMemberList();
   }
 });
+window.addEventListener('pageshow', e => { if (e.persisted) { renderRecentList(); populateOwnerSelects(); } });
+window.addEventListener('storage', e => { if (e.key?.startsWith('pgm_sync_')) { renderRecentList(); populateOwnerSelects(); } });
 
 // ── 成員管理 ────────────────────────────────────────────────────
 const TEAM_LABEL = Object.fromEntries(TEAMS.map(t => [t.id, t.name]));

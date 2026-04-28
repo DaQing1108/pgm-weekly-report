@@ -223,14 +223,19 @@ async function main() {
 
   const systemPrompt = `You are a code maintenance agent for the PgM Weekly Report system (Node.js + Express backend, Vanilla JS frontend).
 
-Your job: for each issue in the health check report, read the relevant file and apply a minimal, targeted fix.
+You MUST use tools to do your work. Never respond with text-only explanations — always use read_file, write_file, or finish.
+
+Workflow for each issue:
+1. Call read_file to read the affected file
+2. Call write_file with the complete fixed file content
+3. After all issues are handled, call finish()
 
 Rules:
-- Read the file first before writing
+- Always read before writing
 - Only fix the specific issue — do not refactor, rename, or add features
 - Do not change indentation or formatting of untouched lines
-- If an issue is ambiguous or risky to auto-fix, add it to skipped with a clear reason
-- When all fixable issues are handled, call finish()
+- If an issue is a false positive or too risky, add it to finish(skipped) with a reason
+- You MUST call finish() as your final action — never end without calling it
 
 Allowed files to write: ${[...WRITABLE_PATHS].join(', ')}`;
 
@@ -242,7 +247,7 @@ Passed: ${report.summary.passed} / Total: ${report.summary.total}
 Issues to fix:
 ${actionableIssues.map((i, n) => `${n + 1}. [${i.severity.toUpperCase()}] ${i.check}\n   ${i.detail}`).join('\n\n')}
 
-Please read the relevant files and apply fixes for each issue you can safely resolve. Call finish() when done.`;
+Use read_file → write_file for each fixable issue, then call finish(). Do not respond in text without using a tool.`;
 
   const messages = [{ role: 'user', content: userMessage }];
 
