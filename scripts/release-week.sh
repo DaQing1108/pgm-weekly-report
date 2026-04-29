@@ -47,14 +47,22 @@ PYEOF
 }
 
 # ── 解析參數 ──────────────────────────────────────────────────────────────────
-WEEK="${1:-}"
+AUTO_YES=false
+WEEK=""
+for _arg in "$@"; do
+  if [[ "${_arg}" == "--yes" || "${_arg}" == "-y" ]]; then
+    AUTO_YES=true
+  elif [[ -z "${WEEK}" ]]; then
+    WEEK="${_arg}"
+  fi
+done
 
 if [[ -z "${WEEK}" ]]; then
   WEEK="$(current_week_label)"
   info "未指定週次，自動偵測為：${BOLD}${WEEK}${RESET}"
 else
   # 標準化：w16 → W16
-  WEEK="${WEEK^^}"
+  WEEK="$(echo "${WEEK}" | tr '[:lower:]' '[:upper:]')"
   # 驗證格式
   if [[ ! "${WEEK}" =~ ^W[0-9]{2}$ ]]; then
     error "週次格式錯誤：'${WEEK}'。應為 W09…W53，例如：W17"
@@ -226,8 +234,13 @@ echo -e "${BOLD}Commit 訊息：${RESET}${COMMIT_MSG}"
 echo ""
 
 # ── 6. 確認 ───────────────────────────────────────────────────────────────────
-read -r -p "$(echo -e "${BOLD}確認提交並 push 到 origin/main？[y/N] ${RESET}")" CONFIRM
-echo ""
+if [[ "${AUTO_YES}" == "true" ]]; then
+  info "（--yes 自動確認）"
+  CONFIRM="y"
+else
+  read -r -p "$(echo -e "${BOLD}確認提交並 push 到 origin/main？[y/N] ${RESET}")" CONFIRM
+  echo ""
+fi
 
 if [[ "${CONFIRM}" != "y" && "${CONFIRM}" != "Y" ]]; then
   warn "已取消。檔案未做任何修改。"

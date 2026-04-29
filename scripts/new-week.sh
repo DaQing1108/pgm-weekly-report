@@ -49,7 +49,7 @@ if [[ -z "${WEEK}" ]]; then
   WEEK="$(current_week_label)"
   info "未指定週次，自動偵測為：${BOLD}${WEEK}${RESET}"
 else
-  WEEK="${WEEK^^}"
+  WEEK="$(echo "${WEEK}" | tr '[:lower:]' '[:upper:]')"
   [[ "${WEEK}" =~ ^W[0-9]{2}$ ]] || error "週次格式錯誤：'${WEEK}'。應為 W01…W53"
 fi
 

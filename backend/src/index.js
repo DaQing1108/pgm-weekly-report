@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -169,6 +170,8 @@ app.post('/api/state', requireAdminToken, (req, res) => {
   }
 });
 
+const REPO_ROOT = path.join(__dirname, '../..');
+
 // ── Per-week state archive (persistent via git) ───────────────
 const WEEKS_DIR = path.join(__dirname, '../data/weeks');
 if (!fs.existsSync(WEEKS_DIR)) fs.mkdirSync(WEEKS_DIR, { recursive: true });
@@ -213,6 +216,39 @@ app.post('/api/weeks/:weekLabel', requireAdminToken, (req, res) => {
     fs.writeFileSync(file, JSON.stringify({ ...req.body, _savedAt: new Date().toISOString() }, null, 2), 'utf8');
     res.json({ success: true, weekLabel: safe });
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── 本機自動發布（localhost-only）─────────────────────────────
+// 瀏覽器完成歸檔後呼叫此端點，自動執行 release-week.sh --yes
+// 只接受 127.0.0.1 / ::1 連線，Production Railway 無法觸發
+app.post('/api/release/:weekLabel', (req, res) => {
+  const remote = req.socket.remoteAddress || '';
+  if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(remote)) {
+    return res.status(403).json({ error: '此端點僅允許本機呼叫' });
+  }
+  const safe = req.params.weekLabel.replace(/[^a-zA-Z0-9]/g, '');
+  if (!/^W\d{2}$/.test(safe)) {
+    return res.status(400).json({ error: '週次格式錯誤，應為 W01…W53' });
+  }
+  const scriptPath = path.join(REPO_ROOT, 'scripts', 'release-week.sh');
+  if (!fs.existsSync(scriptPath)) {
+    return res.status(500).json({ error: 'scripts/release-week.sh 不存在' });
+  }
+
+  let stdout = '';
+  let stderr = '';
+  const child = spawn('bash', [scriptPath, safe, '--yes'], {
+    cwd: REPO_ROOT,
+    env: { ...process.env, TERM: 'dumb' },
+  });
+  child.stdout.on('data', d => { stdout += d.toString(); });
+  child.stderr.on('data', d => { stderr += d.toString(); });
+  child.on('close', code => {
+    res.json({ success: code === 0, exitCode: code, stdout, stderr });
+  });
+  child.on('error', e => {
+    res.status(500).json({ error: e.message });
+  });
 });
 
 // ── /read — for NotebookLM / crawlers ────────────────────────
