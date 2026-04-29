@@ -5,9 +5,28 @@
 
 const PREFIX = 'pgm_sync_';
 
+// Safari 無痕模式 / 嚴格 ITP：localStorage 可讀不可寫，以 in-memory Map 作為 fallback
+const _memStore = new Map();
+const _lsAvailable = (() => {
+  try {
+    const k = '__pgm_ls_test__';
+    localStorage.setItem(k, '1');
+    localStorage.removeItem(k);
+    return true;
+  } catch { return false; }
+})();
+if (!_lsAvailable) {
+  console.warn('[store] localStorage 不可用，使用 in-memory fallback（資料不會持久化）');
+  window.dispatchEvent(new CustomEvent('store:corrupt', {
+    detail: { key: 'localStorage', error: 'unavailable' },
+    bubbles: true,
+  }));
+}
+
 function _key(name) { return PREFIX + name; }
 
 function _get(name) {
+  if (!_lsAvailable) return _memStore.get(_key(name)) || [];
   try {
     const raw = localStorage.getItem(_key(name));
     return raw ? JSON.parse(raw) : [];
@@ -23,11 +42,19 @@ function _get(name) {
 }
 
 function _set(name, data) {
+  if (!_lsAvailable) {
+    _memStore.set(_key(name), data);
+    _dispatch(name);
+    return;
+  }
   try {
     localStorage.setItem(_key(name), JSON.stringify(data));
     _dispatch(name);
   } catch (e) {
     console.error('[store] 寫入失敗:', e);
+    // 寫入失敗時同樣 fallback 到 memory（避免靜默丟資料）
+    _memStore.set(_key(name), data);
+    _dispatch(name);
   }
 }
 

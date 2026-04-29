@@ -336,6 +336,17 @@ async function init() {
   await renderWeekNav();
 }
 
+// ── localStorage 不可用（Safari 無痕 / ITP）時顯示提示 banner ──
+window.addEventListener('store:corrupt', (e) => {
+  if (document.getElementById('_lsBanner')) return; // 只顯示一次
+  if (e.detail?.key !== 'localStorage') return;     // 只處理全域不可用
+  const el = document.createElement('div');
+  el.id = '_lsBanner';
+  el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9000;background:#e8a020;color:#fff;text-align:center;padding:8px 16px;font-size:13px;';
+  el.innerHTML = '⚠ 此瀏覽器的無痕模式不支援本機儲存，資料僅保留於本次工作階段，關閉分頁後將消失。';
+  document.body.prepend(el);
+}, { once: false });
+
 // ── 渲染全部 ───────────────────────────────────────────────────
 function renderAll() {
   renderKPIs();

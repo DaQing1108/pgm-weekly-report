@@ -3,6 +3,15 @@
    V3：program-sync 與 Express 後端整合
    ============================================================ */
 
+// AbortSignal.timeout polyfill（Chrome <103 / Safari <16 / Firefox <100 不支援）
+if (typeof AbortSignal.timeout !== 'function') {
+  AbortSignal.timeout = function(ms) {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(new DOMException('TimeoutError', 'TimeoutError')), ms);
+    return ctrl.signal;
+  };
+}
+
 const API_BASE = (() => {
   // 若在 Railway / 同源部署，使用相對路徑
   if (window.location.port === '' || window.location.port === '443' || window.location.port === '80') {
