@@ -303,7 +303,7 @@
 
               <!-- 操作按鈕 -->
               <div id="archiveActions" style="display:none;flex-direction:column;gap:var(--space-sm);">
-                <button class="btn btn-primary" id="btnArchiveConfirm">✅ 確認歸檔（上傳 + 下載 JSON）</button>
+                <button class="btn btn-primary" id="btnArchiveConfirm">✅ 確認歸檔</button>
                 <button class="btn btn-outline btn-sm" id="btnArchiveDownload">⬇️ 僅下載 JSON</button>
               </div>
 
@@ -317,7 +317,7 @@
             <span class="panel__title">🔧 最後一步：提交到 Git</span>
           </div>
           <div class="panel__body" style="padding:var(--space-md);">
-            <p class="text-sm text-secondary" style="margin-bottom:var(--space-sm);">將下載的 JSON 放入 <code>backend/data/weeks/</code> 後執行：</p>
+            <p class="text-sm text-secondary" id="archiveGitHintDesc" style="margin-bottom:var(--space-sm);">將下載的 JSON 放入 <code>backend/data/weeks/</code> 後執行：</p>
             <pre id="archiveGitCmd" style="background:var(--color-bg-secondary);padding:var(--space-md);border-radius:var(--radius-sm);font-size:12px;overflow-x:auto;line-height:1.6;"></pre>
             <button class="btn btn-outline btn-sm" id="btnCopyGitCmd" style="margin-top:var(--space-sm);">📋 複製指令</button>
           </div>
@@ -505,18 +505,22 @@ document.getElementById('btnArchiveConfirm').addEventListener('click', async () 
     // 3. 上傳到後端 /api/weeks/:weekLabel
     await saveWeekState(_archiveWeekLabel, stateData);
 
-    // 4. 同時下載 JSON（讓使用者 git commit）
-    _downloadWeekJson(_archiveWeekLabel, stateData);
+    // 4. 本地開發時後端已直接寫入正確路徑，無需下載；Production 則仍提供下載
+    const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!_isLocal) _downloadWeekJson(_archiveWeekLabel, stateData);
 
     // 5. 顯示 git 指令
     _showGitHint(_archiveWeekLabel);
 
-    toast(`✅ ${_archiveWeekLabel} 歸檔完成！JSON 已下載，請執行 git push`, 'success');
+    const msg = _isLocal
+      ? `✅ ${_archiveWeekLabel} 歸檔完成！JSON 已存入 backend/data/weeks/，執行 release-week.sh 發布`
+      : `✅ ${_archiveWeekLabel} 歸檔完成！JSON 已下載，請移至 backend/data/weeks/ 後執行 release-week.sh`;
+    toast(msg, 'success');
   } catch (err) {
     toast(`歸檔失敗：${err.message}`, 'error');
   } finally {
     btn.disabled = false;
-    btn.textContent = '✅ 確認歸檔（上傳 + 下載 JSON）';
+    btn.textContent = '✅ 確認歸檔';
   }
 });
 
@@ -540,8 +544,14 @@ function _downloadWeekJson(label, data) {
 }
 
 function _showGitHint(label) {
-  document.getElementById('archiveGitCmd').textContent =
-    `cp ~/Downloads/${label}.json backend/data/weeks/\ngit add backend/data/weeks/${label}.json\ngit commit -m "Archive ${label} dashboard data"\ngit push origin main`;
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const cmd = isLocal
+    ? `./scripts/release-week.sh ${label}`
+    : `cp ~/Downloads/${label}.json backend/data/weeks/\n./scripts/release-week.sh ${label}`;
+  document.getElementById('archiveGitCmd').textContent = cmd;
+  document.getElementById('archiveGitHintDesc').textContent = isLocal
+    ? `JSON 已直接存入 backend/data/weeks/${label}.json，執行以下指令發布：`
+    : `將下載的 JSON 放入 backend/data/weeks/ 後執行：`;
   document.getElementById('archiveGitHint').style.display = '';
 }
 
