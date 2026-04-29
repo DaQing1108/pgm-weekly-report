@@ -5,7 +5,7 @@
 
 專案名稱：VIA Technologies PgM Weekly Report System
 建置日期：2026/03/19
-更新日期：2026/04/29
+更新日期：2026/04/30
 技術棧：Node.js + Express（backend）/ Vanilla JS SPA（program-sync）
 部署平台：Railway
 公開網址：https://pgm-weekly-report-production.up.railway.app
@@ -124,13 +124,18 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
     # 檔名規則：Pgm_Weekly_Report_YYMMDD.md（YYMMDD = 當週週五日期）
     # 必填欄位：報告週期：YYYY/MM/DD – YYYY/MM/DD
 
-  步驟 4：驗證並發布
-    ./scripts/release-week.sh W19
-    # 自動驗證 JSON（projects > 0）+ MD 存在後，執行 git commit + push
+  步驟 4：驗證並發布（本地執行時自動完成）
+    # 確認歸檔後，系統自動呼叫 POST /api/release/W19
+    # 後端執行 release-week.sh --yes → git commit + push
     # Railway 約 1–2 分鐘後自動部署
+    #
+    # 若需手動執行（或自動發布失敗時）：
+    ./scripts/release-week.sh W19
 
   ⚠ 注意：週報 MD 必須透過 git commit 才能持久化。
           透過 UI 上傳的檔案在 Railway 重新部署後會消失。
+  ⚠ 注意：自動發布端點僅接受 localhost 連線。
+          Railway 正式環境無法觸發，仍需手動流程。
 
 --------------------------------------------------------------------------------
   Skills
@@ -147,6 +152,25 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
 --------------------------------------------------------------------------------
   Changelog
 --------------------------------------------------------------------------------
+
+  ── 2026/04/30  週報歸檔一鍵自動發布 by Alex Liao ──
+
+  [功能] 歸檔後自動 commit & push，無需手動操作
+
+    歸檔流程從 4 步驟 → 1 步驟：
+      以前：上傳 .md → 手動移 JSON → 執行 release-week.sh → git push
+      現在：上傳 .md → 確認歸檔 → ✅ 完成（其餘全部自動）
+
+    技術實作：
+    - POST /api/release/:weekLabel（localhost-only）
+      後端以 child_process.spawn 執行 release-week.sh --yes
+      回傳 stdout/stderr，瀏覽器顯示進度與結果
+    - release-week.sh 新增 --yes 旗標，跳過互動式確認提示
+    - input.html 自動呼叫端點，失敗時降級顯示手動指令
+    - 修正 bash 3.2 相容性（macOS 預設版本）：
+      ${VAR^^} → $(echo "$VAR" | tr '[:lower:]' '[:upper:]')
+
+    Production（Railway）行為不變：仍提供 JSON 下載 + 手動指令
 
   ── 2026/04/29  W18 問題修復 + 週次管理腳本 by Alex Liao ──
 
