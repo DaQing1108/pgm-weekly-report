@@ -5,7 +5,7 @@
 
 專案名稱：VIA Technologies PgM Weekly Report System
 建置日期：2026/03/19
-更新日期：2026/04/24
+更新日期：2026/04/29
 技術棧：Node.js + Express（backend）/ Vanilla JS SPA（program-sync）
 部署平台：Railway
 公開網址：https://pgm-weekly-report-production.up.railway.app
@@ -107,15 +107,30 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
   詳細建置步驟請見：PgM_週報系統_建置指南.md
 
 --------------------------------------------------------------------------------
-  新增週報流程
+  每週發布流程（標準 SOP）
 --------------------------------------------------------------------------------
 
-  1. 將新週報 .md 放至 backend/reports/
-  2. git add backend/reports/ && git commit -m "add YYMMDD weekly report"
-  3. git push（Railway 自動部署）
+  步驟 1：建立新週基底 JSON
+    ./scripts/new-week.sh W19
+    # 自動從上週複製 projects/risks/actions/milestones，計算新週 snapshot
+    # 輸出：backend/data/weeks/W19.json
 
-  檔名規則：Pgm_Weekly_Report_YYMMDD.md
-  必填欄位：報告週期：YYYY/MM/DD – YYYY/MM/DD
+  步驟 2：更新本週資料
+    # 在瀏覽器 Dashboard 完成本週專案狀態更新
+    # 於 review.html 建立本週快照（會更新 W19.json）
+
+  步驟 3：放入 MD 週報
+    # 將本週 Markdown 週報放至 backend/reports/
+    # 檔名規則：Pgm_Weekly_Report_YYMMDD.md（YYMMDD = 當週週五日期）
+    # 必填欄位：報告週期：YYYY/MM/DD – YYYY/MM/DD
+
+  步驟 4：驗證並發布
+    ./scripts/release-week.sh W19
+    # 自動驗證 JSON（projects > 0）+ MD 存在後，執行 git commit + push
+    # Railway 約 1–2 分鐘後自動部署
+
+  ⚠ 注意：週報 MD 必須透過 git commit 才能持久化。
+          透過 UI 上傳的檔案在 Railway 重新部署後會消失。
 
 --------------------------------------------------------------------------------
   Skills
@@ -132,6 +147,28 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
 --------------------------------------------------------------------------------
   Changelog
 --------------------------------------------------------------------------------
+
+  ── 2026/04/29  W18 問題修復 + 週次管理腳本 by Alex Liao ──
+
+  [修復] Dashboard 數據空白（W18 根因：JSON projects=0）
+    - 根因：週報歸檔工具建立新週 JSON 時未從上週複製資料
+    - 修復：新增 scripts/new-week.sh — 自動從最近有效週次複製
+            projects / risks / actions / milestones，並計算新週 snapshot
+    - 防呆：release-week.sh 加入 projects=0 硬停，引導執行 new-week.sh
+
+  [修復] 歷史週報歸檔 MD 上傳後重新部署消失
+    - 根因：Railway ephemeral filesystem，UI 上傳不持久
+    - 修復：weekly SOP 改為 git commit 方式，MD 納入版控
+
+  [修復] 部分瀏覽器 Dashboard 顯示異常（需清快取）
+    - 根因 A：靜態資源被快取，deploy 後繼續使用舊版 JS/CSS
+      修復：backend/src/index.js 靜態 serve 加 Cache-Control: no-cache, must-revalidate
+    - 根因 B：AbortSignal.timeout() 在舊版 Chrome/Safari 不存在
+      修復：api.js 加 polyfill
+    - 根因 C：Safari Private Mode 封鎖 localStorage
+      修復：store.js 加 _lsAvailable 偵測 + in-memory fallback
+    - 根因 D：index.html .main-grid inline style 覆蓋 CSS media query
+      修復：移除 inline style，mobile 版面恢復正確
 
   ── 2026/04/24  專案整理與路徑遷移 by Alex Liao ──
 
@@ -240,6 +277,22 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
 
   Q：POST /api/reports 回傳 401
   A：需在 request header 加入 x-admin-token: <ADMIN_TOKEN>。
+
+  Q：Dashboard KPI 全部顯示 0 / 空白
+  A：確認 backend/data/weeks/Wxx.json 的 projects 陣列長度 > 0。
+     若為空，執行 ./scripts/new-week.sh Wxx 重建基底，再重新操作。
+
+  Q：Dashboard 在部分瀏覽器顯示異常，清快取才能恢復
+  A：已於 2026/04/29 修復。後端靜態 serve 加入 Cache-Control: no-cache，
+     強制瀏覽器每次重新驗證 JS/CSS，不再需要手動清快取。
+
+  Q：Safari Private Mode 無法使用
+  A：Safari Private 模式封鎖 localStorage。已加入 in-memory fallback，
+     資料存於記憶體中，關閉分頁後會消失，屬預期行為。
+
+  Q：週報 MD 上傳後過幾天不見了
+  A：Railway 使用暫存磁碟，重新部署後只有 git 版控的檔案會保留。
+     MD 週報必須放入 backend/reports/ 並 git commit + push 才能持久化。
 
 --------------------------------------------------------------------------------
   建置人：Alex Liao
