@@ -94,7 +94,10 @@ r = len(d.get('risks', []))
 a = len(d.get('actions', []))
 m = len(d.get('milestones', []))
 print(f'   projects={p}  risks={r}  actions={a}  milestones={m}')
-" || error "${JSON_PATH} 不是合法的 JSON，請先修復再提交。"
+if p == 0:
+    print('ERROR:projects=0', file=sys.stderr)
+    sys.exit(1)
+" || error "${JSON_PATH} 的 projects 為空（0 筆）。\n   請先執行 scripts/new-week.sh ${WEEK} 建立正確的週次資料，再重新發布。"
 
 echo ""
 

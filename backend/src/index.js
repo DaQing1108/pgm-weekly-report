@@ -23,7 +23,12 @@ if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
 // V3: Serve program-sync Vanilla JS app
 const PROGRAM_SYNC = path.join(__dirname, '../../program-sync');
 if (fs.existsSync(PROGRAM_SYNC)) {
-  app.use(express.static(PROGRAM_SYNC));
+  // Fix-3: no-cache 避免 deploy 後瀏覽器繼續使用舊版 JS/CSS/HTML
+  app.use(express.static(PROGRAM_SYNC, {
+    setHeaders(res) {
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    }
+  }));
 }
 
 // S-3 修正：CORS_ORIGIN 環境變數可限定允許的 origin（逗號分隔多個）
