@@ -295,6 +295,26 @@ async function init() {
     if (data) {
       _viewState    = data;
       _viewingLabel = latestLabel;
+
+      // 與 app-init.js 相同的 timestamp 比對：後端較新時載入 store，確保 dashboard 反映最新週資料
+      const serverTs = data._savedAt || '';
+      const localTs  = (() => {
+        try {
+          const KEYS = ['projects','actions','risks','milestones','snapshots','drafts','members'];
+          const times = [];
+          KEYS.forEach(k => {
+            const raw = localStorage.getItem(`pgm_sync_${k}`);
+            if (!raw) return;
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) arr.forEach(item => { if (item._updatedAt) times.push(item._updatedAt); });
+          });
+          times.sort();
+          return times.length ? times[times.length - 1] : '';
+        } catch { return ''; }
+      })();
+      if (serverTs && (!localTs || serverTs > localTs)) {
+        store.importAll(data);
+      }
     }
     // 取上一週快照供 KPI delta 對比
     if (weeks.length > 1) {
