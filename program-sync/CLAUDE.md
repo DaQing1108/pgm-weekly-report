@@ -7,7 +7,7 @@
 
 VIA Technologies P&D Center Program Sync 是一套前端單頁應用（SPA）週報管理系統，無需後端伺服器，所有資料儲存於瀏覽器 localStorage。
 
-- **版本**: v2.1
+- **版本**: v2.4
 - **目標用戶**: VIA P&D Center Program Manager 及各子組 Lead
 - **技術堆疊**: 純 HTML5 + ES Modules + CSS Variables，無框架依賴
 
@@ -19,9 +19,10 @@ VIA Technologies P&D Center Program Sync 是一套前端單頁應用（SPA）週
 program-sync/
 ├── index.html          # 儀表板（v1）
 ├── input.html          # 快速輸入 + 批次解析（v1）
-├── risks.html          # 風險管理（v1）
-├── actions.html        # Action Items（v1）
+├── risks.html          # 風險管理（v1）+ 跨週齡 badge（v2.4）
+├── actions.html        # Action Items（v1）+ 跨週齡 badge（v2.4）
 ├── milestones.html     # 里程碑時間軸（v1）
+├── tracker.html        # 跨週未結項目追蹤（v2.4）
 ├── report.html         # 週報生成（v2 三欄）
 ├── trends.html         # 趨勢分析（v2）
 ├── review.html         # 審核流程（v2）
@@ -394,6 +395,11 @@ Object.keys(localStorage).filter(k => k.startsWith('pgm_sync_')).forEach(k => lo
 - review.html Stepper 審核流程
 - store.js 擴充：快照、草稿版本管理（API Key 方法於 v2.3 移除）
 - ai.js / report.js Claude API 串流整合（於 v2.3 移除）
+
+### v2.4
+- **tracker.html**（新頁面）：跨週未結項目追蹤，顯示 weekStart < 當前週次且仍未完成的 Projects（at-risk/behind）、Risks（open/in-progress）、Actions（pending/in-progress/blocked）；統計摘要、子組篩選、三種排序、inline 狀態更新
+- **跨週齡 badge**：risks.html / actions.html 的每筆列表項，若 `weekStart` < 當前週次則顯示「🕒 WXX · N週」浮標（1週藍 / 2週橘 / 3+週紅）
+- **全站 navbar**：加入 Tracker 連結（位於 Milestones 與 Trends 之間），桌面 + 手機選單同步更新
 
 ### v2.3
 - **全站 navbar**：移除所有頁面的「📝 生成週報」按鈕與 index.html 的「🔑 API Key」按鈕

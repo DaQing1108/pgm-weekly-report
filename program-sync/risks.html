@@ -22,6 +22,7 @@
     <a href="risks.html"      class="navbar__link active">Risks</a>
     <a href="actions.html"    class="navbar__link">Action Items</a>
     <a href="milestones.html" class="navbar__link">Milestones</a>
+    <a href="tracker.html"    class="navbar__link">Tracker</a>
     <a href="trends.html"     class="navbar__link">Trends</a>
     <a href="review.html"     class="navbar__link">Review</a>
     <a href="resources.html" class="navbar__link">Resources</a>
@@ -38,6 +39,7 @@
   <a href="risks.html"      class="navbar__link" style="padding:8px var(--space-md);">Risks</a>
   <a href="actions.html"    class="navbar__link" style="padding:8px var(--space-md);">Action Items</a>
   <a href="milestones.html" class="navbar__link" style="padding:8px var(--space-md);">Milestones</a>
+  <a href="tracker.html"    class="navbar__link" style="padding:8px var(--space-md);">Tracker</a>
   <a href="trends.html"     class="navbar__link" style="padding:8px var(--space-md);">Trends</a>
   <a href="review.html"     class="navbar__link" style="padding:8px var(--space-md);">Review</a>
   <a href="resources.html"  class="navbar__link" style="padding:8px var(--space-md);">Resources</a>
@@ -226,6 +228,29 @@ let filterLevel    = 'all';
 let filterStatuses = new Set(['open']); // 多選：'open'|'in-progress'|'closed'|'all'
 let filterTeam     = 'all';
 
+// ── 跨週齡計算 ─────────────────────────────────────────────────
+function _currentWeekStart() {
+  const snaps = store.getAll('snapshots').sort((a, b) => b.weekStart.localeCompare(a.weekStart));
+  if (snaps.length > 0) return snaps[0].weekStart;
+  const today = new Date();
+  const diff = today.getDay() === 0 ? -6 : 1 - today.getDay();
+  const mon = new Date(today); mon.setDate(today.getDate() + diff);
+  return mon.toISOString().split('T')[0];
+}
+function _weekLabel(d) {
+  const date = new Date(d);
+  const jan1 = new Date(date.getFullYear(), 0, 1);
+  return `W${String(Math.ceil(((date - jan1) / 86400000 + jan1.getDay() + 1) / 7)).padStart(2,'0')}`;
+}
+function _carryoverBadge(weekStart) {
+  const cwStart = _currentWeekStart();
+  if (!weekStart || weekStart >= cwStart) return '';
+  const weeks = Math.max(0, Math.round((new Date(cwStart) - new Date(weekStart)) / (7*24*60*60*1000)));
+  if (weeks === 0) return '';
+  const color = weeks >= 3 ? 'var(--color-danger)' : weeks >= 2 ? 'var(--color-warning)' : 'var(--color-info)';
+  return `<span style="display:inline-flex;align-items:center;gap:3px;background:${color}15;border:1px solid ${color}40;border-radius:10px;padding:1px 6px;font-size:10px;color:${color};font-weight:600;white-space:nowrap;vertical-align:middle;">🕒 ${_weekLabel(weekStart)} · ${weeks}週</span>`;
+}
+
 function renderAll() {
   renderStats();
   renderList();
@@ -278,6 +303,7 @@ function renderList() {
         ${r.description.substring(0,80)}${r.description.length>80?'…':''}
         ${r.project ? `<span class="badge badge-neutral" style="margin-left:4px;">${r.project}</span>` : ''}
         ${overdue ? `<span class="badge badge-danger" style="margin-left:4px;">逾期</span>` : ''}
+        ${_carryoverBadge(r.weekStart)}
       </div>
       <div class="risk-row__owner">${r.owner || '—'}</div>
       <div class="risk-row__date">${r.dueDate ? formatDate(r.dueDate) : '—'}</div>

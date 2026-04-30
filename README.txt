@@ -5,7 +5,7 @@
 
 專案名稱：VIA Technologies PgM Weekly Report System
 建置日期：2026/03/19
-更新日期：2026/04/30
+更新日期：2026/04/30（新增跨週追蹤 Tracker）
 技術棧：Node.js + Express（backend）/ Vanilla JS SPA（program-sync）
 部署平台：Railway
 公開網址：https://pgm-weekly-report-production.up.railway.app
@@ -39,9 +39,10 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
   program-sync 子模組：
   ├── index.html      Dashboard（KPI + 專案列表）
   ├── input.html      快速輸入 / 批次貼上
-  ├── risks.html      風險管理（多選篩選）
-  ├── actions.html    Action Items
+  ├── risks.html      風險管理（多選篩選）+ 跨週齡 badge
+  ├── actions.html    Action Items + 跨週齡 badge
   ├── milestones.html 里程碑時間軸
+  ├── tracker.html    跨週未結項目追蹤（Projects / Risks / Actions）
   ├── review.html     審核 / 快照建立
   ├── trends.html     歷史趨勢圖表
   ├── report.html     週報草稿編輯（儲存草稿 + 離頁警告）

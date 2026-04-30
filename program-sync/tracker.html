@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>跨週追蹤 — P&D Program Sync</title>
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar__logo">
+    <div class="navbar__logo-icon">P</div>
+    <span>P&amp;D CENTER</span>
+  </a>
+  <span class="navbar__week-badge" id="weekBadge">–</span>
+  <div class="navbar__links">
+    <a href="index.html"      class="navbar__link">Dashboard</a>
+    <a href="input.html"      class="navbar__link">Quick Input</a>
+    <a href="risks.html"      class="navbar__link">Risks</a>
+    <a href="actions.html"    class="navbar__link">Action Items</a>
+    <a href="milestones.html" class="navbar__link">Milestones</a>
+    <a href="tracker.html"    class="navbar__link active">Tracker</a>
+    <a href="trends.html"     class="navbar__link">Trends</a>
+    <a href="review.html"     class="navbar__link">Review</a>
+    <a href="resources.html"  class="navbar__link">Resources</a>
+  </div>
+  <div class="navbar__actions">
+    <button class="btn btn-ghost btn-sm navbar__hamburger" id="navHamburger" aria-label="開啟選單" style="display:none;font-size:18px;padding:4px 8px;line-height:1;">☰</button>
+  </div>
+</nav>
+<div id="mobileNav" style="display:none;position:fixed;top:var(--navbar-height);left:0;right:0;z-index:99;background:var(--color-bg-primary);border-bottom:1px solid var(--color-border-default);box-shadow:var(--shadow-md);padding:var(--space-md) var(--space-lg);flex-direction:column;gap:4px;">
+  <a href="index.html"      class="navbar__link" style="padding:8px var(--space-md);">Dashboard</a>
+  <a href="input.html"      class="navbar__link" style="padding:8px var(--space-md);">Quick Input</a>
+  <a href="risks.html"      class="navbar__link" style="padding:8px var(--space-md);">Risks</a>
+  <a href="actions.html"    class="navbar__link" style="padding:8px var(--space-md);">Action Items</a>
+  <a href="milestones.html" class="navbar__link" style="padding:8px var(--space-md);">Milestones</a>
+  <a href="tracker.html"    class="navbar__link" style="padding:8px var(--space-md);">Tracker</a>
+  <a href="trends.html"     class="navbar__link" style="padding:8px var(--space-md);">Trends</a>
+  <a href="review.html"     class="navbar__link" style="padding:8px var(--space-md);">Review</a>
+  <a href="resources.html"  class="navbar__link" style="padding:8px var(--space-md);">Resources</a>
+</div>
+
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-header__left">
+      <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:4px;">
+        <a href="index.html" style="color:var(--color-text-tertiary);text-decoration:none;" onmouseover="this.style.color='var(--color-info)'" onmouseout="this.style.color='var(--color-text-tertiary)'">← Dashboard</a>
+        <span style="margin:0 4px;">›</span>
+        <span>跨週追蹤</span>
+      </div>
+      <h1 class="page-header__title">跨週未結項目追蹤</h1>
+      <p class="page-header__sub">顯示前次週報結束時仍未完成的專案風險、Action Items 與問題項目</p>
+    </div>
+    <div class="page-header__right" style="display:flex;gap:8px;align-items:center;">
+      <select class="inp" id="filterTeam" style="width:140px;">
+        <option value="all">全部子組</option>
+        <option value="media-agent">Media Agent</option>
+        <option value="learnmode">LearnMode</option>
+        <option value="chuangzaoli">創造栗</option>
+        <option value="tv-solution">TV Solution</option>
+        <option value="healthcare">Healthcare</option>
+        <option value="org-mgmt">組織管理</option>
+      </select>
+      <select class="inp" id="sortBy" style="width:130px;">
+        <option value="age-desc">持續最久優先</option>
+        <option value="age-asc">最新先</option>
+        <option value="due-asc">截止日最近</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 統計摘要列 -->
+  <div id="summaryBar" class="stats-bar" style="margin-bottom:var(--space-xl);">
+    <div class="stats-bar__item">
+      <div class="stats-bar__val" id="statProjects" style="color:var(--color-danger)">0</div>
+      <div class="stats-bar__lbl">待處理專案</div>
+    </div>
+    <div class="stats-bar__item">
+      <div class="stats-bar__val" id="statRisks" style="color:var(--color-warning)">0</div>
+      <div class="stats-bar__lbl">未關閉風險</div>
+    </div>
+    <div class="stats-bar__item">
+      <div class="stats-bar__val" id="statActions" style="color:var(--color-info)">0</div>
+      <div class="stats-bar__lbl">未完成 Actions</div>
+    </div>
+    <div class="stats-bar__item">
+      <div class="stats-bar__val" id="statMaxAge" style="color:var(--color-text-primary)">0</div>
+      <div class="stats-bar__lbl">最長持續週數</div>
+    </div>
+  </div>
+
+  <!-- 當週說明 -->
+  <div id="weekCtxBanner" style="display:none;background:var(--color-bg-secondary);border:1px solid var(--color-border-default);border-radius:var(--radius-md);padding:var(--space-sm) var(--space-lg);margin-bottom:var(--space-lg);font-size:13px;color:var(--color-text-secondary);display:flex;align-items:center;gap:8px;">
+    <span>📅</span>
+    <span id="weekCtxText"></span>
+  </div>
+
+  <!-- Section: Projects -->
+  <div class="panel" style="margin-bottom:var(--space-xl);">
+    <div class="panel__header" style="cursor:pointer;user-select:none;border-left:3px solid var(--color-danger);" onclick="toggleSection('projects')">
+      <div style="display:flex;align-items:center;gap:var(--space-sm);">
+        <span id="arrow-projects" style="font-size:12px;transition:transform .2s;">▼</span>
+        <span class="panel__title">專案項目（待追蹤）</span>
+        <span class="badge badge-danger" id="badge-projects">0</span>
+      </div>
+      <span class="text-xs text-secondary">at-risk / behind 且來自前週或更早</span>
+    </div>
+    <div id="section-projects">
+      <div class="panel__body" style="padding:0;">
+        <div id="list-projects"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section: Risks -->
+  <div class="panel" style="margin-bottom:var(--space-xl);">
+    <div class="panel__header" style="cursor:pointer;user-select:none;border-left:3px solid var(--color-warning);" onclick="toggleSection('risks')">
+      <div style="display:flex;align-items:center;gap:var(--space-sm);">
+        <span id="arrow-risks" style="font-size:12px;transition:transform .2s;">▼</span>
+        <span class="panel__title">未關閉風險</span>
+        <span class="badge badge-warning" id="badge-risks">0</span>
+      </div>
+      <span class="text-xs text-secondary">open / in-progress 且來自前週或更早</span>
+    </div>
+    <div id="section-risks">
+      <div class="panel__body" style="padding:0;">
+        <div id="list-risks"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section: Actions -->
+  <div class="panel" style="margin-bottom:var(--space-xl);">
+    <div class="panel__header" style="cursor:pointer;user-select:none;border-left:3px solid var(--color-info);" onclick="toggleSection('actions')">
+      <div style="display:flex;align-items:center;gap:var(--space-sm);">
+        <span id="arrow-actions" style="font-size:12px;transition:transform .2s;">▼</span>
+        <span class="panel__title">未完成 Action Items</span>
+        <span class="badge badge-info" id="badge-actions">0</span>
+      </div>
+      <span class="text-xs text-secondary">pending / in-progress / blocked 且來自前週或更早</span>
+    </div>
+    <div id="section-actions">
+      <div class="panel__body" style="padding:0;">
+        <div id="list-actions"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+import { store }   from './assets/js/store.js';
+import { appInit } from './assets/js/app-init.js';
+import { toast, formatDate, confirm } from './assets/js/ui.js';
+
+await appInit();
+
+// ── 計算當前週次 ────────────────────────────────────────────────
+function _currentWeekStart() {
+  const snaps = store.getAll('snapshots').sort((a, b) => b.weekStart.localeCompare(a.weekStart));
+  if (snaps.length > 0) return snaps[0].weekStart;
+  // fallback: compute Monday of current week
+  const today = new Date();
+  const day = today.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const mon = new Date(today);
+  mon.setDate(today.getDate() + diff);
+  return mon.toISOString().split('T')[0];
+}
+
+function _weekLabel(weekStart) {
+  const d = new Date(weekStart);
+  const jan1 = new Date(d.getFullYear(), 0, 1);
+  return `W${String(Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7)).padStart(2, '0')}`;
+}
+
+function _weeksAgo(itemWeekStart, currentWeekStart) {
+  if (!itemWeekStart || !currentWeekStart) return 0;
+  const diff = new Date(currentWeekStart) - new Date(itemWeekStart);
+  return Math.max(0, Math.round(diff / (7 * 24 * 60 * 60 * 1000)));
+}
+
+// ── 展開／收合 Section ──────────────────────────────────────────
+const _collapsed = {};
+window.toggleSection = function(key) {
+  _collapsed[key] = !_collapsed[key];
+  const sec = document.getElementById(`section-${key}`);
+  const arrow = document.getElementById(`arrow-${key}`);
+  if (sec) sec.style.display = _collapsed[key] ? 'none' : '';
+  if (arrow) arrow.style.transform = _collapsed[key] ? 'rotate(-90deg)' : '';
+};
+
+// ── 篩選狀態 ────────────────────────────────────────────────────
+let _filterTeam = 'all';
+let _sortBy = 'age-desc';
+
+document.getElementById('filterTeam').addEventListener('change', e => {
+  _filterTeam = e.target.value;
+  renderAll();
+});
+document.getElementById('sortBy').addEventListener('change', e => {
+  _sortBy = e.target.value;
+  renderAll();
+});
+
+// ── Render All ──────────────────────────────────────────────────
+function renderAll() {
+  const cwStart = _currentWeekStart();
+  const cwLabel = _weekLabel(cwStart);
+
+  // 週次說明 banner
+  const bannerEl = document.getElementById('weekCtxBanner');
+  const textEl   = document.getElementById('weekCtxText');
+  bannerEl.style.display = 'flex';
+  textEl.textContent = `當前週次 ${cwLabel}（${cwStart}）· 顯示 ${cwLabel} 之前仍未結案的項目`;
+
+  // 取得跨週資料
+  const projects = _carryoverProjects(cwStart);
+  const risks    = _carryoverRisks(cwStart);
+  const actions  = _carryoverActions(cwStart);
+
+  // 更新統計
+  const allAges = [...projects, ...risks, ...actions].map(i => i._age);
+  document.getElementById('statProjects').textContent = projects.length;
+  document.getElementById('statRisks').textContent    = risks.length;
+  document.getElementById('statActions').textContent  = actions.length;
+  document.getElementById('statMaxAge').textContent   = allAges.length ? Math.max(...allAges) : 0;
+  document.getElementById('badge-projects').textContent = projects.length;
+  document.getElementById('badge-risks').textContent    = risks.length;
+  document.getElementById('badge-actions').textContent  = actions.length;
+
+  renderProjects(projects);
+  renderRisks(risks);
+  renderActionsList(actions);
+}
+
+// ── 跨週資料篩取 ────────────────────────────────────────────────
+function _applySort(items) {
+  return [...items].sort((a, b) => {
+    if (_sortBy === 'age-desc') return b._age - a._age;
+    if (_sortBy === 'age-asc')  return a._age - b._age;
+    if (_sortBy === 'due-asc') {
+      const da = a.dueDate || a.targetDate || '9999';
+      const db = b.dueDate || b.targetDate || '9999';
+      return da.localeCompare(db);
+    }
+    return 0;
+  });
+}
+
+function _carryoverProjects(cwStart) {
+  return _applySort(
+    store.getAll('projects')
+      .filter(p => {
+        if (!p.weekStart || p.weekStart >= cwStart) return false;
+        if (!['at-risk', 'behind'].includes(p.status)) return false;
+        if (_filterTeam !== 'all' && p.team !== _filterTeam) return false;
+        return true;
+      })
+      .map(p => ({ ...p, _age: _weeksAgo(p.weekStart, cwStart) }))
+  );
+}
+
+function _carryoverRisks(cwStart) {
+  return _applySort(
+    store.getAll('risks')
+      .filter(r => {
+        if (!r.weekStart || r.weekStart >= cwStart) return false;
+        if (!['open', 'in-progress'].includes(r.status)) return false;
+        if (_filterTeam !== 'all' && r.team !== _filterTeam) return false;
+        return true;
+      })
+      .map(r => ({ ...r, _age: _weeksAgo(r.weekStart, cwStart) }))
+  );
+}
+
+function _carryoverActions(cwStart) {
+  return _applySort(
+    store.getAll('actions')
+      .filter(a => {
+        if (!a.weekStart || a.weekStart >= cwStart) return false;
+        if (!['pending', 'in-progress', 'blocked'].includes(a.status)) return false;
+        if (_filterTeam !== 'all') return false; // actions have no team field; skip team filter
+        return true;
+      })
+      .map(a => ({ ...a, _age: _weeksAgo(a.weekStart, cwStart) }))
+  );
+}
+
+// ── Age Badge HTML ───────────────────────────────────────────────
+function _ageBadge(item) {
+  const wl = _weekLabel(item.weekStart);
+  const n  = item._age;
+  if (n === 0) return '';
+  const color = n >= 3 ? 'var(--color-danger)' : n >= 2 ? 'var(--color-warning)' : 'var(--color-info)';
+  return `<span style="display:inline-flex;align-items:center;gap:3px;background:${color}15;border:1px solid ${color}40;border-radius:10px;padding:1px 7px;font-size:11px;color:${color};font-weight:600;white-space:nowrap;">
+    🕒 ${wl} · 持續 ${n} 週
+  </span>`;
+}
+
+// ── 團隊 badge ───────────────────────────────────────────────────
+const TEAM_LABEL = {
+  'media-agent': 'Media Agent',
+  'learnmode':   'LearnMode',
+  'chuangzaoli': '創造栗',
+  'tv-solution': 'TV Solution',
+  'healthcare':  'Healthcare',
+  'org-mgmt':    '組織管理',
+};
+function _teamBadge(team) {
+  if (!team) return '';
+  const label = TEAM_LABEL[team] || team;
+  return `<span class="badge badge-neutral">${label}</span>`;
+}
+
+// ── 空狀態 ───────────────────────────────────────────────────────
+function _emptyHtml(msg) {
+  return `<div style="padding:var(--space-xl);text-align:center;color:var(--color-text-tertiary);">
+    <div style="font-size:28px;margin-bottom:8px;">✅</div>
+    <div style="font-size:13px;">${msg}</div>
+  </div>`;
+}
+
+// ── 渲染：Projects ───────────────────────────────────────────────
+function renderProjects(items) {
+  const el = document.getElementById('list-projects');
+  if (!items.length) {
+    el.innerHTML = _emptyHtml('沒有跨週未結專案'); return;
+  }
+  const statusLabel = { 'on-track':'🟢 On Track', 'at-risk':'🟡 At Risk', 'behind':'🔴 Behind', 'paused':'⏸ Paused' };
+  el.innerHTML = items.map(p => {
+    const overdue = p.targetDate && p.targetDate < new Date().toISOString().split('T')[0];
+    return `<div style="display:flex;flex-direction:column;gap:6px;padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--color-border-default);" class="tracker-row">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;line-height:1.4;">${p.name}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+            ${_ageBadge(p)}
+            ${_teamBadge(p.team)}
+            ${overdue ? '<span class="badge badge-danger">截止日已過</span>' : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+          <span class="badge ${p.status === 'behind' ? 'badge-danger' : 'badge-warning'}">${statusLabel[p.status] || p.status}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);">
+        <span>👤 ${p.owner || '—'}</span>
+        <span>📅 目標：${p.targetDate ? formatDate(p.targetDate) : '未設定'}</span>
+        <span>📊 進度：${p.progress ?? 0}%</span>
+        ${p.blockers ? `<span style="color:var(--color-danger);">⛔ ${p.blockers.substring(0,60)}${p.blockers.length>60?'…':''}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <select class="inp" style="width:140px;padding:3px 6px;font-size:12px;" onchange="updateProjectStatus('${p.id}', this.value, this)" title="更新專案狀態">
+          <option value="on-track"  ${p.status==='on-track' ?'selected':''}>🟢 On Track</option>
+          <option value="at-risk"   ${p.status==='at-risk'  ?'selected':''}>🟡 At Risk</option>
+          <option value="behind"    ${p.status==='behind'   ?'selected':''}>🔴 Behind</option>
+          <option value="paused"    ${p.status==='paused'   ?'selected':''}>⏸ Paused</option>
+        </select>
+        <a href="input.html" class="btn btn-outline btn-sm" style="font-size:12px;">✏️ 詳細更新</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── 渲染：Risks ──────────────────────────────────────────────────
+function renderRisks(items) {
+  const el = document.getElementById('list-risks');
+  if (!items.length) {
+    el.innerHTML = _emptyHtml('沒有跨週未關閉風險'); return;
+  }
+  const levelLabel = { high:'🔴 高風險', medium:'🟡 中風險', low:'🟢 低風險' };
+  el.innerHTML = items.map(r => {
+    const overdue = r.dueDate && r.dueDate < new Date().toISOString().split('T')[0];
+    return `<div style="display:flex;flex-direction:column;gap:6px;padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--color-border-default);" class="tracker-row">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;line-height:1.4;">${r.description.substring(0,120)}${r.description.length>120?'…':''}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+            ${_ageBadge(r)}
+            ${_teamBadge(r.team)}
+            ${overdue ? '<span class="badge badge-danger">逾期</span>' : ''}
+          </div>
+        </div>
+        <div style="flex-shrink:0;">
+          <span class="badge ${r.level==='high'?'badge-danger':r.level==='medium'?'badge-warning':'badge-success'}">${levelLabel[r.level]||r.level}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);">
+        <span>👤 ${r.owner || '—'}</span>
+        <span>📅 截止：${r.dueDate ? formatDate(r.dueDate) : '未設定'}</span>
+        ${r.mitigation ? `<span>💡 ${r.mitigation.substring(0,60)}${r.mitigation.length>60?'…':''}</span>` : ''}
+      </div>
+      <div>
+        <select class="inp" style="width:160px;padding:3px 6px;font-size:12px;" onchange="updateRiskStatus('${r.id}', this.value, this)" title="更新風險狀態">
+          <option value="open"        ${r.status==='open'        ?'selected':''}>📌 尚未處理</option>
+          <option value="in-progress" ${r.status==='in-progress' ?'selected':''}>🔄 處理中</option>
+          <option value="closed"      ${r.status==='closed'      ?'selected':''}>✅ 關閉</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── 渲染：Actions ────────────────────────────────────────────────
+function renderActionsList(items) {
+  const el = document.getElementById('list-actions');
+  if (!items.length) {
+    el.innerHTML = _emptyHtml('沒有跨週未完成 Action Items'); return;
+  }
+  const catLabel = { technical:'⚙️ 技術', business:'📋 業務', resource:'👥 資源' };
+  const statusBadge = {
+    pending:     'badge-neutral',
+    'in-progress':'badge-info',
+    blocked:     'badge-danger',
+    done:        'badge-success',
+  };
+  const statusLabel = { pending:'待辦', 'in-progress':'進行中', blocked:'阻塞', done:'完成' };
+  const STATUS_CYCLE = ['pending', 'in-progress', 'done', 'blocked'];
+
+  el.innerHTML = items.map(a => {
+    const overdue = a.dueDate && a.dueDate < new Date().toISOString().split('T')[0] && a.status !== 'done';
+    const nextStatus = STATUS_CYCLE[(STATUS_CYCLE.indexOf(a.status) + 1) % STATUS_CYCLE.length];
+    return `<div style="display:flex;flex-direction:column;gap:6px;padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--color-border-default);" class="tracker-row">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:14px;line-height:1.4;">${a.task}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
+            ${_ageBadge(a)}
+            ${a.category ? `<span class="badge badge-neutral">${catLabel[a.category]||a.category}</span>` : ''}
+            ${a.project  ? `<span class="badge badge-neutral" style="font-size:10px;">${a.project.substring(0,20)}</span>` : ''}
+            ${overdue ? '<span class="badge badge-danger">逾期</span>' : ''}
+          </div>
+        </div>
+        <div style="flex-shrink:0;">
+          <span class="badge ${statusBadge[a.status]||'badge-neutral'}" style="cursor:pointer;" title="點擊切換 → ${statusLabel[nextStatus]}" onclick="cycleActionStatus('${a.id}')">${statusLabel[a.status]||a.status}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);">
+        <span>👤 ${a.owner || '—'}</span>
+        <span>📅 截止：${a.dueDate ? formatDate(a.dueDate) : '未設定'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── 狀態更新 ────────────────────────────────────────────────────
+window.updateProjectStatus = async function(id, newStatus, sel) {
+  const p = store.getById('projects', id);
+  if (!p) return;
+  const ok = await confirm(`將專案狀態改為「${newStatus}」？`);
+  if (!ok) { sel.value = p.status; return; }
+  store.save('projects', { ...p, status: newStatus });
+  toast('專案狀態已更新', 'success');
+  renderAll();
+};
+
+window.updateRiskStatus = async function(id, newStatus, sel) {
+  const r = store.getById('risks', id);
+  if (!r) return;
+  const ok = await confirm(`將風險狀態改為「${newStatus}」？`);
+  if (!ok) { sel.value = r.status; return; }
+  store.save('risks', { ...r, status: newStatus });
+  toast('風險狀態已更新', 'success');
+  renderAll();
+};
+
+window.cycleActionStatus = async function(id) {
+  const STATUS_CYCLE = ['pending', 'in-progress', 'done', 'blocked'];
+  const a = store.getById('actions', id);
+  if (!a) return;
+  const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(a.status) + 1) % STATUS_CYCLE.length];
+  store.save('actions', { ...a, status: next });
+  toast(`Action 狀態 → ${next}`, 'success');
+  renderAll();
+};
+
+// ── 初始渲染 + 即時同步 ─────────────────────────────────────────
+renderAll();
+window.addEventListener('store:updated', renderAll);
+window.addEventListener('pageshow', e => { if (e.persisted) renderAll(); });
+window.addEventListener('storage', e => { if (e.key?.startsWith('pgm_sync_')) renderAll(); });
+
+// ── 漢堡選單（同其他頁面） ──────────────────────────────────────
+const hamburger = document.getElementById('navHamburger');
+const mobileNav = document.getElementById('mobileNav');
+if (hamburger && mobileNav) {
+  hamburger.addEventListener('click', () => {
+    const open = mobileNav.style.display === 'flex';
+    mobileNav.style.display = open ? 'none' : 'flex';
+    hamburger.setAttribute('aria-expanded', String(!open));
+  });
+  document.addEventListener('click', e => {
+    if (!hamburger.contains(e.target) && !mobileNav.contains(e.target)) {
+      mobileNav.style.display = 'none';
+    }
+  });
+  const mq = window.matchMedia('(min-width: 768px)');
+  const checkWidth = q => {
+    if (q.matches) {
+      mobileNav.style.display = 'none';
+      hamburger.style.display = 'none';
+    } else {
+      hamburger.style.display = '';
+    }
+  };
+  mq.addEventListener('change', checkWidth);
+  checkWidth(mq);
+}
+</script>
+
+<style>
+.tracker-row:hover {
+  background: var(--color-bg-secondary);
+}
+.tracker-row:last-child {
+  border-bottom: none !important;
+}
+</style>
+</body>
+</html>
