@@ -1,0 +1,839 @@
+{
+  "projects": [],
+  "risks": [],
+  "actions": [],
+  "milestones": [
+    {
+      "id": "ms_h_0",
+      "name": "（週一）– 2026/05/08（週五）",
+      "date": "2026-05-04",
+      "status": "done",
+      "team": "",
+      "_source": "history",
+      "_updatedAt": "2026-05-06T23:45:59.731Z",
+      "_createdAt": "2026-05-06T23:45:59.731Z"
+    },
+    {
+      "id": "ms_h_1",
+      "name": "| 彙整人",
+      "date": "2026-05-08",
+      "status": "upcoming",
+      "team": "",
+      "_source": "history",
+      "_updatedAt": "2026-05-06T23:45:59.731Z",
+      "_createdAt": "2026-05-06T23:45:59.731Z"
+    },
+    {
+      "id": "ms_h_2",
+      "name": "–05/15）",
+      "date": "2026-05-11",
+      "status": "upcoming",
+      "team": "",
+      "_source": "history",
+      "_updatedAt": "2026-05-06T23:45:59.731Z",
+      "_createdAt": "2026-05-06T23:45:59.731Z"
+    }
+  ],
+  "snapshots": [
+    {
+      "id": "snap-w6",
+      "weekStart": "2026-02-23",
+      "weekLabel": "W09",
+      "onTrackPct": 88,
+      "atRiskCount": 1,
+      "behindCount": 1,
+      "highRisks": 2,
+      "mediumRisks": 3,
+      "lowRisks": 2,
+      "totalProjects": 12,
+      "overdueActions": 1,
+      "completedActions": 15,
+      "totalActions": 14,
+      "teamHealth": {
+        "media-agent": 90,
+        "learnmode": 85,
+        "chuangzaoli": 88,
+        "tv-solution": 87,
+        "healthcare": 78
+      },
+      "reviewStatus": "approved",
+      "snapshotBy": "Kevin Chang"
+    },
+    {
+      "id": "snap-w7",
+      "weekStart": "2026-03-02",
+      "weekLabel": "W10",
+      "onTrackPct": 83,
+      "atRiskCount": 2,
+      "behindCount": 1,
+      "highRisks": 3,
+      "mediumRisks": 3,
+      "lowRisks": 1,
+      "totalProjects": 12,
+      "overdueActions": 2,
+      "completedActions": 12,
+      "totalActions": 13,
+      "teamHealth": {
+        "media-agent": 85,
+        "learnmode": 80,
+        "chuangzaoli": 84,
+        "tv-solution": 85,
+        "healthcare": 74
+      },
+      "reviewStatus": "approved",
+      "snapshotBy": "Kevin Chang"
+    },
+    {
+      "id": "snap-w8",
+      "weekStart": "2026-03-09",
+      "weekLabel": "W11",
+      "onTrackPct": 75,
+      "atRiskCount": 2,
+      "behindCount": 1,
+      "highRisks": 3,
+      "mediumRisks": 2,
+      "lowRisks": 1,
+      "totalProjects": 12,
+      "overdueActions": 2,
+      "completedActions": 8,
+      "totalActions": 10,
+      "teamHealth": {
+        "media-agent": 78,
+        "learnmode": 70,
+        "chuangzaoli": 80,
+        "tv-solution": 82,
+        "healthcare": 62
+      },
+      "reviewStatus": "approved",
+      "snapshotBy": "Kevin Chang"
+    },
+    {
+      "id": "snap-w9",
+      "weekStart": "2026-03-23",
+      "weekLabel": "W12",
+      "onTrackPct": 75,
+      "atRiskCount": 2,
+      "behindCount": 1,
+      "highRisks": 2,
+      "mediumRisks": 2,
+      "lowRisks": 1,
+      "totalProjects": 14,
+      "overdueActions": 1,
+      "completedActions": 9,
+      "totalActions": 11,
+      "teamHealth": {
+        "media-agent": 80,
+        "learnmode": 72,
+        "chuangzaoli": 75,
+        "tv-solution": 83,
+        "healthcare": 65
+      },
+      "reviewStatus": "approved",
+      "snapshotBy": "Alex Liao"
+    },
+    {
+      "id": "snap-w10",
+      "weekStart": "2026-03-23",
+      "weekLabel": "W13",
+      "onTrackPct": 69,
+      "atRiskCount": 4,
+      "behindCount": 0,
+      "highRisks": 3,
+      "mediumRisks": 4,
+      "lowRisks": 1,
+      "totalProjects": 13,
+      "overdueActions": 2,
+      "completedActions": 6,
+      "totalActions": 12,
+      "teamHealth": {
+        "media-agent": 82,
+        "learnmode": 65,
+        "chuangzaoli": 58,
+        "tv-solution": 90,
+        "healthcare": 65
+      },
+      "reviewStatus": "approved",
+      "snapshotBy": "Alex Liao"
+    },
+    {
+      "id": "snap-w11",
+      "weekStart": "2026-03-30",
+      "weekLabel": "W14",
+      "onTrackPct": 71,
+      "atRiskCount": 5,
+      "behindCount": 0,
+      "highRisks": 3,
+      "mediumRisks": 6,
+      "lowRisks": 1,
+      "totalProjects": 17,
+      "overdueActions": 1,
+      "completedActions": 3,
+      "totalActions": 24,
+      "teamHealth": {
+        "media-agent": 88,
+        "learnmode": 68,
+        "chuangzaoli": 55,
+        "tv-solution": 90,
+        "healthcare": 65
+      },
+      "reviewStatus": "draft",
+      "snapshotBy": "Alex Liao"
+    },
+    {
+      "id": "snap-2026-04-13",
+      "weekStart": "2026-04-13",
+      "weekLabel": "W16",
+      "onTrackPct": 50,
+      "atRiskCount": 4,
+      "behindCount": 0,
+      "highRisks": 3,
+      "mediumRisks": 8,
+      "lowRisks": 1,
+      "totalProjects": 8,
+      "overdueActions": 0,
+      "completedActions": 2,
+      "totalActions": 45,
+      "teamHealth": {
+        "media-agent": 75,
+        "learnmode": 62,
+        "chuangzaoli": 68,
+        "tv-solution": 72,
+        "healthcare": 65
+      },
+      "reviewStatus": "draft",
+      "snapshotBy": "Alex Liao",
+      "createdAt": "2026-04-16T08:00:00.000Z"
+    },
+    {
+      "id": "snap-W17",
+      "weekStart": "2026-04-20",
+      "weekLabel": "W17",
+      "totalProjects": 10,
+      "onTrackPct": 60,
+      "atRiskCount": 4,
+      "behindCount": 0,
+      "highRisks": 3,
+      "mediumRisks": 6,
+      "lowRisks": 1,
+      "totalActions": 24,
+      "completedActions": 1,
+      "overdueActions": 0,
+      "teamHealth": {
+        "media-agent": 60,
+        "learnmode": 65,
+        "chuangzaoli": 55,
+        "tv-solution": 50,
+        "healthcare": 70
+      },
+      "reviewStatus": "draft",
+      "snapshotBy": "Alex Liao",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "snap-w18",
+      "weekStart": "2026-04-27",
+      "weekLabel": "W18",
+      "onTrackPct": 60,
+      "atRiskCount": 4,
+      "behindCount": 0,
+      "highRisks": 3,
+      "mediumRisks": 6,
+      "lowRisks": 1,
+      "totalProjects": 10,
+      "overdueActions": 6,
+      "completedActions": 1,
+      "totalActions": 24,
+      "teamHealth": {
+        "media-agent": 60,
+        "chuangzaoli": 50,
+        "learnmode": 67
+      },
+      "reviewStatus": "draft",
+      "snapshotBy": "System",
+      "_createdAt": "2026-04-29T07:06:58.000Z",
+      "_updatedAt": "2026-04-29T07:06:58.000Z"
+    }
+  ],
+  "drafts": [],
+  "members": [
+    {
+      "id": "steve-liu",
+      "name": "Steve Liu",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "alex-liao",
+      "name": "Alex Liao",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "michael-chien",
+      "name": "Michael Chien",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "dream-ku",
+      "name": "Dream Ku",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "bachchen",
+      "name": "Bachchen",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "tc-peng",
+      "name": "TC Peng",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "tonny-shen",
+      "name": "Tonny Shen",
+      "team": "chuangzaoli",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "luffy-luan",
+      "name": "Luffy Luan",
+      "team": "chuangzaoli",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "steven-ch",
+      "name": "Steven CH",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "sean-peng",
+      "name": "Sean Peng",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "grace",
+      "name": "Grace",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "ruru-lin",
+      "name": "Ruru Lin",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "eddy-lin",
+      "name": "Eddy Lin",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "sophia",
+      "name": "Sophia",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    }
+  ],
+  "_resources": [
+    {
+      "id": "re001",
+      "quarter": "25Q1",
+      "productLine": "任我行",
+      "cn": 23,
+      "tw": 0,
+      "jp": 0,
+      "total": 23,
+      "mbo": "1. 金磚大賽支持\n2. 平台功能需求 4.0\n3. 實訓台\n4. 產品演示、部署、培訓和客戶支持",
+      "remark": ""
+    },
+    {
+      "id": "re002",
+      "quarter": "25Q1",
+      "productLine": "創造栗",
+      "cn": 15.5,
+      "tw": 4.5,
+      "jp": 10,
+      "total": 30,
+      "mbo": "1. 小栗方PRO產品及套裝\n2. Edge端實現\n3. 圖文生成3D模型（簡版）\n4. 人工智慧教學與實踐平台\n5. 威栗雲維護運維客製美工\n6. 小栗方一代、8880小車\n7. 日本&台灣市場",
+      "remark": "含JP 10mm"
+    },
+    {
+      "id": "re003",
+      "quarter": "25Q1",
+      "productLine": "智能體＋大模型",
+      "cn": 7.5,
+      "tw": 0,
+      "jp": 0,
+      "total": 7.5,
+      "mbo": "1. 大模型/智能體開發\n2. 數字人\n3. 短視頻生成",
+      "remark": ""
+    },
+    {
+      "id": "re004",
+      "quarter": "25Q1",
+      "productLine": "LearnMode",
+      "cn": 0,
+      "tw": 8.9,
+      "jp": 0,
+      "total": 8.9,
+      "mbo": "1. 學習吧AI寫作優化\n2. 企業版新功能優化\n3. 學習吧訂單系統優化\n4. 小型語言模型（SLM）系統驗證\n5. AI模擬提問系統POC\n6. AI教育詩辨識模型計畫",
+      "remark": ""
+    },
+    {
+      "id": "re005",
+      "quarter": "25Q1",
+      "productLine": "TV Solution",
+      "cn": 30,
+      "tw": 19,
+      "jp": 0,
+      "total": 49,
+      "mbo": "1. OpenNews\n2. OpenSchedule\n3. OpenCapture\n4. OpenCommand\n5. OpenMAM",
+      "remark": ""
+    },
+    {
+      "id": "re006",
+      "quarter": "25Q2",
+      "productLine": "任我行",
+      "cn": 1,
+      "tw": 0,
+      "jp": 0,
+      "total": 1,
+      "mbo": "Headway maintain",
+      "remark": ""
+    },
+    {
+      "id": "re007",
+      "quarter": "25Q2",
+      "productLine": "創造栗",
+      "cn": 10.75,
+      "tw": 1.25,
+      "jp": 0,
+      "total": 12,
+      "mbo": "1. 小栗方PRO產品及套裝\n2. 網站與平面設計/雲端後台運維\n3. 威栗雲高中人工智能試驗學習平台\n4. 威栗雲海外版\n5. 設備端/平台 日文/繁体化\n6. 威栗雲海外版大模型",
+      "remark": ""
+    },
+    {
+      "id": "re008",
+      "quarter": "25Q2",
+      "productLine": "智能體＋大模型",
+      "cn": 3.5,
+      "tw": 0,
+      "jp": 0,
+      "total": 3.5,
+      "mbo": "【創造栗-功能客製化】大模型/智能體",
+      "remark": ""
+    },
+    {
+      "id": "re009",
+      "quarter": "25Q2",
+      "productLine": "LearnMode",
+      "cn": 0,
+      "tw": 0.22,
+      "jp": 0,
+      "total": 0.22,
+      "mbo": "1. Learnmode System and Function Maintenance\n2. Learnmode - Provide speech model training",
+      "remark": "原Q2客語 4mm 改列 Q3"
+    },
+    {
+      "id": "re010",
+      "quarter": "25Q2",
+      "productLine": "TV Solution",
+      "cn": 33,
+      "tw": 24,
+      "jp": 0,
+      "total": 57,
+      "mbo": "1. Open MAM\n2. Open News\n3. Open IO / Open Capture\n4. Open Manager/Schedule\n5. Open Command",
+      "remark": ""
+    },
+    {
+      "id": "re011",
+      "quarter": "25Q2",
+      "productLine": "Media Agent",
+      "cn": 49.4,
+      "tw": 0,
+      "jp": 0,
+      "total": 49.4,
+      "mbo": "1. 人臉片庫檢索\n2. 人臉片庫進階檢索\n3. 視頻類智能體 misc\n4. 數字人\n5. 短視頻生成",
+      "remark": "Q2 重點：應用開發與檢索實現；Sally 6月請產假"
+    },
+    {
+      "id": "re012",
+      "quarter": "25Q3",
+      "productLine": "創造栗",
+      "cn": 14.5,
+      "tw": 0.5,
+      "jp": 0,
+      "total": 15,
+      "mbo": "1. 小栗方Pro 產品及套裝\n2. 小栗方Pro 大模型/智能體\n3. 威栗雲國際版",
+      "remark": ""
+    },
+    {
+      "id": "re013",
+      "quarter": "25Q3",
+      "productLine": "LearnMode",
+      "cn": 0,
+      "tw": 1.32,
+      "jp": 0,
+      "total": 1.32,
+      "mbo": "1. Learnmode System and Function Maintenance\n2. Learnmode - Provide speech model training",
+      "remark": "0.32+(1) 學習吧、加分吧寫作小優化"
+    },
+    {
+      "id": "re014",
+      "quarter": "25Q3",
+      "productLine": "TV Solution",
+      "cn": 34.5,
+      "tw": 21,
+      "jp": 0,
+      "total": 55.5,
+      "mbo": "1. OpenIO WebUI development\n2. Open MAM\n3. Open News\n4. Open Command",
+      "remark": "Sally 產假兩個月，Q3 1mm"
+    },
+    {
+      "id": "re015",
+      "quarter": "25Q3",
+      "productLine": "Media Agent",
+      "cn": 44,
+      "tw": 1.5,
+      "jp": 0,
+      "total": 45.5,
+      "mbo": "1. 片庫多模態標註調研及架構\n2. 視頻內容 ASR 提取標註\n3. Misc - 拍打/聽打/版權/聲音克隆等模型算法調研\n4. 人臉/場景片庫檢索算法擴展及優化",
+      "remark": "⚠️ 超時 0.32MM"
+    },
+    {
+      "id": "re016",
+      "quarter": "25Q4",
+      "productLine": "創造栗",
+      "cn": 7.93,
+      "tw": 0.5,
+      "jp": 0,
+      "total": 8.43,
+      "mbo": "1. IdealLi Global\n2. 小栗方Pro 產品及套裝（IDE / 擴展板 / 運維）\n3. LLM/Agent 平台移植到 AIPC（TBD）",
+      "remark": ""
+    },
+    {
+      "id": "re017",
+      "quarter": "25Q4",
+      "productLine": "LearnMode",
+      "cn": 0,
+      "tw": 2.4,
+      "jp": 0,
+      "total": 2.4,
+      "mbo": "1. Learnmode System and Function Maintenance\n2. Research and Technical Evaluation of Learning Platform Project",
+      "remark": "0.4+(2)"
+    },
+    {
+      "id": "re018",
+      "quarter": "25Q4",
+      "productLine": "TV Solution",
+      "cn": 34.5,
+      "tw": 21,
+      "jp": 0,
+      "total": 55.5,
+      "mbo": "1. OpenIO\n2. Open News\n3. Open MAM\n4. Open Command\n5. OpenMAM Development",
+      "remark": ""
+    },
+    {
+      "id": "re019",
+      "quarter": "25Q4",
+      "productLine": "Media Agent",
+      "cn": 43.75,
+      "tw": 1.5,
+      "jp": 0,
+      "total": 45.25,
+      "mbo": "1. 名人庫詞條內容收集整理（5000 量級）\n2. 名人庫 APP Phase I（internal version）\n3. 場景檢索向量庫生成/布控\n4. 持續調研 MediaAgent 其他應用\n5. 片庫人臉檢索細化\n6. 基於自然語言片庫檢索",
+      "remark": "特休消耗"
+    },
+    {
+      "id": "re020",
+      "quarter": "25Q4",
+      "productLine": "BU2 Healthcare",
+      "cn": 1,
+      "tw": 0,
+      "jp": 0,
+      "total": 1,
+      "mbo": "MagicView (MGV) Update",
+      "remark": ""
+    },
+    {
+      "id": "re021",
+      "quarter": "26Q1",
+      "productLine": "創造栗",
+      "cn": 17.1,
+      "tw": 0,
+      "jp": 0,
+      "total": 17.1,
+      "mbo": "1. IdeaLi Maintenance/Support\n2. LLM sensitive content block\n3. AIPC support\n4. Xiaolifang-Pro external power board support",
+      "remark": "前季 25Q4: 8.43mm"
+    },
+    {
+      "id": "re022",
+      "quarter": "26Q1",
+      "productLine": "LearnMode",
+      "cn": 0,
+      "tw": 0.4,
+      "jp": 0,
+      "total": 0.4,
+      "mbo": "1. Learnmode System and Function Maintenance\n2. Research and Technical Evaluation of Learning Platform Project",
+      "remark": "前季 25Q4: 2.4mm"
+    },
+    {
+      "id": "re023",
+      "quarter": "26Q1",
+      "productLine": "TV Solution",
+      "cn": 34.5,
+      "tw": 21,
+      "jp": 0,
+      "total": 55.5,
+      "mbo": "1. OpenIO\n2. Open News\n3. Open MAM\n4. Open Command\n5. OpenMAM Development",
+      "remark": ""
+    },
+    {
+      "id": "re024",
+      "quarter": "26Q1",
+      "productLine": "Media Agent",
+      "cn": 37.5,
+      "tw": 2.5,
+      "jp": 0,
+      "total": 40,
+      "mbo": "1. Establish a Media Agent-aware infrastructure\n2. AI media content labeling and tagging\n3. NLP searching\n4. Olapedia 1.0\n5. STT for labeling, social media, raw media\n6. Logo and Object recognization and labeling",
+      "remark": "前季 25Q4: 45.25mm"
+    },
+    {
+      "id": "re025",
+      "quarter": "26Q1",
+      "productLine": "BU2 Healthcare",
+      "cn": 1,
+      "tw": 0,
+      "jp": 0,
+      "total": 1,
+      "mbo": "MagicView support (license/Q&A/others when have resource)",
+      "remark": "前季 25Q4: 1mm"
+    },
+    {
+      "id": "re026",
+      "quarter": "26Q2",
+      "productLine": "創造栗",
+      "cn": 1.5,
+      "tw": 0,
+      "jp": 0,
+      "total": 1.5,
+      "mbo": "IdealLi Maintenance/Support",
+      "remark": ""
+    },
+    {
+      "id": "re027",
+      "quarter": "26Q2",
+      "productLine": "LearnMode",
+      "cn": 0,
+      "tw": 0.4,
+      "jp": 0,
+      "total": 0.4,
+      "mbo": "Maintenance/Support",
+      "remark": ""
+    },
+    {
+      "id": "re028",
+      "quarter": "26Q2",
+      "productLine": "TV Solution",
+      "cn": 34.5,
+      "tw": 21,
+      "jp": 0,
+      "total": 55.5,
+      "mbo": "1. OpenIO/OpenCapture\n2. OpenNews/OpenSchedule/OpenManager\n3. OpenCommand\n4. OpenMAM\n5. OpenMAM development\n6. OpenNews development",
+      "remark": ""
+    },
+    {
+      "id": "re029",
+      "quarter": "26Q2",
+      "productLine": "Media Agent",
+      "cn": 54,
+      "tw": 3,
+      "jp": 0,
+      "total": 57,
+      "mbo": "1. STT for News dept\n2. STT for 節目部\n3. OpenMAM 對接（識別，標註，TBD）\n4. TV Logo final and Investigate other objects\n5. Olapedia 2.0\n6. NLP 2.0 (draft conversational)\n7. Media labeling upgraded",
+      "remark": "26H1 核心成長動能"
+    },
+    {
+      "id": "re030",
+      "quarter": "26Q2",
+      "productLine": "BU2 Healthcare",
+      "cn": 1,
+      "tw": 0,
+      "jp": 0,
+      "total": 1,
+      "mbo": "Training support/Release and copy protection",
+      "remark": ""
+    }
+  ],
+  "_resourceCharges": [
+    {
+      "id": "bc001",
+      "period": "24H2",
+      "area": "TW",
+      "aiLearning": 9,
+      "ved": 0,
+      "tvProject": 0,
+      "mediaAgent": 0,
+      "bu2": 0,
+      "charged": 9,
+      "notes": ""
+    },
+    {
+      "id": "bc002",
+      "period": "24H2",
+      "area": "武漢",
+      "aiLearning": 13,
+      "ved": 0,
+      "tvProject": 8,
+      "mediaAgent": 0,
+      "bu2": 0,
+      "charged": 5,
+      "notes": ""
+    },
+    {
+      "id": "bc003",
+      "period": "24H2",
+      "area": "上海",
+      "aiLearning": 18,
+      "ved": 11,
+      "tvProject": 1,
+      "mediaAgent": 0,
+      "bu2": 0,
+      "charged": 6,
+      "notes": ""
+    },
+    {
+      "id": "bc004",
+      "period": "24H2",
+      "area": "USA",
+      "aiLearning": 1,
+      "ved": 0,
+      "tvProject": 0,
+      "mediaAgent": 0,
+      "bu2": 0,
+      "charged": 1,
+      "notes": ""
+    },
+    {
+      "id": "bc005",
+      "period": "25H1",
+      "area": "TW+JP",
+      "aiLearning": 10,
+      "ved": 1,
+      "tvProject": 8,
+      "mediaAgent": 1,
+      "bu2": 0,
+      "charged": 0,
+      "notes": "VED 24.87mm；LearnMode 9.12mm 由1位台北負責；創造栗15.75mm 有2位上海負責"
+    },
+    {
+      "id": "bc006",
+      "period": "25H1",
+      "area": "武漢",
+      "aiLearning": 13,
+      "ved": 0,
+      "tvProject": 10,
+      "mediaAgent": 3,
+      "bu2": 0,
+      "charged": 0,
+      "notes": ""
+    },
+    {
+      "id": "bc007",
+      "period": "25H1",
+      "area": "上海",
+      "aiLearning": 18,
+      "ved": 10,
+      "tvProject": 1,
+      "mediaAgent": 7,
+      "bu2": 0,
+      "charged": 0,
+      "notes": "VED 50.25mm（8位支負責陸項目）"
+    },
+    {
+      "id": "bc008",
+      "period": "25H1",
+      "area": "USA",
+      "aiLearning": 1,
+      "ved": 0,
+      "tvProject": 0,
+      "mediaAgent": 1,
+      "bu2": 0,
+      "charged": 0,
+      "notes": ""
+    },
+    {
+      "id": "bc009",
+      "period": "25H2",
+      "area": "TW",
+      "aiLearning": 8,
+      "ved": 0,
+      "tvProject": 7,
+      "mediaAgent": 1,
+      "bu2": 0,
+      "charged": 0,
+      "notes": "預測基準"
+    },
+    {
+      "id": "bc010",
+      "period": "25H2",
+      "area": "武漢",
+      "aiLearning": 13,
+      "ved": 0,
+      "tvProject": 10,
+      "mediaAgent": 2,
+      "bu2": 1,
+      "charged": 0,
+      "notes": "預測基準"
+    },
+    {
+      "id": "bc011",
+      "period": "25H2",
+      "area": "上海",
+      "aiLearning": 17,
+      "ved": 3,
+      "tvProject": 1,
+      "mediaAgent": 13,
+      "bu2": 0,
+      "charged": 0,
+      "notes": "預測基準"
+    },
+    {
+      "id": "bc012",
+      "period": "25H2",
+      "area": "USA",
+      "aiLearning": 1,
+      "ved": 0,
+      "tvProject": 0,
+      "mediaAgent": 1,
+      "bu2": 0,
+      "charged": 0,
+      "notes": "預測基準"
+    }
+  ],
+  "_exportedAt": "2026-05-06T23:45:59.731Z",
+  "_version": "2.1"
+}
