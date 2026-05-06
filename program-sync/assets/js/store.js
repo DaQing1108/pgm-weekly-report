@@ -23,6 +23,14 @@ if (!_lsAvailable) {
   }));
 }
 
+// ── Action 狀態常數（與 schema.js ACTION_STATUSES 保持一致）────────
+export const ACTION_STATUS = {
+  PENDING:     'pending',
+  IN_PROGRESS: 'in-progress',
+  DONE:        'done',
+  BLOCKED:     'blocked',
+};
+
 function _key(name) { return PREFIX + name; }
 
 function _get(name) {
@@ -157,7 +165,7 @@ export const store = {
       ? refDate
       : new Date().toISOString().split('T')[0];
     const overdueActions = actions.filter(a =>
-      a.dueDate && a.dueDate < refDay && a.status !== 'done'
+      a.dueDate && a.dueDate < refDay && a.status !== ACTION_STATUS.DONE
     ).length;
 
     return {
@@ -278,7 +286,10 @@ export const store = {
       lowRisks: risks.filter(r => r.level === 'low' && r.status !== 'closed').length,
       totalProjects: stats.totalProjects,
       overdueActions: stats.overdueActions,
-      completedActions: actions.filter(a => a.status === 'done').length,
+      completedActions: actions.filter(a => a.status === ACTION_STATUS.DONE).length,
+      pendingActions: actions.filter(a => a.status === ACTION_STATUS.PENDING).length,
+      inProgressActions: actions.filter(a => a.status === ACTION_STATUS.IN_PROGRESS).length,
+      blockedActions: actions.filter(a => a.status === ACTION_STATUS.BLOCKED).length,
       totalActions: actions.length,
       teamHealth: _calcTeamHealth(_get('projects')),
       reviewStatus: 'draft',
