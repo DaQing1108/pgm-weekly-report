@@ -5,7 +5,7 @@
 
 專案名稱：VIA Technologies PgM Weekly Report System
 建置日期：2026/03/19
-更新日期：2026/04/30（新增跨週追蹤 Tracker）
+更新日期：2026/05/07（W19 修復 + completed 狀態 + MD-only fallback）
 技術棧：Node.js + Express（backend）/ Vanilla JS SPA（program-sync）
 部署平台：Railway
 公開網址：https://pgm-weekly-report-production.up.railway.app
@@ -68,9 +68,13 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
   Objectives（team）層級：
     Media Agent / LearnMode / 創造栗 / TV Solution / Healthcare / 組織管理
 
-  專案狀態（英文）：On Track / At Risk / Behind / Paused
+  專案狀態（英文）：On Track / At Risk / Behind / Paused / Completed（第五狀態）
+    - Completed 專案在 Dashboard 預設隱藏，exportAll() 自動排除不帶入下週
+    - stats() 健康度計算不計入 Completed 專案
 
   Actions.project：關聯 Dashboard 實際專案名稱（動態下拉，選填）
+    - 舊版資料可能存 project ID（'p16-001'），_resolveProjectName() 自動查 ID→name
+    - 下次存檔自動遷移為 name 格式（self-healing）
   Milestones.project：欄位已從時間軸移除（不顯示）
 
   KPI 定義：
@@ -153,6 +157,41 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
 --------------------------------------------------------------------------------
   Changelog
 --------------------------------------------------------------------------------
+
+  ── 2026/05/07  W19 修復與功能優化 by Alex Liao ──
+
+  [修復] Tracker 跨週未結項目停留在 W18 週次
+    - 根因：_currentWeekStart() 從 snapshots 取最新快照日期；
+            MD-only 週（W19）無快照 → 永遠回傳 W18
+    - 修復：改為直接從 new Date() 計算本週一，不依賴快照是否存在
+            與 store.js _weekLabel() 邏輯一致
+
+  [修復] Action Items 跨週關聯專案遺失
+    - 根因：W18 舊資料 action.project 存 ID（'p16-001'）；
+            actions.html v2.1+ 比對 p.name → ID vs name 永遠不符
+    - 修復：新增 _resolveProjectName(val) — 先查 ID、再查 name，fallback 顯示原值
+            Badge 與 Edit Modal 下拉均套用；下次儲存自動遷移為 name（self-healing）
+
+  [功能] 新增「已完成」第五專案狀態
+    - input.html 新增 Completed 選項
+    - Dashboard 預設 All Tab 不顯示（可切換 🏁 Tab 查看）
+    - exportAll() / _exportWeekObj() 自動排除，完成專案不帶入下週
+    - stats() 健康度計算排除，不影響分子分母
+    - store.js _calcTeamHealth() 子組健康度同步排除
+    - schema.js STATUS_OPTIONS 新增 completed
+    - ui.js renderBadge 新增 completed 樣式
+
+  [功能] MD-only 週 Dashboard 自動 Fallback 顯示前週快照
+    - 當本週 projects=0（MD-only 發布），init() 自動找最近有資料的歷史週
+    - 頂部藍色 Banner：「本週無系統資料，顯示 WXX 快照」
+    - 顯示的 input.html 連結保持可用，引導使用者輸入本週資料
+    - _isMdOnlyFallback flag 區分 MD-only fallback 與一般歷史瀏覽
+
+  [修正] 程式碼品質（Code Review 修復）
+    - agent/fix-agent.js：路徑遍歷判斷補 path.sep，防止誤放行兄弟目錄
+    - scripts/release-week.sh：set -e → set -eo pipefail，pipe 中段失敗不再靜默吞掉
+    - .github/workflows/weekly-health.yml：Node 版本 20 → 22（Node 20 六月 EOL）
+    - agent/health-check.js：statusValues 加入 'completed'，消除誤警告
 
   ── 2026/04/30  週報歸檔一鍵自動發布 by Alex Liao ──
 

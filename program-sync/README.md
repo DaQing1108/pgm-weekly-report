@@ -194,6 +194,7 @@ railway.json             # Railway 部署設定
 | `at-risk` | 🟡 At Risk | 黃 |
 | `behind` | 🔴 Behind | 紅 |
 | `paused` | ⏸️ 暫緩 | 灰（不計入健康度分母） |
+| `completed` | 🏁 已完成 | 灰（Dashboard 預設隱藏；exportAll() 自動排除，不帶入下週） |
 
 ---
 
@@ -207,7 +208,7 @@ railway.json             # Railway 部署設定
   owner,     // 負責人
   dueDate,   // 截止日期（ISO 8601）
   status,    // 'pending' | 'in-progress' | 'done' | 'blocked'
-  project,   // 關聯專案名稱
+  project,   // 關聯專案名稱或 ID（舊版存 ID，_resolveProjectName() 自動查找）
   weekStart, // 記錄週
   _createdAt, _updatedAt
 }
@@ -1056,6 +1057,7 @@ location.reload();
 | **v3.17** | **歷史週報中心 PDF 匯出**：`⬇ 下載` 按鈕更名為 `⬇ MD`；新增 `📥 PDF` 按鈕，點擊後自動抓取週報內容，以 `_filenameToWeekLabel()` 從檔名推算週次（YYMMDD → W??），呼叫 `export.js toPdf()` 以 A4 格式輸出含頁碼與頁尾的 PDF 並自動下載；按鈕具 loading 狀態（`⏳ 產生中…`），完成後 toast 通知。 |
 | **v3.15** | **UI/UX 優化第三輪（V-1～V-18）**：**CSS**：必填欄位標籤加粗 + `*` 標示（V-1）；textarea min-height 提升至 120px + 字數計數器（warn/over 顏色提示）（V-4）；dark mode 次要/輔助文字對比度提升至 WCAG AA（V-8）；project-row / risk-row hover 加 box-shadow 邊框（V-9）；active navbar link 底部藍色 underline 指示器（V-18）。**行為**：全站手機 hamburger 選單（V-3，9 頁面 + layout.css）；Actions 新增 Action 日期欄預設為兩週後最近週五（V-5）；Quick Input owner select 加即時搜尋過濾輸入框（V-6）；review.html 評論框加字數計數器（V-4）；review.html Stepper 精簡為 4 步驟（V-12）；resources.html 搜尋過濾橫跨季度表與業務彙整表（V-13）；trends.html 圖表空狀態加 CTA 按鈕（V-15）；**導覽**：8 頁面加麵包屑返回路徑（V-14）；**表單驗證**：input.html / risks.html / actions.html 必填欄位加 `.inp--error` 紅框 + inline 錯誤訊息，取代純 toast 提示（V-2）；Actions 批次完成按鈕改為 btn-primary 並加描述性 title（V-11）。 |
 | **v3.18** | **UI/UX 佈局與體驗優化**：**週報生成 (`report.html`)**：將原本擠壓內容的「AI 控制面板」調整為預設收合的 Floating Drawer，釋放中央預覽區空間；匯出按鈕由單選框改為緊湊的 Select 選單；空狀態新增「立即生成」CTA。**Action Items (`actions.html`)**：加入「篩選列（關鍵字、負責人、隱藏已完成）」；導入 SortableJS 支援拖曳排序；優化視覺層次（已完成項目刪除線與半透明）；將原本擁擠的「三欄式」調整為「滿版橫式列表」；新增按鈕置頂並可收合。**儀表板 (`index.html`)**：歷史週報中心改為「預設收合」的 Accordion 設計；清單項目升級為卡片化 (Card-based UI)，按鈕改為隱晦的 Ghost Button 以突顯資料層次。 |
+| **v3.19** | **W19 Bug 修復 + 功能優化（2026/05/07）**：**修復**：`tracker.html _currentWeekStart()` 改為從 `new Date()` 直接計算本週一，不依賴快照（MD-only 週無快照導致 Tracker 週次卡在 W18）；`actions.html` 新增 `_resolveProjectName()` helper，支援舊版 `action.project` 存 ID 格式向後相容，Badge 顯示與 Edit Modal 下拉均套用，下次儲存自動遷移為 name 格式（self-healing）。**功能**：新增第五專案狀態 `completed`（🏁 已完成）— Dashboard All Tab 預設隱藏（可切 Tab 查看）；`exportAll()` / `_exportWeekObj()` 自動排除（不帶入下週）；`stats()` / `_calcTeamHealth()` 健康度計算不計入；`schema.js` STATUS_OPTIONS、`ui.js` renderBadge、`agent/health-check.js` statusValues 一併更新。**MD-only Fallback**：Dashboard `init()` 偵測本週 `projects=0` 時自動切換顯示最近有資料歷史週快照，頂部藍色 Banner 標示狀態，`_isMdOnlyFallback` flag 區分一般歷史瀏覽。**程式碼品質**：`fix-agent.js` 路徑遍歷補 `path.sep`；`release-week.sh` `set -e` → `set -eo pipefail`；GitHub Actions Node.js 20 → 22（Node 20 EOL 2026/06）。 |
 
 ---
 
