@@ -266,6 +266,48 @@ function checkImportAllSchema() {
 }
 
 /**
+ * Check current week's JSON data file has projects entered.
+ * Warns if the current week is MD-only (no project data in system).
+ */
+function checkCurrentWeekData() {
+  try {
+    // Calculate current week label (same logic as store.js _weekLabel)
+    const today = new Date();
+    const jan1  = new Date(today.getFullYear(), 0, 1);
+    const jsJan1Day = jan1.getDay();
+    const daysDiff  = Math.floor((today - jan1) / 86400000);
+    const weekNo    = Math.ceil((daysDiff + jsJan1Day + 1) / 7);
+    const weekLabel = `W${String(weekNo).padStart(2, '0')}`;
+
+    const weekFile = path.join(REPO_ROOT, `backend/data/weeks/${weekLabel}.json`);
+
+    if (!fs.existsSync(weekFile)) {
+      warn(
+        `Week data: ${weekLabel}`,
+        `backend/data/weeks/${weekLabel}.json 不存在 — 本週資料尚未匯出或發布`,
+      );
+      return;
+    }
+
+    const data = JSON.parse(fs.readFileSync(weekFile, 'utf-8'));
+    const projectCount = (data.projects || []).length;
+
+    if (data._mdOnly) {
+      warn(`Week data: ${weekLabel}`, `本週為 MD-only 模式，系統未記錄專案資料`);
+    } else if (projectCount === 0) {
+      warn(
+        `Week data: ${weekLabel}`,
+        `${weekLabel}.json 的 projects=0 — 建議從瀏覽器 Console 執行 store.exportAll() 重新匯出，或改用 --md-only 發布`,
+      );
+    } else {
+      ok(`Week data: ${weekLabel} (${projectCount} projects)`);
+    }
+  } catch (e) {
+    warn('Current week data check', `無法執行：${e.message}`);
+  }
+}
+
+/**
  * Check backend reports directory has at least one recent .md file.
  */
 function checkReportFiles() {
@@ -322,6 +364,7 @@ async function main() {
   checkSyncListeners();
   checkStatusConsistency();
   checkImportAllSchema();
+  checkCurrentWeekData();
   checkReportFiles();
   checkWeekDataFiles();
 

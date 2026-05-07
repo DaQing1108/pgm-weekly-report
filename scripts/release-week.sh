@@ -48,10 +48,13 @@ PYEOF
 
 # ── 解析參數 ──────────────────────────────────────────────────────────────────
 AUTO_YES=false
+MD_ONLY=false
 WEEK=""
 for _arg in "$@"; do
   if [[ "${_arg}" == "--yes" || "${_arg}" == "-y" ]]; then
     AUTO_YES=true
+  elif [[ "${_arg}" == "--md-only" ]]; then
+    MD_ONLY=true
   elif [[ -z "${WEEK}" ]]; then
     WEEK="${_arg}"
   fi
@@ -71,7 +74,11 @@ fi
 
 echo ""
 echo -e "${BOLD}═══════════════════════════════════════════${RESET}"
-echo -e "${BOLD}  📦 Release Week：${WEEK}${RESET}"
+if [[ "${MD_ONLY}" == "true" ]]; then
+  echo -e "${BOLD}  📄 Release Week：${WEEK}（MD-only 模式）${RESET}"
+else
+  echo -e "${BOLD}  📦 Release Week：${WEEK}${RESET}"
+fi
 echo -e "${BOLD}═══════════════════════════════════════════${RESET}"
 echo ""
 
@@ -85,15 +92,38 @@ fi
 
 # ── 1. 確認 JSON 資料檔存在 ───────────────────────────────────────────────────
 JSON_PATH="backend/data/weeks/${WEEK}.json"
-if [[ ! -f "${JSON_PATH}" ]]; then
-  error "找不到 ${JSON_PATH}\n請先確認該週資料已匯出，或執行 store.exportAll() 後重試。"
-fi
 
-JSON_SIZE=$(wc -c < "${JSON_PATH}" | tr -d ' ')
-info "週次資料：${JSON_PATH}（${JSON_SIZE} bytes）"
+if [[ "${MD_ONLY}" == "true" ]]; then
+  # MD-only 模式：JSON 不存在時自動建立最小骨架，存在時允許 projects=0
+  if [[ ! -f "${JSON_PATH}" ]]; then
+    warn "${JSON_PATH} 不存在，自動建立 MD-only 骨架..."
+    python3 -c "
+import json, datetime
+data = {
+  'projects': [], 'risks': [], 'actions': [], 'milestones': [],
+  'snapshots': [], 'drafts': [], 'members': [],
+  '_mdOnly': True,
+  '_exportedAt': datetime.datetime.utcnow().isoformat() + 'Z',
+  '_version': '2.1'
+}
+with open('${JSON_PATH}', 'w') as f:
+    json.dump(data, f, indent=2)
+print('   已建立：${JSON_PATH}')
+"
+  else
+    JSON_SIZE=$(wc -c < "${JSON_PATH}" | tr -d ' ')
+    info "週次資料：${JSON_PATH}（${JSON_SIZE} bytes，MD-only 模式跳過 projects 驗證）"
+  fi
+else
+  # 完整模式：JSON 必須存在且 projects > 0
+  if [[ ! -f "${JSON_PATH}" ]]; then
+    error "找不到 ${JSON_PATH}\n請先確認該週資料已匯出，或執行 store.exportAll() 後重試。\n若本週僅有 MD 週報，請使用 --md-only 旗標：\n  ./scripts/release-week.sh ${WEEK} --md-only"
+  fi
 
-# 驗證 JSON 格式合法
-python3 -c "
+  JSON_SIZE=$(wc -c < "${JSON_PATH}" | tr -d ' ')
+  info "週次資料：${JSON_PATH}（${JSON_SIZE} bytes）"
+
+  python3 -c "
 import json, sys
 with open('${JSON_PATH}') as f:
     d = json.load(f)
@@ -105,7 +135,8 @@ print(f'   projects={p}  risks={r}  actions={a}  milestones={m}')
 if p == 0:
     print('ERROR:projects=0', file=sys.stderr)
     sys.exit(1)
-" || error "${JSON_PATH} 的 projects 為空（0 筆）。\n   請先執行 scripts/new-week.sh ${WEEK} 建立正確的週次資料，再重新發布。"
+" || error "${JSON_PATH} 的 projects 為空（0 筆）。\n   若本週僅有 MD 週報，請改用：\n     ./scripts/release-week.sh ${WEEK} --md-only\n   若有資料，請先從瀏覽器 Console 執行 store.exportAll() 再重試。"
+fi
 
 echo ""
 

@@ -232,18 +232,34 @@ function _parseActions(md) {
 }
 
 // ── 里程碑解析 ────────────────────────────────────────────────
+
+/**
+ * 過濾掉從 MD 表格 header / 報告元資料誤解析出的垃圾里程碑名稱
+ * 常見 artifact：「| 彙整人」「（週一）– 2026/05/08（週五）」「–05/15）」
+ */
+function _isMilestoneArtifact(label) {
+  if (!label || label.length < 4) return true;
+  if (label.startsWith('|'))  return true;  // 表格殘留 |
+  if (label.startsWith('–'))  return true;  // em-dash 開頭（日期範圍殘留）
+  if (label.startsWith('(') || label.startsWith('（')) return true; // 括號開頭（週期說明）
+  if (/週[一二三四五六日]/.test(label)) return true;  // 含星期（週期描述行）
+  if (/^\d{2}\/\d{2}/.test(label)) return true;       // 以日期片段開頭
+  if (/彙整人|報告週期|報告日期|涵蓋團隊/.test(label)) return true; // 報告 header 欄位
+  return false;
+}
+
 function _parseMilestones(md) {
   const milestones = [];
   // 抓所有明確日期 + 描述
   const dateItems = [...md.matchAll(/\*?\*?(20\d\d\/\d{1,2}\/\d{1,2})\*?\*?\s*[|｜]?\s*(.{5,80}?)(?:\s*[|｜]|\s*\n)/g)];
 
-  dateItems.slice(0, 8).forEach((m, i) => {
+  dateItems.slice(0, 12).forEach((m, i) => {
     const dateStr = m[1].replace(/\//g, '-');
     const label   = m[2].replace(/\*\*/g, '').trim();
     const today   = new Date().toISOString().split('T')[0];
     const status  = dateStr < today ? 'done' : 'upcoming';
 
-    if (label.length > 3) {
+    if (!_isMilestoneArtifact(label)) {
       milestones.push({
         id:     `ms_h_${i}`,
         name:   label.substring(0, 100),
