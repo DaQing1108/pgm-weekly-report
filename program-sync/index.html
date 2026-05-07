@@ -142,6 +142,7 @@
               <button class="tab-btn" data-filter="at-risk" style="font-size:var(--font-size-xs);">🟡 At Risk</button>
               <button class="tab-btn" data-filter="behind" style="font-size:var(--font-size-xs);">🔴 Behind</button>
               <button class="tab-btn" data-filter="paused" style="font-size:var(--font-size-xs);">⏸️ Paused</button>
+              <button class="tab-btn" data-filter="completed" style="font-size:var(--font-size-xs);">🏁 Completed</button>
             </div>
           </div>
         </div>
@@ -448,7 +449,7 @@ function renderKPIs() {
   const healthEl   = document.getElementById('kpiHealth');
   const healthCard = healthEl.closest('.kpi-card');
 
-  let onTrackPct, onTrack, atRisk, behind, paused, total, needAttn, overdue;
+  let onTrackPct, onTrack, atRisk, behind, paused, completed, total, needAttn, overdue;
 
   const snap = _displaySnap();
   if (snap) {
@@ -457,6 +458,7 @@ function renderKPIs() {
     atRisk     = snap.atRiskCount || 0;
     behind     = snap.behindCount || 0;
     paused     = 0;
+    completed  = 0;
     total      = snap.totalProjects || 0;
     onTrack    = total - atRisk - behind;
     needAttn   = atRisk + behind;
@@ -468,6 +470,7 @@ function renderKPIs() {
     atRisk     = s.atRiskProjects;
     behind     = s.behindProjects;
     paused     = s.pausedProjects;
+    completed  = s.completedProjects || 0;
     total      = s.totalProjects;
     needAttn   = atRisk + behind;
   }
@@ -489,7 +492,7 @@ function renderKPIs() {
   document.getElementById('kpiHealth').innerHTML      = `${onTrackPct}${_unit('%')}`;
   document.getElementById('kpiHealthDelta').innerHTML  = _deltaBadge(onTrackPct, _prevSnap?.onTrackPct);
   document.getElementById('kpiHealthSub').textContent  =
-    `${onTrack} On Track / ${atRisk} At Risk / ${behind} Behind${paused ? ` / ${paused} Paused` : ''}`;
+    `${onTrack} On Track / ${atRisk} At Risk / ${behind} Behind${paused ? ` / ${paused} Paused` : ''}${completed ? ` / ${completed} Completed` : ''}`;
   
   const ringEl = document.getElementById('kpiHealthRing');
   if (ringEl) {
@@ -533,7 +536,10 @@ function renderProjects(filter) {
     return Math.round(acts.filter(a => a.status === 'done').length / acts.length * 100);
   }
 
-  let list = currentFilter === 'all' ? all : all.filter(p => p.status === currentFilter);
+  // All tab 排除 completed（已結案專案不混入進行中清單，需切到 Completed tab 才看到）
+  let list = currentFilter === 'all'
+    ? all.filter(p => p.status !== 'completed')
+    : all.filter(p => p.status === currentFilter);
   if (currentTeamFilter !== 'all') list = list.filter(p => p.team === currentTeamFilter);
 
   // 1. 搜尋過濾
@@ -554,7 +560,7 @@ function renderProjects(filter) {
     if (s === 'update-desc') {
       list.sort((a,b) => new Date(b._updatedAt || 0) - new Date(a._updatedAt || 0));
     } else if (s === 'health-asc') {
-      const w = { 'behind': 1, 'at-risk': 2, 'paused': 3, 'on-track': 4 };
+      const w = { 'behind': 1, 'at-risk': 2, 'paused': 3, 'on-track': 4, 'completed': 5 };
       list.sort((a,b) => (w[a.status] || 9) - (w[b.status] || 9));
     } else if (s === 'progress-desc') {
       list.sort((a,b) => effectiveProgress(b) - effectiveProgress(a));
@@ -583,7 +589,11 @@ function renderProjects(filter) {
   el.innerHTML = list.map(p => {
     const pct      = effectiveProgress(p);
     const isAuto   = p.progressMode === 'auto';
-    const barColor = p.status === 'on-track' ? 'var(--color-success)' : p.status === 'at-risk' ? 'var(--color-warning)' : p.status === 'paused' ? 'var(--color-text-tertiary)' : 'var(--color-danger)';
+    const barColor = p.status === 'on-track'  ? 'var(--color-success)'
+                   : p.status === 'at-risk'   ? 'var(--color-warning)'
+                   : p.status === 'paused'    ? 'var(--color-text-tertiary)'
+                   : p.status === 'completed' ? 'var(--color-text-tertiary)'
+                   : 'var(--color-danger)';
     const overdue  = p.targetDate && isOverdue(p.targetDate) && pct < 100;
     
     let urgent = false;

@@ -141,11 +141,13 @@ export const store = {
     const risks    = _get('risks');
     const actions  = _get('actions');
 
-    const totalProjects   = projects.length;
-    const onTrackProjects = projects.filter(p => p.status === 'on-track').length;
-    const atRiskProjects  = projects.filter(p => p.status === 'at-risk').length;
-    const behindProjects  = projects.filter(p => p.status === 'behind').length;
-    const pausedProjects  = projects.filter(p => p.status === 'paused').length;
+    const completedProjects = projects.filter(p => p.status === 'completed').length;
+    const activeProjects_all = projects.filter(p => p.status !== 'completed');  // 排除已完成
+    const totalProjects   = activeProjects_all.length;
+    const onTrackProjects = activeProjects_all.filter(p => p.status === 'on-track').length;
+    const atRiskProjects  = activeProjects_all.filter(p => p.status === 'at-risk').length;
+    const behindProjects  = activeProjects_all.filter(p => p.status === 'behind').length;
+    const pausedProjects  = activeProjects_all.filter(p => p.status === 'paused').length;
     const activeProjects  = totalProjects - pausedProjects;
     const onTrackPct      = activeProjects > 0
       ? Math.round((onTrackProjects / activeProjects) * 100)
@@ -169,17 +171,20 @@ export const store = {
       behindProjects,
       onTrackProjects,
       pausedProjects,
+      completedProjects,
     };
   },
 
   // ── 匯入/匯出 ────────────────────────────────────────────────
 
-  /** 匯出所有資料為 JSON 字串 */
+  /** 匯出所有資料為 JSON 字串（已完成專案不帶入下週） */
   exportAll() {
     // #1 修正：補上 members key（原先遺漏，成員資料從未同步至後端）
     const keys = ['projects', 'risks', 'actions', 'milestones', 'snapshots', 'drafts', 'members'];
     const data = {};
     keys.forEach(k => { data[k] = _get(k); });
+    // completed 專案不帶入下週：匯出時排除，避免已結案專案持續出現
+    data.projects = data.projects.filter(p => p.status !== 'completed');
     // #3 修正：resources 使用獨立 localStorage key（非 pgm_sync_ 前綴），需特別處理
     try {
       const resRaw    = localStorage.getItem('pgm_resources_entries');
@@ -389,6 +394,8 @@ function _exportWeekObj() {
   const keys = ['projects', 'risks', 'actions', 'milestones', 'snapshots', 'drafts', 'members'];
   const data = {};
   keys.forEach(k => { data[k] = _get(k); });
+  // completed 專案不帶入後端週次資料（同 exportAll() 一致）
+  data.projects = data.projects.filter(p => p.status !== 'completed');
   data._exportedAt = new Date().toISOString();
   data._version = '2.1';
   return data;
@@ -417,7 +424,8 @@ function _calcTeamHealth(projects) {
   const teams = ['media-agent', 'learnmode', 'chuangzaoli', 'tv-solution', 'healthcare'];
   const result = {};
   teams.forEach(t => {
-    const tp = projects.filter(p => p.team === t);
+    // 排除 completed：已結案專案不計入健康度分母
+    const tp = projects.filter(p => p.team === t && p.status !== 'completed');
     if (tp.length === 0) { result[t] = 100; return; }
     const on = tp.filter(p => p.status === 'on-track').length;
     result[t] = Math.round((on / tp.length) * 100);

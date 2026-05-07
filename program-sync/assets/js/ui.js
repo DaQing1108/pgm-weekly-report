@@ -117,7 +117,7 @@ export function modal(html, options = {}) {
 
 /**
  * 依狀態渲染 badge HTML
- * @param {string} status - 'on-track'|'at-risk'|'behind'|'done'|'pending'|'in-progress'|'blocked'
+ * @param {string} status - 'on-track'|'at-risk'|'behind'|'paused'|'completed'|'done'|'pending'|'in-progress'|'blocked'
  * @returns {string}
  */
 export function renderBadge(status) {
@@ -126,6 +126,7 @@ export function renderBadge(status) {
     'at-risk':     ['badge-warning', '🟡 At Risk'],
     'behind':      ['badge-danger',  '🔴 Behind'],
     'paused':      ['badge-neutral', '⏸️ 暫緩'],
+    'completed':   ['badge-success', '🏁 已完成'],
     'done':        ['badge-success', '✅ Done'],
     'pending':     ['badge-neutral', '⏳ 待辦'],
     'in-progress': ['badge-info',    '🔄 進行中'],

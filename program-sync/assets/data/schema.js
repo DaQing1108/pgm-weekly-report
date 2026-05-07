@@ -30,10 +30,11 @@ export const MEMBERS = [
 // 專案資料由 seed.js 直接寫入 store，不需要 catalog 常數。
 
 export const STATUS_OPTIONS = [
-  { value: 'on-track', label: '✅ On Track',  color: 'var(--color-success)' },
-  { value: 'at-risk',  label: '⚠️ At Risk',   color: 'var(--color-warning)' },
-  { value: 'behind',   label: '🔴 Behind',    color: 'var(--color-danger)'  },
-  { value: 'paused',   label: '⏸️ 暫緩',      color: 'var(--color-text-secondary)' },
+  { value: 'on-track',  label: '✅ On Track',  color: 'var(--color-success)' },
+  { value: 'at-risk',   label: '⚠️ At Risk',   color: 'var(--color-warning)' },
+  { value: 'behind',    label: '🔴 Behind',    color: 'var(--color-danger)'  },
+  { value: 'paused',    label: '⏸️ 暫緩',      color: 'var(--color-text-secondary)' },
+  { value: 'completed', label: '🏁 已完成',    color: 'var(--color-text-tertiary)' },
 ];
 
 export const RISK_LEVELS = [

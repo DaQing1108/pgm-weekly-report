@@ -199,7 +199,7 @@ function checkStatusConsistency() {
     const schema = readSource('program-sync/assets/data/schema.js');
     const store  = readSource('program-sync/assets/js/store.js');
 
-    const statusValues = ['on-track', 'at-risk', 'behind', 'paused'];
+    const statusValues = ['on-track', 'at-risk', 'behind', 'paused', 'completed'];
     const missing = statusValues.filter(v => !store.includes(`'${v}'`) && !store.includes(`"${v}"`));
 
     if (missing.length > 0) {
