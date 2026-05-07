@@ -168,6 +168,16 @@ function _weekLabel(d) {
   const jan1 = new Date(date.getFullYear(), 0, 1);
   return `W${String(Math.ceil(((date - jan1) / 86400000 + jan1.getDay() + 1) / 7)).padStart(2,'0')}`;
 }
+// 向後相容：action.project 可能存 ID（舊資料）或名稱（新資料）
+// 優先查 ID，再查名稱，找不到則原值顯示
+function _resolveProjectName(val) {
+  if (!val) return '';
+  const projects = store.getAll('projects');
+  const byId   = projects.find(p => p.id   === val);
+  const byName = projects.find(p => p.name === val);
+  return (byId || byName)?.name || val;
+}
+
 function _carryoverBadge(weekStart) {
   const cwStart = _currentWeekStart();
   if (!weekStart || weekStart >= cwStart) return '';
@@ -263,7 +273,7 @@ function renderPanels() {
           <div class="action-row__drag">⋮⋮</div>
           <div class="action-row__task inline-edit">
             <span>${a.task}</span>
-            ${a.project ? `<span class="badge badge-neutral" style="margin-left:4px;font-size:10px;">${a.project.substring(0,15)}</span>` : ''}
+            ${a.project ? `<span class="badge badge-neutral" style="margin-left:4px;font-size:10px;">${_resolveProjectName(a.project).substring(0,20)}</span>` : ''}
             ${_carryoverBadge(a.weekStart)}
           </div>
           <div class="action-row__owner text-xs text-secondary inline-edit">
@@ -478,7 +488,7 @@ window.editAction = function(id) {
   // 從 Dashboard 專案清單動態載入
   const allProjects = store.getAll('projects');
   const projOpts = `<option value="">— 無 —</option>` +
-    allProjects.map(p => `<option value="${p.name}" ${a.project === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
+    allProjects.map(p => `<option value="${p.name}" ${(a.project === p.name || a.project === p.id) ? 'selected' : ''}>${p.name}</option>`).join('');
 
   const ownerOpts = `<option value="">— 選擇 —</option>` +
     members.map(m => `<option value="${m.name}" ${a.owner === m.name ? 'selected' : ''}>${m.name}</option>`).join('');
