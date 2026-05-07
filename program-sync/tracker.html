@@ -161,10 +161,8 @@ import { toast, formatDate, confirm } from './assets/js/ui.js';
 await appInit();
 
 // ── 計算當前週次 ────────────────────────────────────────────────
+// 永遠以今日日曆週為準（不依賴快照），確保 MD-only 週也能正確顯示
 function _currentWeekStart() {
-  const snaps = store.getAll('snapshots').sort((a, b) => b.weekStart.localeCompare(a.weekStart));
-  if (snaps.length > 0) return snaps[0].weekStart;
-  // fallback: compute Monday of current week
   const today = new Date();
   const day = today.getDay();
   const diff = day === 0 ? -6 : 1 - day;
