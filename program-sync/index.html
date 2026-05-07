@@ -66,10 +66,10 @@
   <!-- 歷史瀏覽 banner -->
   <div id="historyBanner" style="display:none;margin-bottom:var(--space-md);background:#fff8e6;border:1px solid #f0b429;border-radius:var(--radius-md);padding:10px var(--space-lg);align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
     <div>
-      <span style="font-size:13px;font-weight:600;color:#b45309;">📅 歷史瀏覽模式</span>
+      <span id="historyBannerTitle" style="font-size:13px;font-weight:600;color:#b45309;">📅 歷史瀏覽模式</span>
       <span id="historyBannerText" style="font-size:12px;color:#92400e;margin-left:8px;"></span>
     </div>
-    <button class="btn btn-outline btn-sm" onclick="returnToCurrentWeek()">↩ 回到本週</button>
+    <button id="historyBannerBtn" class="btn btn-outline btn-sm" onclick="returnToCurrentWeek()">↩ 回到本週</button>
   </div>
 
   <!-- KPI Row -->
@@ -238,10 +238,52 @@ window.toggleArchive = function() {
 };
 
 // ── 歷史週次瀏覽狀態 ────────────────────────────────────────────
-let _viewState    = null;  // null = 本週；object = 歷史週次資料
-let _viewingLabel = null;  // 目前瀏覽的週次標籤
-let _prevSnap     = null;  // 上一週快照（用於 KPI delta 比較）
-let _isHistoryView = false; // true=瀏覽歷史週次，false=最新週（從 store 即時讀取）
+let _viewState       = null;   // null = 本週；object = 歷史週次資料
+let _viewingLabel    = null;   // 目前瀏覽的週次標籤
+let _prevSnap        = null;   // 上一週快照（用於 KPI delta 比較）
+let _isHistoryView   = false;  // true=瀏覽歷史週次，false=最新週（從 store 即時讀取）
+let _isMdOnlyFallback = false; // true=本週無資料，自動 fallback 到上一有資料週
+let _latestWeekLabel  = null;  // MD-only fallback 時，記住真正的本週 label
+
+// ── Banner 狀態統一渲染 ──────────────────────────────────────────
+// 三種狀態：正常本週（hidden）、手動歷史瀏覽（amber）、MD-only fallback（blue）
+function _applyBanner() {
+  const banner    = document.getElementById('historyBanner');
+  const titleEl   = document.getElementById('historyBannerTitle');
+  const textEl    = document.getElementById('historyBannerText');
+  const btnEl     = document.getElementById('historyBannerBtn');
+  const inputLink = document.querySelector('a[href="input.html"]');
+
+  if (_isMdOnlyFallback) {
+    // 藍色 banner：本週無系統資料，自動顯示上一有資料週
+    Object.assign(banner.style, { display:'flex', background:'#eff6ff', borderColor:'#3b82f6' });
+    titleEl.style.color = '#1d4ed8';
+    titleEl.textContent = '📊 本週無系統資料';
+    textEl.style.color  = '#1e40af';
+    textEl.textContent  = `${_latestWeekLabel} 尚未輸入系統資料，自動顯示 ${_viewingLabel} 快照`;
+    btnEl.textContent   = '✏️ 輸入本週資料';
+    btnEl.onclick       = () => location.href = 'input.html';
+    inputLink?.style.removeProperty('display');  // 保持「快速輸入」連結可見
+  } else if (_isHistoryView) {
+    // 琥珀色 banner：使用者手動切到歷史週
+    const snap   = (_viewState?.snapshots || []).find(s => s.weekLabel === _viewingLabel)
+                || (_viewState?.snapshots || []).slice(-1)[0];
+    const period = snap?.weekStart
+      ? `${snap.weekStart.slice(5).replace('-','/')} 週`
+      : _viewingLabel;
+    Object.assign(banner.style, { display:'flex', background:'#fff8e6', borderColor:'#f0b429' });
+    titleEl.style.color = '#b45309';
+    titleEl.textContent = '📅 歷史瀏覽模式';
+    textEl.style.color  = '#92400e';
+    textEl.textContent  = `${_viewingLabel}（${period}）— ${(_viewState?.projects||[]).length} 個專案 | 唯讀`;
+    btnEl.textContent   = '↩ 回到本週';
+    btnEl.onclick       = () => returnToCurrentWeek();
+    inputLink?.style.setProperty('display', 'none');
+  } else {
+    banner.style.display = 'none';
+    inputLink?.style.removeProperty('display');
+  }
+}
 
 // ── 從 viewState 或 store 取得顯示資料 ─────────────────────────
 // 歷史模式：讀 _viewState 快照；最新週：直接讀 store（確保 Quick Input 等即時修改能反映）
@@ -317,13 +359,39 @@ async function init() {
       if (serverTs && (!localTs || serverTs > localTs)) {
         store.importAll(data);
       }
-    }
-    // 取上一週快照供 KPI delta 對比
-    if (weeks.length > 1) {
-      const prevData = await getWeekState(weeks[1].weekLabel).catch(() => null);
-      _prevSnap = prevData
-        ? (prevData.snapshots || []).slice(-1)[0] || null
-        : null;
+
+      // ── MD-only fallback：目前週無系統資料時，自動顯示上一個有資料的週快照 ──
+      const latestHasData = (data.projects || []).length > 0;
+      if (!latestHasData && weeks.length > 1) {
+        let fallbackData  = null;
+        let fallbackIdx   = -1;
+        for (let i = 1; i < weeks.length; i++) {
+          const prev = await getWeekState(weeks[i].weekLabel).catch(() => null);
+          if (prev && (prev.projects || []).length > 0) {
+            fallbackData = prev;
+            fallbackIdx  = i;
+            break;
+          }
+        }
+        if (fallbackData) {
+          _latestWeekLabel  = latestLabel;              // 記住真正的本週（e.g. W19）
+          _viewState        = fallbackData;
+          _viewingLabel     = weeks[fallbackIdx].weekLabel;  // 顯示 e.g. W18
+          _isHistoryView    = true;
+          _isMdOnlyFallback = true;
+          // KPI delta：fallback 週的前一週
+          if (fallbackIdx + 1 < weeks.length) {
+            const deltaData = await getWeekState(weeks[fallbackIdx + 1].weekLabel).catch(() => null);
+            _prevSnap = deltaData ? (deltaData.snapshots || []).slice(-1)[0] || null : null;
+          }
+        }
+      } else {
+        // 正常路徑：取上一週快照供 KPI delta 對比
+        if (weeks.length > 1) {
+          const prevData = await getWeekState(weeks[1].weekLabel).catch(() => null);
+          _prevSnap = prevData ? (prevData.snapshots || []).slice(-1)[0] || null : null;
+        }
+      }
     }
     // Dashboard 預設顯示最新週，同步清除跨頁 sessionStorage
     // 避免其他頁面因殘留舊 session 載入過期週次
@@ -335,6 +403,7 @@ async function init() {
   if (!_viewState) seedData();
 
   renderAll();
+  _applyBanner();
   await renderWeekNav();
 }
 
@@ -675,6 +744,9 @@ async function renderWeekNav() {
 
 // ── 切換週次 ────────────────────────────────────────────────────
 window.loadWeekView = async function(weekLabel) {
+  // 使用者手動切換週次時，離開 MD-only fallback 模式
+  _isMdOnlyFallback = false;
+  _latestWeekLabel  = null;
   if (weekLabel === _viewingLabel) return;   // 已在此週，不重載
 
   const data = await getWeekState(weekLabel);
@@ -704,21 +776,6 @@ window.loadWeekView = async function(weekLabel) {
   const snap = (data.snapshots || []).find(s => s.weekLabel === weekLabel)
              || (data.snapshots || []).slice(-1)[0];
 
-  // 最新週次：隱藏 banner；歷史週次：顯示 banner
-  const banner = document.getElementById('historyBanner');
-  if (isLatest) {
-    banner.style.display = 'none';
-    document.querySelector('a[href="input.html"]')?.style.removeProperty('display');
-  } else {
-    const period = snap?.weekStart
-      ? `${snap.weekStart.slice(5).replace('-','/')} 週`
-      : weekLabel;
-    banner.style.display = 'flex';
-    document.getElementById('historyBannerText').textContent =
-      `${weekLabel}（${period}）— ${(data.projects||[]).length} 個專案 | 唯讀`;
-    document.querySelector('a[href="input.html"]')?.style.setProperty('display','none');
-  }
-
   // 同步下拉選單與摘要
   const sel = document.getElementById('weekSelect');
   if (sel) sel.value = weekLabel;
@@ -727,12 +784,15 @@ window.loadWeekView = async function(weekLabel) {
     `${(data.projects||[]).length} 個專案 ｜ 健康度 ${snap?.onTrackPct ?? '—'}%`;
 
   renderAll();
+  _applyBanner();
   renderWeekNav();
 };
 
 // ── 回到最新週次 ─────────────────────────────────────────────────
 window.returnToCurrentWeek = async function() {
   setSessionWeek(null);
+  _isMdOnlyFallback = false;
+  _latestWeekLabel  = null;
   const weeks = await listWeeks();
   if (weeks.length > 0) await loadWeekView(weeks[0].weekLabel);
 };
