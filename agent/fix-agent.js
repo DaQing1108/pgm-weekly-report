@@ -133,7 +133,7 @@ const writtenFiles = [];
 function executeTool(name, input) {
   if (name === 'read_file') {
     const abs = path.join(REPO_ROOT, input.path);
-    if (!abs.startsWith(REPO_ROOT)) {
+    if (!abs.startsWith(REPO_ROOT + path.sep)) {
       return { error: 'Path traversal denied' };
     }
     try {
@@ -148,7 +148,7 @@ function executeTool(name, input) {
       return { error: `Write denied: '${input.path}' is not in the allowed write list` };
     }
     const abs = path.join(REPO_ROOT, input.path);
-    if (!abs.startsWith(REPO_ROOT)) {
+    if (!abs.startsWith(REPO_ROOT + path.sep)) {
       return { error: 'Path traversal denied' };
     }
     try {
@@ -163,7 +163,7 @@ function executeTool(name, input) {
 
   if (name === 'list_files') {
     const abs = path.join(REPO_ROOT, input.dir);
-    if (!abs.startsWith(REPO_ROOT)) {
+    if (!abs.startsWith(REPO_ROOT + path.sep)) {
       return { error: 'Path traversal denied' };
     }
     try {
