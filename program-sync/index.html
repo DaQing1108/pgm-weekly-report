@@ -259,9 +259,9 @@ function _applyBanner() {
     // 藍色 banner：本週無系統資料，自動顯示上一有資料週
     Object.assign(banner.style, { display:'flex', background:'#eff6ff', borderColor:'#3b82f6' });
     titleEl.style.color = '#1d4ed8';
-    titleEl.textContent = '📊 本週無系統資料';
+    titleEl.textContent = '📊 本週系統資訊';
     textEl.style.color  = '#1e40af';
-    textEl.textContent  = `${_latestWeekLabel} 尚未輸入系統資料，自動顯示 ${_viewingLabel} 快照`;
+    textEl.textContent  = `${_latestWeekLabel} 沒有新的專案，自動帶入 ${_viewingLabel} 專案`;
     btnEl.textContent   = '✏️ 輸入本週資料';
     btnEl.onclick       = () => location.href = 'input.html';
     inputLink?.style.removeProperty('display');  // 保持「快速輸入」連結可見
