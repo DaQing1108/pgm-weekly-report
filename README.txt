@@ -5,7 +5,7 @@
 
 專案名稱：VIA Technologies PgM Weekly Report System
 建置日期：2026/03/19
-更新日期：2026/05/07（W19 修復 + completed 狀態 + MD-only fallback）
+更新日期：2026/05/08（Dashboard 週次選取器 + Banner 文字優化）
 技術棧：Node.js + Express（backend）/ Vanilla JS SPA（program-sync）
 部署平台：Railway
 公開網址：https://pgm-weekly-report-production.up.railway.app
@@ -157,6 +157,17 @@ GitHub  ：https://github.com/DaQing1108/pgm-weekly-report
 --------------------------------------------------------------------------------
   Changelog
 --------------------------------------------------------------------------------
+
+  ── 2026/05/08  Dashboard UX 優化 by Alex Liao ──
+
+  [修正] MD-only 週 Dashboard 週次 Tab 顯示錯誤週次
+    - 根因：_viewingLabel 設為 W18（資料來源），Tab 高亮顯示 W18 而非本週 W19
+    - 修復：renderWeekNav() 在 _isMdOnlyFallback 時改用 _latestWeekLabel 決定 Tab 高亮
+            使用者看到「W19 選中 + Banner 說明資料來自 W18」，週次認知清楚
+
+  [修正] MD-only Banner 文字更清楚
+    - 舊：「W19 尚未輸入系統資料，自動顯示 W18 快照」
+    - 新：「W19 沒有新的專案，自動帶入 W18 專案」
 
   ── 2026/05/07  W19 修復與功能優化 by Alex Liao ──
 
