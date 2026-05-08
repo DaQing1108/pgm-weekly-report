@@ -723,7 +723,8 @@ async function renderWeekNav() {
 
   const latestLabel = weeks[0].weekLabel;           // API 最新週次，與 localStorage 無關
 
-  const currentViewing = _viewingLabel || latestLabel;
+  // MD-only fallback 時：Tab 高亮本週（_latestWeekLabel=W19），資料仍讀 W18 快照
+  const currentViewing = (_isMdOnlyFallback ? _latestWeekLabel : _viewingLabel) || latestLabel;
 
   // 1) 繪製前四週按鈕 (Radio / Tab Group)
   const radioGroup = document.getElementById('weekRadioGroup');
