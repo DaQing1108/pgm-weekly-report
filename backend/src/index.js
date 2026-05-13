@@ -201,10 +201,33 @@ app.get('/api/weeks', (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// 計算當前 ISO 週次標籤（e.g. 'W20'），用於未發布週的 bootstrap 回應
+function _currentWeekLabel() {
+  const now = new Date();
+  const jan1 = new Date(now.getFullYear(), 0, 1);
+  const weekNo = Math.ceil(((now - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return `W${String(weekNo).padStart(2, '0')}`;
+}
+
 app.get('/api/weeks/:weekLabel', (req, res) => {
   const safe = req.params.weekLabel.replace(/[^a-zA-Z0-9\-]/g, '');
   const file = path.join(WEEKS_DIR, `${safe}.json`);
-  if (!fs.existsSync(file)) return res.status(404).json({ error: 'Week not found' });
+  if (!fs.existsSync(file)) {
+    // 若請求的是當前週次且資料尚未發布，回傳 bootstrap 空資料（200）而非 404
+    // 避免健康檢查因本週資料未匯出而誤報警告
+    if (safe === _currentWeekLabel()) {
+      return res.json({
+        projects: [], risks: [], actions: [], milestones: [],
+        snapshots: [], drafts: [], members: [],
+        _bootstrap: true,
+        _weekLabel: safe,
+        _note: '本週資料尚未匯出，顯示空白初始狀態',
+        _savedAt: new Date().toISOString(),
+        _version: '2.1',
+      });
+    }
+    return res.status(404).json({ error: 'Week not found' });
+  }
   try { res.json(JSON.parse(fs.readFileSync(file, 'utf8'))); }
   catch (e) { res.status(500).json({ error: e.message }); }
 });

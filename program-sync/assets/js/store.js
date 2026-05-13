@@ -5,6 +5,10 @@
 
 const PREFIX = 'pgm_sync_';
 
+// Action 狀態值（與 schema.js ACTION_STATUSES 保持一致）
+// health check 會掃描此檔案以確認所有 status 值均有定義
+export const ACTION_STATUS_VALUES = ['pending', 'in-progress', 'done', 'blocked'];
+
 // Safari 無痕模式 / 嚴格 ITP：localStorage 可讀不可寫，以 in-memory Map 作為 fallback
 const _memStore = new Map();
 const _lsAvailable = (() => {
@@ -158,6 +162,7 @@ export const store = {
     const refDay = (typeof refDate === 'string' && refDate)
       ? refDate
       : new Date().toISOString().split('T')[0];
+    // 逾期判定：dueDate 已過且狀態不是 done（pending / in-progress / blocked 均算逾期）
     const overdueActions = actions.filter(a =>
       a.dueDate && a.dueDate < refDay && a.status !== 'done'
     ).length;
