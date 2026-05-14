@@ -10,7 +10,7 @@
       "owner": "Steve Liu",
       "dueDate": "2026-06-30",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z",
       "progress": 15
     },
     {
@@ -23,7 +23,7 @@
       "owner": "Steve Liu",
       "dueDate": "2026-05-20",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z",
       "progress": 10
     },
     {
@@ -36,7 +36,7 @@
       "owner": "Alex Liao",
       "dueDate": "2026-05-20",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z",
       "progress": 25
     },
     {
@@ -49,7 +49,7 @@
       "owner": "Alex Liao",
       "dueDate": "2026-05-20",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z",
       "progress": 15
     },
     {
@@ -62,7 +62,7 @@
       "owner": "Steve Liu",
       "dueDate": "2026-09-30",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z",
       "progress": 35
     },
     {
@@ -75,7 +75,7 @@
       "owner": "Tonny Shen",
       "dueDate": null,
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z",
       "progress": 20
     },
     {
@@ -88,7 +88,7 @@
       "owner": "Eddy Lin",
       "dueDate": null,
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z",
       "progress": 15
     },
     {
@@ -101,7 +101,7 @@
       "owner": "Steven CH",
       "dueDate": "2026-05-21",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z",
       "progress": 10
     },
     {
@@ -114,7 +114,7 @@
       "owner": "Steven CH",
       "dueDate": "2026-05-22",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z",
       "progress": 15
     },
     {
@@ -127,7 +127,7 @@
       "owner": "Alex Liao",
       "dueDate": "2026-05-22",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z",
       "progress": 10
     }
   ],
@@ -684,7 +684,8 @@
         "healthcare": 78
       },
       "reviewStatus": "approved",
-      "snapshotBy": "Kevin Chang"
+      "snapshotBy": "Kevin Chang",
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     },
     {
       "id": "snap-w7",
@@ -708,7 +709,8 @@
         "healthcare": 74
       },
       "reviewStatus": "approved",
-      "snapshotBy": "Kevin Chang"
+      "snapshotBy": "Kevin Chang",
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     },
     {
       "id": "snap-w8",
@@ -732,7 +734,8 @@
         "healthcare": 62
       },
       "reviewStatus": "approved",
-      "snapshotBy": "Kevin Chang"
+      "snapshotBy": "Kevin Chang",
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     },
     {
       "id": "snap-w9",
@@ -756,7 +759,8 @@
         "healthcare": 65
       },
       "reviewStatus": "approved",
-      "snapshotBy": "Alex Liao"
+      "snapshotBy": "Alex Liao",
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     },
     {
       "id": "snap-w10",
@@ -780,7 +784,8 @@
         "healthcare": 65
       },
       "reviewStatus": "approved",
-      "snapshotBy": "Alex Liao"
+      "snapshotBy": "Alex Liao",
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     },
     {
       "id": "snap-w11",
@@ -804,7 +809,8 @@
         "healthcare": 65
       },
       "reviewStatus": "draft",
-      "snapshotBy": "Alex Liao"
+      "snapshotBy": "Alex Liao",
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     },
     {
       "id": "snap-2026-04-13",
@@ -829,7 +835,8 @@
       },
       "reviewStatus": "draft",
       "snapshotBy": "Alex Liao",
-      "createdAt": "2026-04-16T08:00:00.000Z"
+      "createdAt": "2026-04-16T08:00:00.000Z",
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     },
     {
       "id": "snap-W17",
@@ -855,7 +862,7 @@
       "reviewStatus": "draft",
       "snapshotBy": "Alex Liao",
       "_createdAt": "2026-04-23T08:00:00.000Z",
-      "_updatedAt": "2026-04-23T08:00:00.000Z"
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     },
     {
       "id": "snap-w18",
@@ -881,7 +888,7 @@
       "reviewStatus": "draft",
       "snapshotBy": "System",
       "_createdAt": "2026-04-29T07:06:58.000Z",
-      "_updatedAt": "2026-04-29T07:06:58.000Z"
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     },
     {
       "id": "snap-W19",
@@ -907,7 +914,7 @@
       "reviewStatus": "draft",
       "snapshotBy": "Alex Liao",
       "_createdAt": "2026-05-08T08:00:00.000Z",
-      "_updatedAt": "2026-05-08T08:00:00.000Z"
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     },
     {
       "id": "snap-W20",
@@ -933,7 +940,7 @@
       "reviewStatus": "draft",
       "snapshotBy": "Alex Liao",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:03:26.000Z"
     }
   ],
   "drafts": [],
@@ -1516,5 +1523,6 @@
     }
   ],
   "_exportedAt": "2026-05-13T23:43:49.962Z",
-  "_version": "2.1"
+  "_version": "2.1",
+  "_savedAt": "2026-05-14T01:03:26.000Z"
 }
