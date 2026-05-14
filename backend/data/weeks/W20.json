@@ -87,7 +87,7 @@
     {
       "id": "proj-w20-08",
       "name": "小栗方 Lite POC",
-      "team": "chuangzaoli",
+      "team": "learnmode",
       "status": "at-risk",
       "weekStart": "2026-05-11",
       "description": "短期以 POC 方式獨立運行，學習吧 / 加分吧整合暫不列入。後端串接方式待定。WiFi 版重新配對問題待解，4G 版評估中。",
@@ -111,12 +111,36 @@
     {
       "id": "proj-w20-10",
       "name": "SEL 課程 / 繪本產品定位",
-      "team": "chuangzaoli",
+      "team": "learnmode",
       "status": "at-risk",
       "weekStart": "2026-05-11",
       "description": "5/16 線上會議釐清：產品定位、繪本是否連動小栗方 Lite、角色 IP 化可行性（'小數點'名字多人無感）、影片化是否執行。",
       "owner": "Luffy Luan",
       "dueDate": "2026-05-16",
+      "_createdAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-13T23:43:49.962Z"
+    },
+    {
+      "id": "proj-w20-11",
+      "name": "創造栗官網大改版",
+      "team": "chuangzaoli",
+      "status": "at-risk",
+      "weekStart": "2026-05-11",
+      "description": "官網近三年未整體更新，涵蓋兩岸所有產品線（小栗方 Pro、SEL、智駕車、創客競賽），截止 5/22 完成首頁與小栗方 Pro 頁。W19 開始推動，持續進行中。",
+      "owner": "Steven CH",
+      "dueDate": "2026-05-22",
+      "_createdAt": "2026-05-13T23:43:49.962Z",
+      "_updatedAt": "2026-05-13T23:43:49.962Z"
+    },
+    {
+      "id": "proj-w20-12",
+      "name": "威栗雲台灣版更新",
+      "team": "learnmode",
+      "status": "at-risk",
+      "weekStart": "2026-05-11",
+      "description": "更新威栗雲至國際（台灣）站點，涵蓋介面文字、後台部署（版本差距大）、ASR/TTS（沿用 AWS），共 10 man-days。W19 逾期後降為 at-risk，5/22 截止，資源排序待 Michael × 黎博當面確認。",
+      "owner": "Alex Liao",
+      "dueDate": "2026-05-22",
       "_createdAt": "2026-05-13T23:43:49.962Z",
       "_updatedAt": "2026-05-13T23:43:49.962Z"
     }
@@ -903,9 +927,9 @@
       "id": "snap-W20",
       "weekStart": "2026-05-11",
       "weekLabel": "W20",
-      "totalProjects": 10,
-      "onTrackPct": 20,
-      "atRiskCount": 8,
+      "totalProjects": 12,
+      "onTrackPct": 17,
+      "atRiskCount": 10,
       "behindCount": 0,
       "highRisks": 2,
       "mediumRisks": 5,
@@ -914,9 +938,9 @@
       "completedActions": 0,
       "overdueActions": 0,
       "teamHealth": {
-        "media-agent": 55,
-        "learnmode": 55,
-        "chuangzaoli": 60,
+        "media-agent": 50,
+        "learnmode": 40,
+        "chuangzaoli": 55,
         "tv-solution": 72,
         "healthcare": 65
       },
