@@ -88,8 +88,15 @@ export async function appInit() {
       //   若本機較新（例如 Railway 重新部署後 git 舊版本把 _savedAt 清空），
       //   保留本機資料並立即 push 到後端，避免新增資料消失。
       const serverTs = data._savedAt || '';
-      // P2-2 修正：跨所有實體（projects/actions/risks/milestones 等）取最新 _updatedAt
-      //   原本只比較 projects，導致 actions/risks/milestones 有修改時仍被後端覆蓋
+      // P4 修正：優先以 _dataVersion 整數比較，避免時鐘漂移或 git 修正被忽略的問題。
+      //   _dataVersion 由工具在 git patch 時遞增（表示「後端刻意更新」），
+      //   若 serverVersion > localVersion → 後端勝，接受最新修正。
+      const serverVer = (typeof data._dataVersion === 'number') ? data._dataVersion : 0;
+      const localVerStr = localStorage.getItem(`pgm_dataVersion_${targetLabel}`);
+      const localVer = localVerStr ? parseInt(localVerStr, 10) : 0;
+      const _serverVersionWins = serverVer > 0 && serverVer > localVer;
+
+      // P2-2 修正：跨所有實體取最新 _updatedAt，作為 version 相等時的 fallback
       const localTs  = (() => {
         try {
           const KEYS = ['projects','actions','risks','milestones','snapshots','drafts','members'];
@@ -99,23 +106,27 @@ export async function appInit() {
             if (!raw) return;
             const arr = JSON.parse(raw);
             if (!Array.isArray(arr)) return;
-            arr.forEach(item => {
-              if (item._updatedAt) times.push(item._updatedAt);
-            });
+            arr.forEach(item => { if (item._updatedAt) times.push(item._updatedAt); });
           });
           times.sort();
           return times.length ? times[times.length - 1] : '';
         } catch { return ''; }
       })();
-      // localTs 存在，且後端無時間戳 或 本機更新 → 保留本機
-      const _localIsNewer = !!(localTs && (!serverTs || localTs > serverTs));
 
-      if (_localIsNewer) {
+      // 本機較新條件：版本號未落後後端，且時間戳也較新（或後端無時間戳）
+      const _localIsNewer = !_serverVersionWins &&
+        !!(localTs && (!serverTs || localTs > serverTs));
+
+      if (_serverVersionWins) {
+        // 後端版本較高（git 修正），直接接受後端資料
+        console.info(`[appInit] 後端版本(v${serverVer}) > 本機(v${localVer})，接受後端修正`);
+        store.importAll(data);
+        localStorage.setItem(`pgm_dataVersion_${targetLabel}`, String(serverVer));
+      } else if (_localIsNewer) {
         console.info(`[appInit] 本機資料(${localTs}) 比後端(${serverTs || 'none'})新，保留本機，稍後推送`);
         // P3 修正：本機較新時保留用戶的 projects 編輯，
-        //   但 actions / risks / milestones 若本機為空，則從後端補入，
-        //   避免因初始化空值被保留而導致頁面顯示空白。
-        const SUPPLEMENTABLE = ['actions', 'risks', 'milestones'];
+        //   但 actions / risks / milestones / snapshots 若本機為空，則從後端補入。
+        const SUPPLEMENTABLE = ['actions', 'risks', 'milestones', 'snapshots'];
         SUPPLEMENTABLE.forEach(key => {
           try {
             const localRaw = localStorage.getItem(`pgm_sync_${key}`);
@@ -130,6 +141,7 @@ export async function appInit() {
         window._appInitLocalNewer = true;
       } else {
         store.importAll(data);
+        if (serverVer > 0) localStorage.setItem(`pgm_dataVersion_${targetLabel}`, String(serverVer));
       }
       loadedFromServer = true;
     }

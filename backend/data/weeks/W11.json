@@ -2,141 +2,231 @@
   "weekStart": "2026-03-09",
   "projects": [
     {
-      "id": "p1", "name": "Olapedia VM 環境搭建", "team": "media-agent",
-      "status": "at-risk", "progress": 45, "owner": "Alex Liao / Steve Liu",
+      "id": "p1",
+      "name": "Olapedia VM 環境搭建",
+      "team": "media-agent",
+      "status": "at-risk",
+      "progress": 45,
+      "owner": "Alex Liao / Steve Liu",
       "weekDone": "QA 第一輪測試完成；IT VM 申請提交中（進行中）",
       "blockers": "Steve 提供 VM 規格中；IT Michael 審批中；Box 69 號機不穩定",
-      "targetDate": "2026-03-23", "category": "platform", "weekStart": "2026-03-09"
+      "targetDate": "2026-03-23",
+      "category": "platform",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p2", "name": "STT MRD v3.0 完成", "team": "media-agent",
-      "status": "on-track", "progress": 100, "owner": "Steve Liu",
+      "id": "p2",
+      "name": "STT MRD v3.0 完成",
+      "team": "media-agent",
+      "status": "completed",
+      "progress": 100,
+      "owner": "Steve Liu",
       "weekDone": "STT MRD v3.0 完成，確立校對開銷臨界點框架，雙模式策略確立",
       "blockers": "",
-      "targetDate": "2026-03-13", "category": "product", "weekStart": "2026-03-09"
+      "targetDate": "2026-03-13",
+      "category": "product",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p3", "name": "台標識別（彩標）開發", "team": "media-agent",
-      "status": "on-track", "progress": 40, "owner": "Steve Liu",
+      "id": "p3",
+      "name": "台標識別（彩標）開發",
+      "team": "media-agent",
+      "status": "on-track",
+      "progress": 40,
+      "owner": "Steve Liu",
       "weekDone": "雙方合併台標清單及 Logo 圖像，進入評測（Benchmark）階段",
       "blockers": "需向 TVBS 確認所需台標清單",
-      "targetDate": "2026-04-30", "category": "feature", "weekStart": "2026-03-09"
+      "targetDate": "2026-04-30",
+      "category": "feature",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p4", "name": "機房搬遷", "team": "media-agent",
-      "status": "on-track", "progress": 65, "owner": "TC",
+      "id": "p4",
+      "name": "機房搬遷",
+      "team": "media-agent",
+      "status": "on-track",
+      "progress": 65,
+      "owner": "TC",
       "weekDone": "通過審核（費用約 NT$9 萬多），協調廠商排程推進",
       "blockers": "",
-      "targetDate": "2026-04-30", "category": "infrastructure", "weekStart": "2026-03-09"
+      "targetDate": "2026-04-30",
+      "category": "infrastructure",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p5", "name": "小栗方 Pro 量產", "team": "chuangzaoli",
-      "status": "on-track", "progress": 70, "owner": "Sunny Yang / Bruce Zhong",
+      "id": "p5",
+      "name": "小栗方 Pro 量產",
+      "team": "chuangzaoli",
+      "status": "on-track",
+      "progress": 70,
+      "owner": "Sunny Yang / Bruce Zhong",
       "weekDone": "Sunny 完成量產驗收報告及收貨抽檢程序文件",
       "blockers": "QA 需前往產線核查華溢 FA 報告中的不良整改",
-      "targetDate": "2026-03-31", "category": "hardware", "weekStart": "2026-03-09"
+      "targetDate": "2026-03-31",
+      "category": "hardware",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p6", "name": "台灣 / 大陸平台同步", "team": "chuangzaoli",
-      "status": "at-risk", "progress": 20, "owner": "Tonny / 上海團隊 / Sean Peng",
+      "id": "p6",
+      "name": "台灣 / 大陸平台同步",
+      "team": "chuangzaoli",
+      "status": "at-risk",
+      "progress": 20,
+      "owner": "Tonny / 上海團隊 / Sean Peng",
       "weekDone": "Grace 啟動缺口清單；台灣平台缺少大陸版小栗方 Pro 模組",
       "blockers": "IDE 遷移原訂 2025 年底完成，至今未執行；三月底硬性截止",
-      "targetDate": "2026-03-31", "category": "platform", "weekStart": "2026-03-09"
+      "targetDate": "2026-03-31",
+      "category": "platform",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p7", "name": "AI 人力效能轉型", "team": "chuangzaoli",
-      "status": "on-track", "progress": 35, "owner": "Eddy / Dream",
+      "id": "p7",
+      "name": "AI 人力效能轉型",
+      "team": "chuangzaoli",
+      "status": "on-track",
+      "progress": 35,
+      "owner": "Eddy / Dream",
       "weekDone": "Eddy 完成 AI 會議助理 Whisper+ChatGPT 整合 Demo（3/11）；架構規劃推進",
       "blockers": "",
-      "targetDate": "2026-06-30", "category": "ai", "weekStart": "2026-03-09"
+      "targetDate": "2026-06-30",
+      "category": "ai",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p8", "name": "SEL 情緒分析平台", "team": "learnmode",
-      "status": "on-track", "progress": 40, "owner": "Eddy Lin / Grace",
+      "id": "p8",
+      "name": "SEL 情緒分析平台",
+      "team": "learnmode",
+      "status": "on-track",
+      "progress": 40,
+      "owner": "Eddy Lin / Grace",
       "weekDone": "Eddy 展示 Nuxt+Claude 技術架構平台原型；SEL 五堂課 Demo 目標 3/27",
       "blockers": "",
-      "targetDate": "2026-03-27", "category": "product", "weekStart": "2026-03-09"
+      "targetDate": "2026-03-27",
+      "category": "product",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p9", "name": "水保局專案", "team": "learnmode",
-      "status": "on-track", "progress": 55, "owner": "Robert / 黎博",
+      "id": "p9",
+      "name": "水保局專案",
+      "team": "learnmode",
+      "status": "on-track",
+      "progress": 55,
+      "owner": "Robert / 黎博",
       "weekDone": "Robert 提交正式報價單（NT$62–65 萬），確認後即可啟動",
       "blockers": "",
-      "targetDate": "2026-04-30", "category": "business", "weekStart": "2026-03-09"
+      "targetDate": "2026-04-30",
+      "category": "business",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p10", "name": "客語 ASR 專案", "team": "learnmode",
-      "status": "on-track", "progress": 30, "owner": "StevenCH / Eddy / TC",
+      "id": "p10",
+      "name": "客語 ASR 專案",
+      "team": "learnmode",
+      "status": "on-track",
+      "progress": 30,
+      "owner": "StevenCH / Eddy / TC",
       "weekDone": "合約已簽訂，新竹縣客家事務局積極洽談；技術架構 4 階段確立",
       "blockers": "",
-      "targetDate": "2026-10-01", "category": "ai", "weekStart": "2026-03-09"
+      "targetDate": "2026-10-01",
+      "category": "ai",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p11", "name": "B2 小車 V3 ROI 重審", "team": "learnmode",
-      "status": "behind", "progress": 15, "owner": "Kevin / 黎博",
+      "id": "p11",
+      "name": "B2 小車 V3 ROI 重審",
+      "team": "learnmode",
+      "status": "behind",
+      "progress": 15,
+      "owner": "Kevin / 黎博",
       "weekDone": "決議：V3 暫緩，Kevin 立即重新檢討 ROI（需納入研發成本）",
       "blockers": "ROI 208% 未納入研發成本；授權金 NT$300/台 嚴重侵蝕毛利率",
-      "targetDate": "2026-03-20", "category": "business", "weekStart": "2026-03-09"
+      "targetDate": "2026-03-20",
+      "category": "business",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "p12", "name": "MagicView RD 移交", "team": "tv-solution",
-      "status": "on-track", "progress": 75, "owner": "Tom Liu / Stanley",
+      "id": "p12",
+      "name": "MagicView RD 移交",
+      "team": "tv-solution",
+      "status": "on-track",
+      "progress": 75,
+      "owner": "Tom Liu / Stanley",
       "weekDone": "Tom 完成技術文件撰寫並移交；Dream 指示 Stanley 向武漢 Really 追進度",
       "blockers": "License Server 仍在本方手上",
-      "targetDate": "2026-04-30", "category": "support", "weekStart": "2026-03-09"
+      "targetDate": "2026-04-30",
+      "category": "support",
+      "weekStart": "2026-03-09"
     }
   ],
   "risks": [
     {
-      "id": "r1", "level": "high",
+      "id": "r1",
+      "level": "high",
       "description": "台灣 / 大陸平台功能嚴重不同步：小栗方 Pro 模組缺失，課程製作受阻；IDE 遷移為三月底硬性截止",
-      "project": "台灣 / 大陸平台同步", "team": "chuangzaoli",
-      "owner": "Tonny / Sean Peng", "dueDate": "2026-03-31",
+      "project": "台灣 / 大陸平台同步",
+      "team": "chuangzaoli",
+      "owner": "Tonny / Sean Peng",
+      "dueDate": "2026-03-31",
       "status": "in-progress",
       "mitigation": "Grace 啟動缺口清單；上海同步最新更新至台灣平台",
       "weekStart": "2026-03-09"
     },
     {
-      "id": "r2", "level": "high",
+      "id": "r2",
+      "level": "high",
       "description": "任我行潛在 ~1,000 萬人民幣營收風險：若停止投入業務可能被切割或獨立",
-      "project": "任我行戰略", "team": "chuangzaoli",
-      "owner": "Michael / Dream", "dueDate": "2026-03-20",
+      "project": "任我行戰略",
+      "team": "chuangzaoli",
+      "owner": "Michael / Dream",
+      "dueDate": "2026-03-20",
       "status": "open",
       "mitigation": "建議儘速召開專項會議決策",
       "weekStart": "2026-03-09"
     },
     {
-      "id": "r3", "level": "high",
+      "id": "r3",
+      "level": "high",
       "description": "TVBS 訓練資料授權合約未啟動：STT Fine-tuning 所需校正字幕授權 BD/Legal 尚未介入",
-      "project": "STT MRD v3.0 完成", "team": "media-agent",
-      "owner": "BD / Legal / Eason", "dueDate": "2026-03-20",
+      "project": "STT MRD v3.0 完成",
+      "team": "media-agent",
+      "owner": "BD / Legal / Eason",
+      "dueDate": "2026-03-20",
       "status": "open",
       "mitigation": "BD/Legal 需介入啟動合約討論",
       "weekStart": "2026-03-09"
     },
     {
-      "id": "r4", "level": "medium",
+      "id": "r4",
+      "level": "medium",
       "description": "Olapedia Demo 時程緊迫：3/20 Bug 收斂 → 3/23 VM 搭建，任一環節延誤影響 4 月初 Demo",
-      "project": "Olapedia VM 環境搭建", "team": "media-agent",
-      "owner": "Alex Liao", "dueDate": "2026-03-23",
+      "project": "Olapedia VM 環境搭建",
+      "team": "media-agent",
+      "owner": "Alex Liao",
+      "dueDate": "2026-03-23",
       "status": "in-progress",
       "mitigation": "VM 申請進行中；Steve 提供規格；Alex 本週完成 IT 申請",
       "weekStart": "2026-03-09"
     },
     {
-      "id": "r5", "level": "medium",
+      "id": "r5",
+      "level": "medium",
       "description": "B2 小車 ROI 模型誤導性：ROI 208% 未納入內部研發成本，授權金結構惡化毛利率",
-      "project": "B2 小車 V3 ROI 重審", "team": "learnmode",
-      "owner": "Kevin / 黎博", "dueDate": "2026-03-20",
+      "project": "B2 小車 V3 ROI 重審",
+      "team": "learnmode",
+      "owner": "Kevin / 黎博",
+      "dueDate": "2026-03-20",
       "status": "in-progress",
       "mitigation": "Kevin 立即與黎博重新檢討；優先消化 V2 庫存約 360 台",
       "weekStart": "2026-03-09"
     },
     {
-      "id": "r6", "level": "low",
+      "id": "r6",
+      "level": "low",
       "description": "AI 模型合規黑盒子風險：上海以外無人掌握模型清單，商用化後有法律風險",
-      "project": "AI 人力效能轉型", "team": "chuangzaoli",
-      "owner": "Alex Liao / Engineering", "dueDate": "2026-04-30",
+      "project": "AI 人力效能轉型",
+      "team": "chuangzaoli",
+      "owner": "Alex Liao / Engineering",
+      "dueDate": "2026-04-30",
       "status": "in-progress",
       "mitigation": "Alex 持續文件化，利用 AI Coding 工具更新 readme.txt 並同步 GitHub",
       "weekStart": "2026-03-09"
@@ -144,130 +234,253 @@
   ],
   "actions": [
     {
-      "id": "a1", "category": "technical",
+      "id": "a1",
+      "category": "technical",
       "task": "Olapedia VM 申請提交 IT（規格 + Domain Name + 網路權限）",
-      "owner": "Alex Liao", "dueDate": "2026-03-13",
-      "status": "in-progress", "project": "Olapedia VM 環境搭建", "weekStart": "2026-03-09"
+      "owner": "Alex Liao",
+      "dueDate": "2026-03-13",
+      "status": "in-progress",
+      "project": "Olapedia VM 環境搭建",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "a2", "category": "technical",
+      "id": "a2",
+      "category": "technical",
       "task": "提供 VM 規格需求（CPU/RAM/磁碟）",
-      "owner": "Steve Liu", "dueDate": "2026-03-14",
-      "status": "pending", "project": "Olapedia VM 環境搭建", "weekStart": "2026-03-09"
+      "owner": "Steve Liu",
+      "dueDate": "2026-03-14",
+      "status": "pending",
+      "project": "Olapedia VM 環境搭建",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "a3", "category": "technical",
+      "id": "a3",
+      "category": "technical",
       "task": "QA 前往產線核查華溢 FA 報告不良整改情況",
-      "owner": "QA 團隊", "dueDate": "2026-03-14",
-      "status": "pending", "project": "小栗方 Pro 量產", "weekStart": "2026-03-09"
+      "owner": "QA 團隊",
+      "dueDate": "2026-03-14",
+      "status": "pending",
+      "project": "小栗方 Pro 量產",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "a4", "category": "business",
+      "id": "a4",
+      "category": "business",
       "task": "提交水保局正式報價單（約 NT$65 萬），收確認後即啟動",
-      "owner": "Robert", "dueDate": "2026-03-14",
-      "status": "in-progress", "project": "水保局專案", "weekStart": "2026-03-09"
+      "owner": "Robert",
+      "dueDate": "2026-03-14",
+      "status": "in-progress",
+      "project": "水保局專案",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "a5", "category": "business",
+      "id": "a5",
+      "category": "business",
       "task": "B2 小車 ROI 重新檢討（納入研發成本，釐清授權金影響）",
-      "owner": "Kevin / 黎博", "dueDate": "2026-03-16",
-      "status": "pending", "project": "B2 小車 V3 ROI 重審", "weekStart": "2026-03-09"
+      "owner": "Kevin / 黎博",
+      "dueDate": "2026-03-16",
+      "status": "pending",
+      "project": "B2 小車 V3 ROI 重審",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "a6", "category": "business",
+      "id": "a6",
+      "category": "business",
       "task": "StevenCH 緊急彙整完整產品目錄（B2B / B2C / 政府機關分類）",
-      "owner": "StevenCH", "dueDate": "2026-03-20",
-      "status": "pending", "project": "通路商策略", "weekStart": "2026-03-09"
+      "owner": "StevenCH",
+      "dueDate": "2026-03-20",
+      "status": "pending",
+      "project": "通路商策略",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "a7", "category": "technical",
+      "id": "a7",
+      "category": "technical",
       "task": "啟動台灣大陸平台同步 + IDE 遷移（三月底截止）",
-      "owner": "Tonny / 上海 / Sean Peng", "dueDate": "2026-03-31",
-      "status": "in-progress", "project": "台灣 / 大陸平台同步", "weekStart": "2026-03-09"
+      "owner": "Tonny / 上海 / Sean Peng",
+      "dueDate": "2026-03-31",
+      "status": "in-progress",
+      "project": "台灣 / 大陸平台同步",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "a8", "category": "technical",
+      "id": "a8",
+      "category": "technical",
       "task": "向 TVBS 確認所需台標清單，對接 Logo 識別開發",
-      "owner": "Alex / Steve Liu", "dueDate": "2026-03-20",
-      "status": "pending", "project": "台標識別（彩標）開發", "weekStart": "2026-03-09"
+      "owner": "Alex / Steve Liu",
+      "dueDate": "2026-03-20",
+      "status": "pending",
+      "project": "台標識別（彩標）開發",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "a9", "category": "business",
+      "id": "a9",
+      "category": "business",
       "task": "任我行戰略取向專項會議召開",
-      "owner": "Michael / Dream / Kevin", "dueDate": "2026-03-20",
-      "status": "pending", "project": "任我行戰略", "weekStart": "2026-03-09"
+      "owner": "Michael / Dream / Kevin",
+      "dueDate": "2026-03-20",
+      "status": "pending",
+      "project": "任我行戰略",
+      "weekStart": "2026-03-09"
     },
     {
-      "id": "a10", "category": "technical",
+      "id": "a10",
+      "category": "technical",
       "task": "確認機房搬遷廠商停機時間表",
-      "owner": "TC", "dueDate": "2026-03-20",
-      "status": "pending", "project": "機房搬遷", "weekStart": "2026-03-09"
+      "owner": "TC",
+      "dueDate": "2026-03-20",
+      "status": "pending",
+      "project": "機房搬遷",
+      "weekStart": "2026-03-09"
     }
   ],
   "milestones": [
     {
-      "id": "m1", "name": "STT MRD v3.0 完成", "date": "2026-03-13",
-      "team": "media-agent", "project": "STT MRD v3.0 完成",
-      "status": "done", "weekStart": "2026-03-09", "_order": 1
+      "id": "m1",
+      "name": "STT MRD v3.0 完成",
+      "date": "2026-03-13",
+      "team": "media-agent",
+      "project": "STT MRD v3.0 完成",
+      "status": "done",
+      "weekStart": "2026-03-09",
+      "_order": 1
     },
     {
-      "id": "m2", "name": "Olapedia VM IT 申請提交", "date": "2026-03-13",
-      "team": "media-agent", "project": "Olapedia VM 環境搭建",
-      "status": "done", "weekStart": "2026-03-09", "_order": 2
+      "id": "m2",
+      "name": "Olapedia VM IT 申請提交",
+      "date": "2026-03-13",
+      "team": "media-agent",
+      "project": "Olapedia VM 環境搭建",
+      "status": "done",
+      "weekStart": "2026-03-09",
+      "_order": 2
     },
     {
-      "id": "m3", "name": "Olapedia Bug 修復全數收斂", "date": "2026-03-20",
-      "team": "media-agent", "project": "Olapedia VM 環境搭建",
-      "status": "upcoming", "weekStart": "2026-03-09", "_order": 3
+      "id": "m3",
+      "name": "Olapedia Bug 修復全數收斂",
+      "date": "2026-03-20",
+      "team": "media-agent",
+      "project": "Olapedia VM 環境搭建",
+      "status": "upcoming",
+      "weekStart": "2026-03-09",
+      "_order": 3
     },
     {
-      "id": "m4", "name": "台北 + 上海 VM 搭建完成", "date": "2026-03-23",
-      "team": "media-agent", "project": "Olapedia VM 環境搭建",
-      "status": "upcoming", "weekStart": "2026-03-09", "_order": 4
+      "id": "m4",
+      "name": "台北 + 上海 VM 搭建完成",
+      "date": "2026-03-23",
+      "team": "media-agent",
+      "project": "Olapedia VM 環境搭建",
+      "status": "upcoming",
+      "weekStart": "2026-03-09",
+      "_order": 4
     },
     {
-      "id": "m5", "name": "台灣大陸平台同步截止", "date": "2026-03-31",
-      "team": "chuangzaoli", "project": "台灣 / 大陸平台同步",
-      "status": "upcoming", "weekStart": "2026-03-09", "_order": 5
+      "id": "m5",
+      "name": "台灣大陸平台同步截止",
+      "date": "2026-03-31",
+      "team": "chuangzaoli",
+      "project": "台灣 / 大陸平台同步",
+      "status": "upcoming",
+      "weekStart": "2026-03-09",
+      "_order": 5
     },
     {
-      "id": "m6", "name": "SEL 五堂課 Demo 供審閱", "date": "2026-03-27",
-      "team": "learnmode", "project": "SEL 情緒分析平台",
-      "status": "upcoming", "weekStart": "2026-03-09", "_order": 6
+      "id": "m6",
+      "name": "SEL 五堂課 Demo 供審閱",
+      "date": "2026-03-27",
+      "team": "learnmode",
+      "project": "SEL 情緒分析平台",
+      "status": "upcoming",
+      "weekStart": "2026-03-09",
+      "_order": 6
     },
     {
-      "id": "m7", "name": "Media Agent Demo 演示", "date": "2026-04-07",
-      "team": "media-agent", "project": "Olapedia VM 環境搭建",
-      "status": "upcoming", "weekStart": "2026-03-09", "_order": 7
+      "id": "m7",
+      "name": "Media Agent Demo 演示",
+      "date": "2026-04-07",
+      "team": "media-agent",
+      "project": "Olapedia VM 環境搭建",
+      "status": "upcoming",
+      "weekStart": "2026-03-09",
+      "_order": 7
     }
   ],
   "snapshots": [
     {
-      "id": "s1", "weekStart": "2026-02-23", "weekLabel": "W09",
-      "onTrackPct": 83, "atRiskCount": 2, "behindCount": 0,
-      "highRisks": 2, "mediumRisks": 2, "lowRisks": 1,
-      "totalProjects": 12, "overdueActions": 1,
-      "completedActions": 6, "totalActions": 10,
-      "teamHealth": { "media-agent": 90, "learnmode": 85, "chuangzaoli": 80, "tv-solution": 75, "healthcare": 70 },
-      "reviewStatus": "approved", "snapshotBy": "Alex Liao"
+      "id": "s1",
+      "weekStart": "2026-02-23",
+      "weekLabel": "W09",
+      "onTrackPct": 83,
+      "atRiskCount": 2,
+      "behindCount": 0,
+      "highRisks": 2,
+      "mediumRisks": 2,
+      "lowRisks": 1,
+      "totalProjects": 12,
+      "overdueActions": 1,
+      "completedActions": 6,
+      "totalActions": 10,
+      "teamHealth": {
+        "media-agent": 90,
+        "learnmode": 85,
+        "chuangzaoli": 80,
+        "tv-solution": 75,
+        "healthcare": 70
+      },
+      "reviewStatus": "approved",
+      "snapshotBy": "Alex Liao"
     },
     {
-      "id": "s2", "weekStart": "2026-03-02", "weekLabel": "W10",
-      "onTrackPct": 83, "atRiskCount": 2, "behindCount": 0,
-      "highRisks": 3, "mediumRisks": 3, "lowRisks": 1,
-      "totalProjects": 12, "overdueActions": 2,
-      "completedActions": 7, "totalActions": 10,
-      "teamHealth": { "media-agent": 88, "learnmode": 83, "chuangzaoli": 78, "tv-solution": 75, "healthcare": 70 },
-      "reviewStatus": "approved", "snapshotBy": "Alex Liao"
+      "id": "s2",
+      "weekStart": "2026-03-02",
+      "weekLabel": "W10",
+      "onTrackPct": 83,
+      "atRiskCount": 2,
+      "behindCount": 0,
+      "highRisks": 3,
+      "mediumRisks": 3,
+      "lowRisks": 1,
+      "totalProjects": 12,
+      "overdueActions": 2,
+      "completedActions": 7,
+      "totalActions": 10,
+      "teamHealth": {
+        "media-agent": 88,
+        "learnmode": 83,
+        "chuangzaoli": 78,
+        "tv-solution": 75,
+        "healthcare": 70
+      },
+      "reviewStatus": "approved",
+      "snapshotBy": "Alex Liao"
     },
     {
-      "id": "s3", "weekStart": "2026-03-09", "weekLabel": "W11",
-      "onTrackPct": 75, "atRiskCount": 2, "behindCount": 1,
-      "highRisks": 3, "mediumRisks": 2, "lowRisks": 1,
-      "totalProjects": 12, "overdueActions": 2,
-      "completedActions": 5, "totalActions": 10,
-      "teamHealth": { "media-agent": 82, "learnmode": 80, "chuangzaoli": 65, "tv-solution": 75, "healthcare": 70 },
-      "reviewStatus": "approved", "snapshotBy": "Alex Liao"
+      "id": "s3",
+      "weekStart": "2026-03-09",
+      "weekLabel": "W11",
+      "onTrackPct": 75,
+      "atRiskCount": 2,
+      "behindCount": 1,
+      "highRisks": 3,
+      "mediumRisks": 2,
+      "lowRisks": 1,
+      "totalProjects": 12,
+      "overdueActions": 2,
+      "completedActions": 5,
+      "totalActions": 10,
+      "teamHealth": {
+        "media-agent": 82,
+        "learnmode": 80,
+        "chuangzaoli": 65,
+        "tv-solution": 75,
+        "healthcare": 70
+      },
+      "reviewStatus": "approved",
+      "snapshotBy": "Alex Liao"
     }
-  ]
+  ],
+  "_savedAt": "2026-03-13T08:00:00.000Z",
+  "weekLabel": "W11",
+  "_dataVersion": 11
 }

@@ -18,7 +18,7 @@
       "id": "p002",
       "name": "STT & FaceSearch PRD 文件鏈",
       "team": "media-agent",
-      "status": "on-track",
+      "status": "completed",
       "progress": 100,
       "owner": "Alex Liao",
       "weekDone": "✅ STT MRD 升版至 V6.0（3/30，含少康戰情/新聞大白話等節目真實流程驗證）；✅ FaceSearch MRD 升版至 V3.0（3/30，三軌架構：Face Search / AI Content Tagging / NLP Semantic Search）；✅ STT PRD V2 完成；✅ FaceSearch PRD Track A/B/C 全部完成（提前達成目標 4/3）",
@@ -213,7 +213,7 @@
       "id": "p013",
       "name": "MagicView 移交",
       "team": "tv-solution",
-      "status": "on-track",
+      "status": "completed",
       "progress": 100,
       "owner": "Tom Liu",
       "weekDone": "案件正式關閉（PgM 確認 3/20 完成）；VSTS branch 移交完成；Pear 安排對接完成",
@@ -804,8 +804,8 @@
       "id": "snap-w11",
       "weekStart": "2026-03-30",
       "weekLabel": "W14",
-      "onTrackPct": 71,
-      "atRiskCount": 5,
+      "onTrackPct": 65,
+      "atRiskCount": 6,
       "behindCount": 0,
       "highRisks": 3,
       "mediumRisks": 6,
@@ -827,5 +827,8 @@
   ],
   "drafts": [],
   "_exportedAt": "2026-04-01T00:00:00.000Z",
-  "_version": "2.0"
+  "_version": "2.0",
+  "_savedAt": "2026-04-03T08:00:00.000Z",
+  "weekLabel": "W14",
+  "_dataVersion": 14
 }
