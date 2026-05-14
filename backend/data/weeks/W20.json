@@ -73,18 +73,6 @@
       "_updatedAt": "2026-05-13T23:43:49.962Z"
     },
     {
-      "id": "proj-w20-07",
-      "name": "小栗方 Pro",
-      "team": "chuangzaoli",
-      "status": "on-track",
-      "weekStart": "2026-05-11",
-      "description": "平台上線並完成微信小程式互聯測試，已可簡易 demo。黎博本週至下週攜帶前往金門、廈門、深圳、北京展示。產品化約需 3 個月。",
-      "owner": "黎博",
-      "dueDate": "2026-07-31",
-      "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
-    },
-    {
       "id": "proj-w20-08",
       "name": "小栗方 Lite POC",
       "team": "learnmode",
@@ -105,18 +93,6 @@
       "description": "縣府要求 demo 或網頁示意圖才進入提案。示意圖（課程認證入口 + 學習吧平台）5/21 截止。底線 80 萬，目標 100–200 萬。",
       "owner": "Steven CH",
       "dueDate": "2026-05-21",
-      "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
-    },
-    {
-      "id": "proj-w20-10",
-      "name": "SEL 課程 / 繪本產品定位",
-      "team": "learnmode",
-      "status": "at-risk",
-      "weekStart": "2026-05-11",
-      "description": "5/16 線上會議釐清：產品定位、繪本是否連動小栗方 Lite、角色 IP 化可行性（'小數點'名字多人無感）、影片化是否執行。",
-      "owner": "Luffy Luan",
-      "dueDate": "2026-05-16",
       "_createdAt": "2026-05-13T23:43:49.962Z",
       "_updatedAt": "2026-05-13T23:43:49.962Z"
     },
@@ -927,9 +903,9 @@
       "id": "snap-W20",
       "weekStart": "2026-05-11",
       "weekLabel": "W20",
-      "totalProjects": 12,
-      "onTrackPct": 17,
-      "atRiskCount": 10,
+      "totalProjects": 10,
+      "onTrackPct": 10,
+      "atRiskCount": 9,
       "behindCount": 0,
       "highRisks": 2,
       "mediumRisks": 5,
@@ -940,7 +916,7 @@
       "teamHealth": {
         "media-agent": 50,
         "learnmode": 40,
-        "chuangzaoli": 55,
+        "chuangzaoli": 45,
         "tv-solution": 72,
         "healthcare": 65
       },
