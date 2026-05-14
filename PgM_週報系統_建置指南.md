@@ -20,6 +20,8 @@ GitHub：https://github.com/DaQing1108/pgm-weekly-report
 5. [Railway 部署](#5-railway-部署)
 6. [新增週報流程](#6-新增週報流程)
 7. [常見問題排解](#7-常見問題排解)
+8. [資料品質工具](#8-資料品質工具)
+9. [版本歷程](#9-版本歷程)
 
 ---
 
@@ -377,21 +379,41 @@ CMD ["node", "backend/src/index.js"]
 
 ## 6. 新增週報流程
 
-每次有新週報，只需 3 個步驟：
+### 方式一：使用 new-week.py 自動生成（建議）
 
 ```bash
-# Step 1：將新週報 .md 複製至 backend/reports/
-cp /path/to/新週報_v9.md backend/reports/
+# Step 1：從上週自動生成新週 JSON（攜帶未完成專案與任務）
+python3 scripts/new-week.py W21
 
-# Step 2：commit
-git add backend/reports/
-git commit -m "add v9 weekly report (2026/03/23~03/27)"
+# Step 2：編輯 backend/data/weeks/W21.json
+#   - 更新各專案 progress、description
+#   - 新增本週 Action Items
+#   - 修改已解決的 risks
+#   - 加入本週 snapshot 資料
 
-# Step 3：push（Railway 自動部署）
+# Step 3：驗證資料（可加 --fix 自動修正常見問題）
+python3 scripts/validate-week.py W21
+
+# Step 4：commit & push（pre-push hook 會自動再驗證一次）
+git add backend/data/weeks/W21.json
+git commit -m "data: add W21 weekly snapshot"
 git push
 ```
 
-約 2 分鐘後，新週報即出現在網站側欄。
+### 方式二：手動建立 JSON
+
+直接複製前一週 JSON 並修改，完成後務必執行驗證：
+
+```bash
+cp backend/data/weeks/W20.json backend/data/weeks/W21.json
+# 編輯 W21.json...
+python3 scripts/validate-week.py W21 --fix
+git add backend/data/weeks/W21.json
+git commit -m "data: add W21 weekly snapshot"
+git push
+```
+
+> push 後 Railway 自動偵測並重新部署（約 2 分鐘）。
 
 ---
 
@@ -423,4 +445,101 @@ git push
 
 ---
 
-*建置人：Alex Liao／2026/03/19*
+---
+
+## 8. 資料品質工具
+
+所有工具位於 `scripts/` 目錄，使用 Python 3.8+，無需安裝額外套件。
+
+### validate-week.py — JSON 資料驗證器
+
+檢查項目：
+- `_savedAt`、`weekLabel`、`weekStart` 根欄位是否存在
+- `_dataVersion` 整數版本號是否存在
+- 所有專案 `status` 是否為合法值（`on-track` / `at-risk` / `behind` / `completed`）
+- 所有專案是否有 `progress` 欄位
+- `progress=100%` 的專案是否已標記 `completed`
+- 所有 action items 是否有 `category`（`technical` / `business` / `resource`）
+- `snapshots` 陣列中對應週次的 `onTrackPct`、`atRiskCount`、`behindCount` 是否與實際專案數一致
+
+```bash
+# 驗證單週
+python3 scripts/validate-week.py W20
+
+# 驗證所有週
+python3 scripts/validate-week.py --all
+
+# 自動修正安全問題（加 _savedAt、補 category、修 snapshot 數值等）
+python3 scripts/validate-week.py --all --fix
+```
+
+**Exit code：** 0 = 全部通過，1 = 有錯誤（會封鎖 pre-push）
+
+---
+
+### new-week.py — 新週生成工具
+
+從前一週 JSON 自動生成新週骨架：
+- 攜帶所有 `status != "completed"` 的專案
+- 攜帶 `status != "done"` 的 action items（重置為 `pending`）
+- 攜帶未解決的 risks
+- 複製 `snapshots` 歷史陣列
+- 自動設定 `weekStart`、`weekLabel`、`_savedAt`、`_dataVersion`
+
+```bash
+python3 scripts/new-week.py W21              # 自動以 W20 為來源
+python3 scripts/new-week.py W21 --from W19  # 指定來源週
+```
+
+生成後仍需手動：更新各專案進度、新增本週任務與 risks、加入 snapshot。
+
+---
+
+### install-hooks.sh — Git Pre-Push Hook 安裝
+
+安裝後，每次 `git push` 前會自動執行 `validate-week.py --all`，有錯誤則封鎖推送。
+
+```bash
+bash scripts/install-hooks.sh
+```
+
+> 只需執行一次。Hook 安裝在 `.git/hooks/pre-push`，不會 commit 進 repo。
+
+---
+
+### _dataVersion 版本同步機制
+
+每個週次 JSON 含有整數欄位 `_dataVersion`（值等於週次數字，如 W20 = 20）。
+
+瀏覽器 localStorage 會記錄已讀取的版本號（`pgm_dataVersion_W##`）。初始化時：
+- `serverVersion > localVersion` → **後端版本較新**，接受後端資料（git patch 優先）
+- `serverVersion <= localVersion` → 維持時間戳比較邏輯（保留使用者本機編輯）
+
+當需要強制讓所有瀏覽器接受後端修正時，在 JSON 中手動遞增 `_dataVersion`。
+
+---
+
+## 9. 版本歷程
+
+| 版本 | 日期 | 說明 |
+|------|------|------|
+| v1.0 | 2026/03 | 初始 React + Vite 架構，`.md` 週報 |
+| v2.0 | 2026/03 | Program Sync Dashboard（program-sync/）取代 React 前端 |
+| v3.0 | 2026/04 | 歷史週次瀏覽、localStorage ↔ 後端同步 |
+| v3.5 | 2026/04 | 歷史唯讀模式修正（防止誤寫歷史 JSON） |
+| v3.9 | 2026/04 | Resources 跨季資料隔離 |
+| v3.19 | 2026/05/07 | Tracker 當週高亮修正 |
+| v3.20 | 2026/05/08 | Dashboard 週次 Tab 修正 |
+| **v3.21** | **2026/05/14** | **P0/P1/P2 改善計劃** |
+| | | W09–W15 資料補完（_savedAt、weekLabel、completed 狀態） |
+| | | W11–W14 progress=100% 專案標記為 completed |
+| | | W09–W20 新增 `_dataVersion` 整數版本號 |
+| | | app-init.js：version-based sync（git patch 優先邏輯） |
+| | | P3 擴充：空 snapshots 也從後端補入 |
+| | | 新工具：`scripts/validate-week.py` |
+| | | 新工具：`scripts/new-week.py` |
+| | | 新工具：`scripts/install-hooks.sh`（pre-push 驗證） |
+
+---
+
+*建置人：Alex Liao／2026/03/19，最後更新：2026/05/14*
