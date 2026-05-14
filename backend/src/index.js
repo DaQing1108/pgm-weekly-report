@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
+const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -172,48 +173,29 @@ app.post('/api/state', requireAdminToken, (req, res) => {
 
 const REPO_ROOT = path.join(__dirname, '../..');
 
-// ── Per-week state archive (persistent via git) ───────────────
+// ── Per-week state archive (PostgreSQL or filesystem fallback) ────────────
+// WEEKS_DIR still created here so the FS fallback and auto-seeder can find it
 const WEEKS_DIR = path.join(__dirname, '../data/weeks');
 if (!fs.existsSync(WEEKS_DIR)) fs.mkdirSync(WEEKS_DIR, { recursive: true });
 
-app.get('/api/weeks', (req, res) => {
-  try {
-    const files = fs.readdirSync(WEEKS_DIR).filter(f => f.endsWith('.json'));
-    const weeks = files.map(f => {
-      const weekLabel = f.replace('.json', '');
-      try {
-        const data = JSON.parse(fs.readFileSync(path.join(WEEKS_DIR, f), 'utf8'));
-        const snap = (data.snapshots || []).find(s => s.weekLabel === weekLabel)
-                   || (data.snapshots || []).slice(-1)[0] || {};
-        return {
-          weekLabel,
-          weekStart:    snap.weekStart    || data.weekStart || '',
-          projectCount: (data.projects    || []).length,
-          onTrackPct:   snap.onTrackPct   || 0,
-          atRiskCount:  snap.atRiskCount  || 0,
-          savedAt:      data._savedAt     || ''
-        };
-      } catch {
-        return { weekLabel, weekStart: '', projectCount: 0, onTrackPct: 0, atRiskCount: 0, savedAt: '' };
-      }
-    }).sort((a, b) => b.weekLabel.localeCompare(a.weekLabel));
-    res.json(weeks);
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-app.get('/api/weeks/:weekLabel', (req, res) => {
-  const safe = req.params.weekLabel.replace(/[^a-zA-Z0-9\-]/g, '');
-  const file = path.join(WEEKS_DIR, `${safe}.json`);
-  if (!fs.existsSync(file)) return res.status(404).json({ error: 'Week not found' });
-  try { res.json(JSON.parse(fs.readFileSync(file, 'utf8'))); }
+app.get('/api/weeks', async (req, res) => {
+  try { res.json(await db.listWeeks()); }
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/weeks/:weekLabel', requireAdminToken, (req, res) => {
+app.get('/api/weeks/:weekLabel', async (req, res) => {
   const safe = req.params.weekLabel.replace(/[^a-zA-Z0-9\-]/g, '');
-  const file = path.join(WEEKS_DIR, `${safe}.json`);
   try {
-    fs.writeFileSync(file, JSON.stringify({ ...req.body, _savedAt: new Date().toISOString() }, null, 2), 'utf8');
+    const data = await db.getWeek(safe);
+    if (!data) return res.status(404).json({ error: 'Week not found' });
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/weeks/:weekLabel', requireAdminToken, async (req, res) => {
+  const safe = req.params.weekLabel.replace(/[^a-zA-Z0-9\-]/g, '');
+  try {
+    await db.saveWeek(safe, req.body);
     res.json({ success: true, weekLabel: safe });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -295,6 +277,17 @@ if (fs.existsSync(PROGRAM_SYNC)) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+(async () => {
+  try {
+    await db.initDB();
+    if (process.env.DATABASE_URL) {
+      console.log('[db] PostgreSQL mode — schema ready');
+    }
+  } catch (err) {
+    console.error('[db] initDB failed:', err.message);
+    // Non-fatal: continue in filesystem mode if PG unavailable
+  }
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+})();
