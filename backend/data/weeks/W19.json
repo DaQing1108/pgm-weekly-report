@@ -1,37 +1,535 @@
 {
-  "projects": [],
-  "risks": [],
-  "actions": [],
+  "projects": [
+    {
+      "id": "proj-w19-01",
+      "name": "Olapedia / OlaMedia",
+      "team": "media-agent",
+      "status": "at-risk",
+      "progress": 55,
+      "owner": "alex-liao",
+      "description": "TVBS 測試帳號已發出，開始收集使用回饋。側臉辨識 bug（ingestion 階段品質篩選問題）確認為根本原因，修復時程 TBD。排序邏輯導致正確結果被擠出前 20 名。暫時 workaround：搜尋加入更多關鍵字或調高顯示筆數。",
+      "nextMilestone": "持續收集 TVBS 使用回饋 → 側臉 bug 根本修復（時程 TBD）",
+      "_createdAt": "2026-05-06T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "proj-w19-02",
+      "name": "OpenMAM 2.0 整合",
+      "team": "media-agent",
+      "status": "at-risk",
+      "progress": 40,
+      "owner": "alex-liao",
+      "description": "Dream 分享五份文件（User Guide v1.1.0.1、Open Share 1.4、2.0/3.0 Prototype、人臉搜尋 API）。架構核心確立：MAM（左側）與 AI Server（右側）完全切開，走 MAM Server API（6–7 個）。積極版 vs 消極版路線待 5/13 JH 加入後定案。Steve 承諾 5/13 前整理 API 擴充清單。",
+      "nextMilestone": "5/12 前備好 DGX capacity 數字；5/13 JH 整合討論定案",
+      "_createdAt": "2026-05-06T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "proj-w19-03",
+      "name": "影像快剪多頻輸出 PRD",
+      "team": "media-agent",
+      "status": "at-risk",
+      "progress": 30,
+      "owner": "alex-liao",
+      "description": "產品定位確立：針對電視台媒體工作者設計的 agentic 快剪工具，輸出 rough cut / EDL / 含時間戳文字稿，支援 16:9 與 9:16 多格式。影片長度上限：新聞類 15 分鐘、節目類 1 小時。Alex 分享剪 37 分鐘影片花 4–5 小時的親身體驗，確認 SRT 繁簡轉換、timecode 校正等真實痛點。PRD 撰寫中，需明確介面需求。",
+      "nextMilestone": "5/15（週五）PRD 完成",
+      "_createdAt": "2026-05-06T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "proj-w19-04",
+      "name": "STT 語音轉文字",
+      "team": "media-agent",
+      "status": "at-risk",
+      "progress": 35,
+      "owner": "steve-liu",
+      "description": "兩階段節目策略確立：第一階段選非即時性節目（健康 2.0 或 T 觀點），第二階段才接少康戰情室與新聞大白話。訓練資料：以 audio + SRT（不需完整 MXF）收集，約一年歷史資料做 domain-specific 預訓練。模型透明化要求：Steve 需提供當前版本 configuration snapshot。節目最終確認待 PM 確認收視率與經濟效益。",
+      "nextMilestone": "Steve 本週提供 STT 模型 snapshot；Alex 確認節目優先順序",
+      "_createdAt": "2026-05-06T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "proj-w19-05",
+      "name": "EDD 文件",
+      "team": "media-agent",
+      "status": "behind",
+      "progress": 20,
+      "owner": "alex-liao",
+      "description": "持續阻塞狀態延續。Alex 於 5/6 復工當天與 Dream 當面 sync，Dream 已介入推動模型規格確認。PgM Tracker 顯示 EDD 文件仍列為「進行中，預計完成 5/8」，為本週最緊迫的 Media Agent 項目。持續未解將影響 Q2 技術交付。",
+      "nextMilestone": "Dream 介入後盡快完成技術規格確認",
+      "_createdAt": "2026-05-06T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "proj-w19-06",
+      "name": "新北市 SEL 試點",
+      "team": "healthcare",
+      "status": "on-track",
+      "progress": 25,
+      "owner": "ruru-lin",
+      "description": "黎博 5/5 赴新北市拜訪教育局長，深情分析系統（聲音情緒分析）獲正面回應。局長請 VIA 提交 pilot proposal，初步規劃 2–3 所學校試點。6 月計劃透過秘書長約見市長，在市政會議場合正式 propose SEL 整體架構，引入吉祥物訂閱模式升至市政層級。技術問題：user scenario 尚未設計完成（學生如何透過載具產生聲音資料）。",
+      "nextMilestone": "準備 pilot proposal（學校數量、SEL 功能範圍、預算框架）",
+      "_createdAt": "2026-05-06T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "proj-w19-07",
+      "name": "創造栗官網大改版",
+      "team": "chuangzaoli",
+      "status": "at-risk",
+      "progress": 10,
+      "owner": "steven-ch",
+      "description": "StevenCH 原規劃僅做首頁更新與小栗方 Pro 獨立頁面。黎博要求大幅提高標準：官網近三年未整體更新，需涵蓋兩岸所有產品線（小栗方 Pro、SEL、智駕車、創客競賽），對外說明 VIA 集團定位，回應客戶對「大陸製造」的疑慮。各負責人 5/9 提交產品 input（架構示意圖）。",
+      "nextMilestone": "5/9 各負責人提交產品 input；5/22 完成首頁與小栗方 Pro 頁",
+      "_createdAt": "2026-05-06T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "proj-w19-08",
+      "name": "小栗方 Pro 上架",
+      "team": "chuangzaoli",
+      "status": "on-track",
+      "progress": 90,
+      "owner": "steven-ch",
+      "description": "定價 3,500 元，5/6 正式上架至供應商中心（廣州天）。昨天才到貨兩台設備，demo 影片遇到硬體問題，由 Sean 持續追蹤。",
+      "nextMilestone": "Sean 排查 demo 硬體問題",
+      "_createdAt": "2026-05-06T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "proj-w19-09",
+      "name": "新竹縣客語 ASR",
+      "team": "learnmode",
+      "status": "at-risk",
+      "progress": 20,
+      "owner": "steven-ch",
+      "description": "本週送出 proposal 和報價，底線 60 萬（含稅），目標談至 100–200 萬。若只有客委會案子，學習吧可放外部；若連同新竹縣政府測驗需求一起包，必須直接串接學習吧。黎博確認本週報價送出，信管那邊配合。",
+      "nextMilestone": "本週報價送出（底線 60 萬，目標 100-200 萬）",
+      "_createdAt": "2026-05-06T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "proj-w19-10",
+      "name": "威栗雲台灣版更新",
+      "team": "learnmode",
+      "status": "behind",
+      "progress": 0,
+      "owner": "michael-chien",
+      "description": "工時評估（10 man-days）上週已完成，但至今無任何人 commit 執行。PgM Tracker 顯示「更新威栗雲至國際（台灣）站點」逾期日期 4/30，已超期一週以上。需 Michael 確認是否核准動工，否則持續空轉。",
+      "nextMilestone": "Michael 確認是否核准 10 man-days 動工",
+      "_createdAt": "2026-05-06T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-w19-01",
+      "description": "STT 模型選定持續未定，OlaMedia 與 OlaPedia 已進入 beta，若模型選定拖而不決，Q3 後客戶交付面臨極大不確定性",
+      "level": "high",
+      "impact": "Media Agent Q2 交付",
+      "mitigation": "Steve 本週提供 STT 模型 snapshot；5/13 前進入正式討論",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "risk-w19-02",
+      "description": "EDD 文件阻塞，技術規格確認延誤，持續未解將影響 Q2 技術里程碑",
+      "level": "high",
+      "impact": "Q2 技術里程碑",
+      "mitigation": "Dream 5/6 已介入，持續追蹤至完成",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "risk-w19-03",
+      "description": "多項任務逾期未結：威栗雲台灣版（4/30）、OlaMedia 獨立產品化、Media Agent 產品命名（5/1）、字幕 PDF 蒐集（4/17）",
+      "level": "high",
+      "impact": "PgM 管理整體可信度",
+      "mitigation": "本週強制釐清所有逾期任務狀態或重新排期",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "risk-w19-04",
+      "description": "OpenMAM 整合路線（積極 vs 消極）未定案，5/13 之前人力與時程安排不明",
+      "level": "medium",
+      "impact": "Media Agent H2 規劃",
+      "mitigation": "5/13 JH 討論後正式定案",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "risk-w19-05",
+      "description": "人臉搜尋側臉 bug 修復時程未定，TVBS 測試已啟動，客戶體驗面臨暴露風險",
+      "level": "medium",
+      "impact": "TVBS 客戶體驗",
+      "mitigation": "Anna 持續追蹤，以 TVBS 使用回饋為優先修復依據",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "risk-w19-06",
+      "description": "Q2 MBO 書寫格式問題，目標之間缺 critical pace 設計，H1 review 在即卻無法浮現整體情境",
+      "level": "medium",
+      "impact": "整體 Q2 OKR 管理",
+      "mitigation": "Dream 本週修改格式，JH 那邊同步調整",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "risk-w19-07",
+      "description": "威栗雲台灣版 10 man-days 無人 commit，持續空轉，影響創造栗台灣市場布局",
+      "level": "medium",
+      "impact": "創造栗 / 學習吧",
+      "mitigation": "需 Michael 確認是否核准動工",
+      "team": "learnmode",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "risk-w19-08",
+      "description": "新北市 SEL user scenario 未設計完成（學生載具產生聲音資料方式未定），影響試點洽談細節",
+      "level": "low",
+      "impact": "教育線新客戶",
+      "mitigation": "優先確認 user scenario，再談學校試點細節",
+      "team": "healthcare",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "risk-w19-09",
+      "description": "年初承諾的台灣經銷商大會仍在規劃中，大陸已先行，台灣通路策略推進落後",
+      "level": "low",
+      "impact": "創造栗通路商策略",
+      "mitigation": "黎博提醒不能再等，StevenCH 加速規劃",
+      "team": "chuangzaoli",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    }
+  ],
+  "actions": [
+    {
+      "id": "act-w19-01",
+      "task": "準備 5/13 OpenMAM 整合討論材料（含 DGX capacity 數字）",
+      "owner": "alex-liao",
+      "dueDate": "2026-05-12",
+      "status": "in-progress",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-02",
+      "task": "整理 OpenMAM API 擴充清單（STT 功能加入後的擴充項目）",
+      "owner": "steve-liu",
+      "dueDate": "2026-05-12",
+      "status": "pending",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-03",
+      "task": "提供 STT 模型 snapshot（當前版本 configuration，內部透明化）",
+      "owner": "steve-liu",
+      "dueDate": "2026-05-08",
+      "status": "pending",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-04",
+      "task": "影像快剪多頻輸出 PRD 撰寫（含介面需求、格式規格）",
+      "owner": "alex-liao",
+      "dueDate": "2026-05-15",
+      "status": "in-progress",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-05",
+      "task": "TVBS 訪談 AVID AI 工作流（10 樓明智團隊現場觀察）",
+      "owner": "alex-liao",
+      "dueDate": "2026-05-09",
+      "status": "in-progress",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-06",
+      "task": "TVBS_AI sharing Draft 完成",
+      "owner": "alex-liao",
+      "dueDate": "2026-05-08",
+      "status": "in-progress",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-07",
+      "task": "持續收集 TVBS Olapedia / OlaMedia 使用回饋",
+      "owner": "alex-liao",
+      "dueDate": null,
+      "status": "in-progress",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-08",
+      "task": "側臉 bug 修復時程評估（ingestion 階段品質篩選改善）",
+      "owner": "tonny-shen",
+      "dueDate": null,
+      "status": "in-progress",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-09",
+      "task": "片庫掃描速度 benchmark（地端 DGX，RD senior 工程師負責）",
+      "owner": "dream-ku",
+      "dueDate": "2026-05-13",
+      "status": "pending",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-10",
+      "task": "OlaPedia PRD 啟動（資料來源、初始建庫流程、後續自動更新機制）",
+      "owner": "alex-liao",
+      "dueDate": null,
+      "status": "not-started",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-11",
+      "task": "確認 STT 節目優先順序（收視率 / 經濟效益評估）",
+      "owner": "alex-liao",
+      "dueDate": null,
+      "status": "in-progress",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-12",
+      "task": "計算健康 2.0 近 1 年影片量，規劃 audio + SRT 取得計畫",
+      "owner": "alex-liao",
+      "dueDate": null,
+      "status": "pending",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-13",
+      "task": "EDD 文件推進（Dream 介入後完成技術規格確認）",
+      "owner": "dream-ku",
+      "dueDate": "2026-05-08",
+      "status": "in-progress",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-14",
+      "task": "Q2 MBO 格式修改：建立 critical pace 設計，JH 那邊同步調整",
+      "owner": "dream-ku",
+      "dueDate": null,
+      "status": "pending",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-15",
+      "task": "確認 TVBS 2.0 → 3.x 升級時程與人力安排",
+      "owner": "steve-liu",
+      "dueDate": "2026-05-13",
+      "status": "pending",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-16",
+      "task": "A5000 × NAS 連線測試",
+      "owner": "alex-liao",
+      "dueDate": null,
+      "status": "in-progress",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-17",
+      "task": "Media Agent 產品命名（對外）",
+      "owner": "alex-liao",
+      "dueDate": "2026-05-01",
+      "status": "overdue",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-18",
+      "task": "蒐集字幕前後對照 PDF 樣本",
+      "owner": "alex-liao",
+      "dueDate": "2026-04-17",
+      "status": "overdue",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-19",
+      "task": "新北市 SEL pilot proposal（2–3 所學校，學校數量、功能範圍、預算框架）",
+      "owner": "ruru-lin",
+      "dueDate": null,
+      "status": "in-progress",
+      "team": "healthcare",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-20",
+      "task": "金門 5/13 再訪，確認中正國小中心學校窗口老師",
+      "owner": "eddy-lin",
+      "dueDate": "2026-05-12",
+      "status": "in-progress",
+      "team": "learnmode",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-21",
+      "task": "台中教育局 follow up（email 持續追蹤 proposal 進度）",
+      "owner": "eddy-lin",
+      "dueDate": null,
+      "status": "in-progress",
+      "team": "learnmode",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-22",
+      "task": "新竹縣客語 ASR 報價送出（底線 60 萬含稅，含信管協助）",
+      "owner": "steven-ch",
+      "dueDate": "2026-05-08",
+      "status": "in-progress",
+      "team": "learnmode",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-23",
+      "task": "創造栗官網改版：各負責人提交產品 input（架構示意圖）",
+      "owner": "steven-ch",
+      "dueDate": "2026-05-09",
+      "status": "in-progress",
+      "team": "chuangzaoli",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-24",
+      "task": "創造栗官網大改版完成（涵蓋兩岸全產品線）",
+      "owner": "steven-ch",
+      "dueDate": "2026-05-22",
+      "status": "in-progress",
+      "team": "chuangzaoli",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-25",
+      "task": "小栗方 Pro demo 硬體問題排查",
+      "owner": "sean-peng",
+      "dueDate": null,
+      "status": "in-progress",
+      "team": "chuangzaoli",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-26",
+      "task": "母親節活動素材後續包裝剪輯（雅婷負責推進）",
+      "owner": "alex-liao",
+      "dueDate": null,
+      "status": "pending",
+      "team": "learnmode",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-27",
+      "task": "數位精選版 8-9 版本週測試回饋收集",
+      "owner": "tc-peng",
+      "dueDate": "2026-05-08",
+      "status": "in-progress",
+      "team": "learnmode",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-28",
+      "task": "數位精選版副標籤上限需求 + 音訊 bug 送 RD",
+      "owner": "tc-peng",
+      "dueDate": null,
+      "status": "pending",
+      "team": "learnmode",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "act-w19-29",
+      "task": "威栗雲台灣版 10 man-days 核准確認（等待 Michael 決定）",
+      "owner": "michael-chien",
+      "dueDate": null,
+      "status": "waiting",
+      "team": "learnmode",
+      "_createdAt": "2026-05-08T08:00:00.000Z"
+    }
+  ],
   "milestones": [
     {
-      "id": "ms_h_0",
-      "name": "（週一）– 2026/05/08（週五）",
-      "date": "2026-05-04",
+      "id": "ms-w19-01",
+      "name": "創造栗官網產品 input 截止；Alex TVBS AVID 現場訪談",
+      "date": "2026-05-09",
       "status": "done",
-      "team": "",
-      "_source": "history",
-      "_updatedAt": "2026-05-06T23:45:59.731Z",
-      "_createdAt": "2026-05-06T23:45:59.731Z"
+      "team": "chuangzaoli",
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
     },
     {
-      "id": "ms_h_1",
-      "name": "| 彙整人",
-      "date": "2026-05-08",
-      "status": "upcoming",
-      "team": "",
-      "_source": "history",
-      "_updatedAt": "2026-05-06T23:45:59.731Z",
-      "_createdAt": "2026-05-06T23:45:59.731Z"
+      "id": "ms-w19-02",
+      "name": "Steve API 擴充清單 + DGX capacity 數字備妥",
+      "date": "2026-05-12",
+      "status": "done",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
     },
     {
-      "id": "ms_h_2",
-      "name": "–05/15）",
-      "date": "2026-05-11",
+      "id": "ms-w19-03",
+      "name": "JH × OpenMAM 整合討論會（定案積極 vs 消極路線）；金門教育處再訪",
+      "date": "2026-05-13",
+      "status": "done",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "ms-w19-04",
+      "name": "影像快剪多頻輸出 PRD 截止",
+      "date": "2026-05-15",
+      "status": "done",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "ms-w19-05",
+      "name": "創造栗官網首頁 + 小栗方 Pro 獨立頁更新完成",
+      "date": "2026-05-22",
       "status": "upcoming",
-      "team": "",
-      "_source": "history",
-      "_updatedAt": "2026-05-06T23:45:59.731Z",
-      "_createdAt": "2026-05-06T23:45:59.731Z"
+      "team": "chuangzaoli",
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "ms-w19-06",
+      "name": "威栗雲台灣版更新：月底前決定是否排入",
+      "date": "2026-05-31",
+      "status": "upcoming",
+      "team": "learnmode",
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
+    },
+    {
+      "id": "ms-w19-07",
+      "name": "AI 輕量 NLE（OpenEdit Plus）Alpha / Beta 發布",
+      "date": "2026-09-30",
+      "status": "upcoming",
+      "team": "media-agent",
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
     }
   ],
   "snapshots": [
@@ -253,6 +751,32 @@
       "snapshotBy": "System",
       "_createdAt": "2026-04-29T07:06:58.000Z",
       "_updatedAt": "2026-04-29T07:06:58.000Z"
+    },
+    {
+      "id": "snap-W19",
+      "weekStart": "2026-05-04",
+      "weekLabel": "W19",
+      "totalProjects": 10,
+      "onTrackPct": 20,
+      "atRiskCount": 6,
+      "behindCount": 2,
+      "highRisks": 3,
+      "mediumRisks": 4,
+      "lowRisks": 2,
+      "totalActions": 29,
+      "completedActions": 0,
+      "overdueActions": 2,
+      "teamHealth": {
+        "media-agent": 45,
+        "learnmode": 50,
+        "chuangzaoli": 60,
+        "tv-solution": 72,
+        "healthcare": 75
+      },
+      "reviewStatus": "draft",
+      "snapshotBy": "Alex Liao",
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "_updatedAt": "2026-05-08T08:00:00.000Z"
     }
   ],
   "drafts": [],
@@ -834,6 +1358,6 @@
       "notes": "預測基準"
     }
   ],
-  "_exportedAt": "2026-05-06T23:45:59.731Z",
+  "_exportedAt": "2026-05-08T08:00:00.000Z",
   "_version": "2.1"
 }
