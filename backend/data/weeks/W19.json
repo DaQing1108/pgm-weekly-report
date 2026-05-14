@@ -212,7 +212,9 @@
       "dueDate": "2026-05-12",
       "status": "in-progress",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-02",
@@ -221,7 +223,9 @@
       "dueDate": "2026-05-12",
       "status": "pending",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-03",
@@ -230,7 +234,9 @@
       "dueDate": "2026-05-08",
       "status": "pending",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-04",
@@ -239,7 +245,9 @@
       "dueDate": "2026-05-15",
       "status": "in-progress",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-05",
@@ -248,7 +256,9 @@
       "dueDate": "2026-05-09",
       "status": "in-progress",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-06",
@@ -257,7 +267,9 @@
       "dueDate": "2026-05-08",
       "status": "in-progress",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-07",
@@ -266,7 +278,9 @@
       "dueDate": null,
       "status": "in-progress",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-08",
@@ -275,7 +289,9 @@
       "dueDate": null,
       "status": "in-progress",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-09",
@@ -284,7 +300,9 @@
       "dueDate": "2026-05-13",
       "status": "pending",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-10",
@@ -293,7 +311,9 @@
       "dueDate": null,
       "status": "not-started",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-11",
@@ -302,7 +322,9 @@
       "dueDate": null,
       "status": "in-progress",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-12",
@@ -311,7 +333,9 @@
       "dueDate": null,
       "status": "pending",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-13",
@@ -320,7 +344,9 @@
       "dueDate": "2026-05-08",
       "status": "in-progress",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-14",
@@ -329,7 +355,9 @@
       "dueDate": null,
       "status": "pending",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "resource",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-15",
@@ -338,7 +366,9 @@
       "dueDate": "2026-05-13",
       "status": "pending",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-16",
@@ -347,7 +377,9 @@
       "dueDate": null,
       "status": "in-progress",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-17",
@@ -356,7 +388,9 @@
       "dueDate": "2026-05-01",
       "status": "overdue",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-18",
@@ -365,7 +399,9 @@
       "dueDate": "2026-04-17",
       "status": "overdue",
       "team": "media-agent",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-19",
@@ -374,7 +410,9 @@
       "dueDate": null,
       "status": "in-progress",
       "team": "healthcare",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-20",
@@ -383,7 +421,9 @@
       "dueDate": "2026-05-12",
       "status": "in-progress",
       "team": "learnmode",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-21",
@@ -392,7 +432,9 @@
       "dueDate": null,
       "status": "in-progress",
       "team": "learnmode",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-22",
@@ -401,7 +443,9 @@
       "dueDate": "2026-05-08",
       "status": "in-progress",
       "team": "learnmode",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-23",
@@ -410,7 +454,9 @@
       "dueDate": "2026-05-09",
       "status": "in-progress",
       "team": "chuangzaoli",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-24",
@@ -419,7 +465,9 @@
       "dueDate": "2026-05-22",
       "status": "in-progress",
       "team": "chuangzaoli",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-25",
@@ -428,7 +476,9 @@
       "dueDate": null,
       "status": "in-progress",
       "team": "chuangzaoli",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-26",
@@ -437,7 +487,9 @@
       "dueDate": null,
       "status": "pending",
       "team": "learnmode",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "business",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-27",
@@ -446,7 +498,9 @@
       "dueDate": "2026-05-08",
       "status": "in-progress",
       "team": "learnmode",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-28",
@@ -455,7 +509,9 @@
       "dueDate": null,
       "status": "pending",
       "team": "learnmode",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "technical",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     },
     {
       "id": "act-w19-29",
@@ -464,7 +520,9 @@
       "dueDate": null,
       "status": "waiting",
       "team": "learnmode",
-      "_createdAt": "2026-05-08T08:00:00.000Z"
+      "_createdAt": "2026-05-08T08:00:00.000Z",
+      "category": "resource",
+      "_updatedAt": "2026-05-14T01:30:19.000Z"
     }
   ],
   "milestones": [

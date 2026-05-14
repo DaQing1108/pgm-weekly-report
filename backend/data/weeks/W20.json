@@ -233,7 +233,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-02",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-02",
@@ -246,7 +247,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-02",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-03",
@@ -259,7 +261,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-01",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-04",
@@ -272,7 +275,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-01",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-05",
@@ -285,7 +289,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-05",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-06",
@@ -298,7 +303,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-03",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-07",
@@ -311,7 +317,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-04",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-08",
@@ -324,7 +331,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-05",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     },
     {
       "id": "action-w20-09",
@@ -337,7 +345,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-05",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-10",
@@ -350,7 +359,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-05",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-11",
@@ -363,7 +373,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-02",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-12",
@@ -376,7 +387,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-02",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-13",
@@ -389,7 +401,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-06",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-14",
@@ -402,7 +415,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-06",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-15",
@@ -414,7 +428,8 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     },
     {
       "id": "action-w20-16",
@@ -426,7 +441,8 @@
       "priority": "P1",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     },
     {
       "id": "action-w20-17",
@@ -439,7 +455,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-10",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     },
     {
       "id": "action-w20-18",
@@ -452,7 +469,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-09",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     },
     {
       "id": "action-w20-19",
@@ -464,7 +482,8 @@
       "priority": "P1",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     },
     {
       "id": "action-w20-20",
@@ -476,7 +495,8 @@
       "priority": "P1",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     },
     {
       "id": "action-w20-21",
@@ -488,7 +508,8 @@
       "priority": "P1",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-22",
@@ -500,7 +521,8 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "resource"
     },
     {
       "id": "action-w20-23",
@@ -512,7 +534,8 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "resource"
     },
     {
       "id": "action-w20-24",
@@ -524,7 +547,8 @@
       "priority": "P1",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     },
     {
       "id": "action-w20-25",
@@ -536,7 +560,8 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     },
     {
       "id": "action-w20-26",
@@ -549,7 +574,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-08",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "technical"
     },
     {
       "id": "action-w20-27",
@@ -562,7 +588,8 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-07",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     },
     {
       "id": "action-w20-28",
@@ -574,7 +601,8 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "resource"
     },
     {
       "id": "action-w20-29",
@@ -586,7 +614,8 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:17:07.000Z"
+      "_updatedAt": "2026-05-14T01:30:19.000Z",
+      "category": "business"
     }
   ],
   "milestones": [
@@ -1524,5 +1553,5 @@
   ],
   "_exportedAt": "2026-05-13T23:43:49.962Z",
   "_version": "2.1",
-  "_savedAt": "2026-05-14T01:17:07.000Z"
+  "_savedAt": "2026-05-14T01:30:19.000Z"
 }
