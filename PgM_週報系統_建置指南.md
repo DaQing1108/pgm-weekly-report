@@ -21,7 +21,8 @@ GitHub：https://github.com/DaQing1108/pgm-weekly-report
 6. [新增週報流程](#6-新增週報流程)
 7. [常見問題排解](#7-常見問題排解)
 8. [資料品質工具](#8-資料品質工具)
-9. [版本歷程](#9-版本歷程)
+9. [PostgreSQL 資料持久化](#9-postgresql-資料持久化)
+10. [版本歷程](#10-版本歷程)
 
 ---
 
@@ -33,17 +34,26 @@ GitHub：https://github.com/DaQing1108/pgm-weekly-report
 └──────────────┬──────────────────────┘
                │ HTTPS
 ┌──────────────▼──────────────────────┐
-│     Railway（單一服務）              │
+│     Railway — 主服務                 │
 │                                     │
 │  Express Server (port 3001)         │
-│  ├── GET /api/health                │
-│  ├── GET /api/reports   ←── 讀取    │
-│  │                          .md檔   │
-│  └── /*  → 提供 React 靜態檔案      │
-│                                     │
-│  backend/reports/*.md（週報來源）    │
-│  frontend/dist/（React 打包產出）    │
-└─────────────────────────────────────┘
+│  ├── GET  /api/health               │
+│  ├── GET  /api/reports   ←── .md    │
+│  ├── GET  /api/weeks/:label         │
+│  ├── POST /api/weeks/:label  ──┐    │
+│  └── /*  → Vanilla JS SPA      │    │
+│                                │    │
+│  backend/src/db.js             │    │
+│  ├── DATABASE_URL 存在 → PG 模式│    │
+│  └── 未設定 → 本機 JSON 檔案    │    │
+└────────────────────────────────┼────┘
+                                 │ Railway 內網
+                 ┌───────────────▼──────────────┐
+                 │  Railway — PostgreSQL 服務    │
+                 │  postgres:16-alpine           │
+                 │  週次資料永久保存              │
+                 │  (weeks 表，JSONB 欄位)        │
+                 └──────────────────────────────┘
 ```
 
 **設計原則：前後端合併為單一服務**
@@ -519,7 +529,95 @@ bash scripts/install-hooks.sh
 
 ---
 
-## 9. 版本歷程
+## 9. PostgreSQL 資料持久化
+
+Railway 的 Docker 容器在每次 redeploy 後，檔案系統會還原為 git 原始狀態。  
+v3.22 起改用 **PostgreSQL** 儲存週次資料，網頁編輯結果永久保存，不受 redeploy 影響。
+
+### 雙模式資料層（`backend/src/db.js`）
+
+| 環境 | 模式 | 說明 |
+|------|------|------|
+| 本機開發（未設 `DATABASE_URL`） | Filesystem | 讀寫 `backend/data/weeks/*.json` |
+| Railway 生產環境 | PostgreSQL | 讀寫 `weeks` 資料表（JSONB） |
+
+程式碼自動判斷，切換零成本：
+
+```js
+module.exports = process.env.DATABASE_URL ? buildPgImpl() : fsImpl;
+```
+
+### PostgreSQL Schema
+
+```sql
+CREATE TABLE IF NOT EXISTS weeks (
+  week_label TEXT        PRIMARY KEY,  -- 'W20'
+  data       JSONB       NOT NULL,     -- 完整週次 JSON
+  saved_at   TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Auto-Seed（首次啟動自動移入）
+
+`initDB()` 在啟動時檢查 `weeks` 表是否為空；若空，自動將 `backend/data/weeks/*.json` 中所有週次一次性匯入。之後的更新以 DB 為主，不再讀取 JSON 檔案。
+
+```
+[db] Seeding 12 week(s) from JSON files…
+[db] Seed complete.
+[db] PostgreSQL mode — schema ready
+```
+
+### Railway 設定步驟
+
+**Step 1：在 Railway 專案中新增 PostgreSQL 服務**
+
+1. 開啟 Railway 專案 Dashboard
+2. 點選 **+ Add Service** → **Database** → **PostgreSQL**
+3. 選擇 `postgres:16-alpine`（官方映像）
+4. 等待 Deploy 完成（約 40 秒）
+
+**Step 2：取得內網連線字串**
+
+PostgreSQL 服務 Deploy 完成後，在其 **Variables** 頁取得：
+
+| 變數 | 範例值 |
+|------|--------|
+| `PGHOST` | `postgres-xxxx.railway.internal` |
+| `PGPASSWORD` | `<自動生成>` |
+| `PGPORT` | `5432` |
+| `PGDATABASE` | `railway` |
+
+**Step 3：設定主服務的 `DATABASE_URL`**
+
+在**主服務**（Express）的 Variables 頁新增：
+
+```
+DATABASE_URL=postgresql://postgres:<PASSWORD>@<PGHOST>:5432/railway?sslmode=disable
+```
+
+> `?sslmode=disable` 是必要的：Railway 內網 postgres:16 預設未啟用 SSL，  
+> 省略此參數會報錯 `"The server does not support SSL connections"`。
+
+**Step 4：觸發 Redeploy**
+
+設定 `DATABASE_URL` 後，主服務會自動 redeploy。啟動日誌應出現：
+
+```
+[db] Seeding N week(s) from JSON files…
+[db] PostgreSQL mode — schema ready
+Server running at http://localhost:3001
+```
+
+### 驗證
+
+```bash
+# 透過 API 確認週次已存入 DB
+curl https://pgm-weekly-report-production.up.railway.app/api/weeks | jq '.[] | {weekLabel, projectCount, onTrackPct}'
+```
+
+---
+
+## 10. 版本歷程
 
 | 版本 | 日期 | 說明 |
 |------|------|------|
@@ -539,7 +637,13 @@ bash scripts/install-hooks.sh
 | | | 新工具：`scripts/validate-week.py` |
 | | | 新工具：`scripts/new-week.py` |
 | | | 新工具：`scripts/install-hooks.sh`（pre-push 驗證） |
+| **v3.22** | **2026/05/15** | **PostgreSQL 資料持久化** |
+| | | Railway 新增 PostgreSQL 服務（postgres:16-alpine） |
+| | | `backend/src/db.js`：雙模式資料層（PG / Filesystem） |
+| | | Auto-seed：首次啟動自動將 W09–W20 匯入 DB |
+| | | `DATABASE_URL` + `?sslmode=disable` 設定於主服務 |
+| | | 網頁編輯資料永久保存，不受 redeploy 影響 |
 
 ---
 
-*建置人：Alex Liao／2026/03/19，最後更新：2026/05/14*
+*建置人：Alex Liao／2026/03/19，最後更新：2026/05/15*
