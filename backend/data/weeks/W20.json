@@ -10,7 +10,7 @@
       "owner": "Steve Liu",
       "dueDate": "2026-06-30",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z",
+      "_updatedAt": "2026-05-14T01:17:07.000Z",
       "progress": 15
     },
     {
@@ -23,7 +23,7 @@
       "owner": "Steve Liu",
       "dueDate": "2026-05-20",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z",
+      "_updatedAt": "2026-05-14T01:17:07.000Z",
       "progress": 10
     },
     {
@@ -36,7 +36,7 @@
       "owner": "Alex Liao",
       "dueDate": "2026-05-20",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z",
+      "_updatedAt": "2026-05-14T01:17:07.000Z",
       "progress": 25
     },
     {
@@ -49,7 +49,7 @@
       "owner": "Alex Liao",
       "dueDate": "2026-05-20",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z",
+      "_updatedAt": "2026-05-14T01:17:07.000Z",
       "progress": 15
     },
     {
@@ -62,7 +62,7 @@
       "owner": "Steve Liu",
       "dueDate": "2026-09-30",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z",
+      "_updatedAt": "2026-05-14T01:17:07.000Z",
       "progress": 35
     },
     {
@@ -75,7 +75,7 @@
       "owner": "Tonny Shen",
       "dueDate": null,
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z",
+      "_updatedAt": "2026-05-14T01:17:07.000Z",
       "progress": 20
     },
     {
@@ -88,7 +88,7 @@
       "owner": "Eddy Lin",
       "dueDate": null,
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z",
+      "_updatedAt": "2026-05-14T01:17:07.000Z",
       "progress": 15
     },
     {
@@ -101,7 +101,7 @@
       "owner": "Steven CH",
       "dueDate": "2026-05-21",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z",
+      "_updatedAt": "2026-05-14T01:17:07.000Z",
       "progress": 10
     },
     {
@@ -114,7 +114,7 @@
       "owner": "Steven CH",
       "dueDate": "2026-05-22",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z",
+      "_updatedAt": "2026-05-14T01:17:07.000Z",
       "progress": 15
     },
     {
@@ -127,7 +127,7 @@
       "owner": "Alex Liao",
       "dueDate": "2026-05-22",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z",
+      "_updatedAt": "2026-05-14T01:17:07.000Z",
       "progress": 10
     }
   ],
@@ -141,7 +141,7 @@
       "weekStart": "2026-05-11",
       "mitigation": "YouTube 下載為臨時方案；等管理員回來後確認原始素材路徑；多軌音訊能否分離另行確認",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "risk-w20-02",
@@ -152,7 +152,7 @@
       "weekStart": "2026-05-11",
       "mitigation": "Steve 設計 AI Server 架構時需一併定義模型選型原則；差異化策略轉向編輯 UX",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "risk-w20-03",
@@ -163,7 +163,7 @@
       "weekStart": "2026-05-11",
       "mitigation": "Demo 管控原則已確立（涉台官員場合暫不用 AI 語音）；長期需更換或微調 TW 版模型",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "risk-w20-04",
@@ -174,7 +174,7 @@
       "weekStart": "2026-05-11",
       "mitigation": "5/16 會議釐清產品定位後，再設計 user scenario；新北市 pilot proposal 並行推進",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "risk-w20-05",
@@ -185,7 +185,7 @@
       "weekStart": "2026-05-11",
       "mitigation": "Quick fix（排序邏輯）先推讓 TVBS 看到改善；長期修復與歷史資料掃描排程同步規劃",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "risk-w20-06",
@@ -196,7 +196,7 @@
       "weekStart": "2026-05-11",
       "mitigation": "Sophia 回台後提交 summary report；後續另行安排拜訪",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "risk-w20-07",
@@ -207,7 +207,7 @@
       "weekStart": "2026-05-11",
       "mitigation": "Dream 與各 BU 逐一對齊格式；JH 那邊同步調整",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "risk-w20-08",
@@ -218,7 +218,7 @@
       "weekStart": "2026-05-11",
       "mitigation": "Michael + 黎博另約面談決定 Q2 工作排序",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     }
   ],
   "actions": [
@@ -233,7 +233,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-02",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-02",
@@ -246,7 +246,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-02",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-03",
@@ -259,7 +259,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-01",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-04",
@@ -272,7 +272,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-01",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-05",
@@ -285,7 +285,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-05",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-06",
@@ -298,7 +298,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-03",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-07",
@@ -311,7 +311,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-04",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-08",
@@ -324,7 +324,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-05",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-09",
@@ -337,7 +337,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-05",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-10",
@@ -350,7 +350,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-05",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-11",
@@ -363,7 +363,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-02",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-12",
@@ -376,7 +376,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-02",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-13",
@@ -389,7 +389,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-06",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-14",
@@ -402,7 +402,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-06",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-15",
@@ -414,7 +414,7 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-16",
@@ -426,7 +426,7 @@
       "priority": "P1",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-17",
@@ -439,7 +439,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-10",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-18",
@@ -452,7 +452,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-09",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-19",
@@ -464,7 +464,7 @@
       "priority": "P1",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-20",
@@ -476,7 +476,7 @@
       "priority": "P1",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-21",
@@ -488,7 +488,7 @@
       "priority": "P1",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-22",
@@ -500,7 +500,7 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-23",
@@ -512,7 +512,7 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-24",
@@ -524,7 +524,7 @@
       "priority": "P1",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-25",
@@ -536,7 +536,7 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-26",
@@ -549,7 +549,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-08",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-27",
@@ -562,7 +562,7 @@
       "weekStart": "2026-05-11",
       "projectId": "proj-w20-07",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-28",
@@ -574,7 +574,7 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "action-w20-29",
@@ -586,7 +586,7 @@
       "priority": "P2",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     }
   ],
   "milestones": [
@@ -598,7 +598,7 @@
       "team": "tv-solution",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "ms-w20-02",
@@ -608,7 +608,7 @@
       "team": "chuangzaoli",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "ms-w20-03",
@@ -618,7 +618,7 @@
       "team": "media-agent",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "ms-w20-04",
@@ -628,7 +628,7 @@
       "team": "learnmode",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "ms-w20-05",
@@ -638,7 +638,7 @@
       "team": "tv-solution",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "ms-w20-06",
@@ -648,7 +648,7 @@
       "team": "media-agent",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "ms-w20-07",
@@ -658,7 +658,7 @@
       "team": "media-agent",
       "weekStart": "2026-05-11",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     }
   ],
   "snapshots": [
@@ -685,7 +685,7 @@
       },
       "reviewStatus": "approved",
       "snapshotBy": "Kevin Chang",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "snap-w7",
@@ -710,7 +710,7 @@
       },
       "reviewStatus": "approved",
       "snapshotBy": "Kevin Chang",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "snap-w8",
@@ -735,7 +735,7 @@
       },
       "reviewStatus": "approved",
       "snapshotBy": "Kevin Chang",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "snap-w9",
@@ -760,7 +760,7 @@
       },
       "reviewStatus": "approved",
       "snapshotBy": "Alex Liao",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "snap-w10",
@@ -785,7 +785,7 @@
       },
       "reviewStatus": "approved",
       "snapshotBy": "Alex Liao",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "snap-w11",
@@ -810,7 +810,7 @@
       },
       "reviewStatus": "draft",
       "snapshotBy": "Alex Liao",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "snap-2026-04-13",
@@ -836,7 +836,7 @@
       "reviewStatus": "draft",
       "snapshotBy": "Alex Liao",
       "createdAt": "2026-04-16T08:00:00.000Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "snap-W17",
@@ -862,7 +862,7 @@
       "reviewStatus": "draft",
       "snapshotBy": "Alex Liao",
       "_createdAt": "2026-04-23T08:00:00.000Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "snap-w18",
@@ -888,7 +888,7 @@
       "reviewStatus": "draft",
       "snapshotBy": "System",
       "_createdAt": "2026-04-29T07:06:58.000Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "snap-W19",
@@ -914,7 +914,7 @@
       "reviewStatus": "draft",
       "snapshotBy": "Alex Liao",
       "_createdAt": "2026-05-08T08:00:00.000Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     },
     {
       "id": "snap-W20",
@@ -940,7 +940,7 @@
       "reviewStatus": "draft",
       "snapshotBy": "Alex Liao",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-14T01:03:26.000Z"
+      "_updatedAt": "2026-05-14T01:17:07.000Z"
     }
   ],
   "drafts": [],
@@ -1524,5 +1524,5 @@
   ],
   "_exportedAt": "2026-05-13T23:43:49.962Z",
   "_version": "2.1",
-  "_savedAt": "2026-05-14T01:03:26.000Z"
+  "_savedAt": "2026-05-14T01:17:07.000Z"
 }
