@@ -10,7 +10,8 @@
       "owner": "Steve Liu",
       "dueDate": "2026-06-30",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "progress": 15
     },
     {
       "id": "proj-w20-02",
@@ -22,7 +23,8 @@
       "owner": "Steve Liu",
       "dueDate": "2026-05-20",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "progress": 10
     },
     {
       "id": "proj-w20-03",
@@ -34,7 +36,8 @@
       "owner": "Alex Liao",
       "dueDate": "2026-05-20",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "progress": 25
     },
     {
       "id": "proj-w20-04",
@@ -46,7 +49,8 @@
       "owner": "Alex Liao",
       "dueDate": "2026-05-20",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "progress": 15
     },
     {
       "id": "proj-w20-05",
@@ -58,7 +62,8 @@
       "owner": "Steve Liu",
       "dueDate": "2026-09-30",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "progress": 35
     },
     {
       "id": "proj-w20-06",
@@ -70,7 +75,8 @@
       "owner": "Tonny Shen",
       "dueDate": null,
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "progress": 20
     },
     {
       "id": "proj-w20-08",
@@ -82,7 +88,8 @@
       "owner": "Eddy Lin",
       "dueDate": null,
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "progress": 15
     },
     {
       "id": "proj-w20-09",
@@ -94,7 +101,8 @@
       "owner": "Steven CH",
       "dueDate": "2026-05-21",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "progress": 10
     },
     {
       "id": "proj-w20-11",
@@ -106,7 +114,8 @@
       "owner": "Steven CH",
       "dueDate": "2026-05-22",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "progress": 15
     },
     {
       "id": "proj-w20-12",
@@ -118,7 +127,8 @@
       "owner": "Alex Liao",
       "dueDate": "2026-05-22",
       "_createdAt": "2026-05-13T23:43:49.962Z",
-      "_updatedAt": "2026-05-13T23:43:49.962Z"
+      "_updatedAt": "2026-05-13T23:43:49.962Z",
+      "progress": 10
     }
   ],
   "risks": [
