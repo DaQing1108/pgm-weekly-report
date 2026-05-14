@@ -6,6 +6,7 @@
      2. input.html 使用 ephemeral /api/state，部署後資料消失
      3. 歷史唯讀模式仍啟動 startBackendSync，可能誤寫歷史 JSON（v3.5 修正）
      4. resources 跨季資料混入週次 JSON sync（v3.9 修正：改用 _exportWeekObj）
+     5. 本機較新但 actions/risks/milestones 為空時不從後端補入，導致頁面空白（P3 修正）
 
    資料優先順序（唯一來源）：
      /api/weeks/:latestLabel（git 持久）→ 所有裝置看到一致資料
@@ -111,6 +112,21 @@ export async function appInit() {
 
       if (_localIsNewer) {
         console.info(`[appInit] 本機資料(${localTs}) 比後端(${serverTs || 'none'})新，保留本機，稍後推送`);
+        // P3 修正：本機較新時保留用戶的 projects 編輯，
+        //   但 actions / risks / milestones 若本機為空，則從後端補入，
+        //   避免因初始化空值被保留而導致頁面顯示空白。
+        const SUPPLEMENTABLE = ['actions', 'risks', 'milestones'];
+        SUPPLEMENTABLE.forEach(key => {
+          try {
+            const localRaw = localStorage.getItem(`pgm_sync_${key}`);
+            const localArr = localRaw ? JSON.parse(localRaw) : [];
+            if ((!Array.isArray(localArr) || localArr.length === 0) &&
+                Array.isArray(data[key]) && data[key].length > 0) {
+              store.save(key, data[key]);
+              console.info(`[appInit] 本機 ${key} 為空，從後端補入 ${data[key].length} 筆`);
+            }
+          } catch { /* silent */ }
+        });
         window._appInitLocalNewer = true;
       } else {
         store.importAll(data);
