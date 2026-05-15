@@ -10,3 +10,4 @@ frontend/dist/
 .env
 .env.local
 .claude/
+backend/drafts/*.md
