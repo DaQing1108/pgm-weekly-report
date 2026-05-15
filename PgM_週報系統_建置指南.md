@@ -291,23 +291,27 @@ pgm-weekly-report/
 ├── railway.json             # Railway 設定
 ├── backend/
 │   ├── package.json
-│   ├── reports/             # ← 週報 .md 檔放這裡
-│   │   ├── MediaAgent_週報_v6.md
-│   │   └── MediaAgent_週報_v8.md
+│   ├── data/weeks/          # ← 週次 JSON 資料（W09–）
+│   │   ├── W20.json
+│   │   └── ...
+│   ├── drafts/              # ← AI 草稿暫存（已加入 .gitignore）
+│   │   └── ProgramSync_W##_YYYY-MM-DD_draft.md
 │   └── src/
-│       └── index.js         # Express server
-└── frontend/
-    ├── index.html
-    ├── package.json
-    ├── vite.config.js
-    └── src/
-        ├── main.jsx
-        └── App.jsx          # 主要 UI 元件
+│       ├── index.js         # Express server
+│       └── db.js            # 雙模式資料層（PG / Filesystem）
+├── program-sync/            # Vanilla JS 前端 SPA
+│   ├── index.html           # Dashboard 主頁
+│   └── input.html           # Quick Input 頁面
+└── scripts/
+    ├── import-draft.py      # 草稿 → Railway 匯入工具
+    ├── validate-week.py     # JSON 資料驗證器
+    ├── new-week.py          # 新週骨架生成工具
+    └── install-hooks.sh     # Git pre-push hook 安裝
 ```
 
-**重點：週報 `.md` 檔一律放在 `backend/reports/`**
-- 命名格式：`任意名稱_vN.md`（含 `v數字` 即可被識別版本號）
-- 內文需包含 `報告週期：YYYY/MM/DD – YYYY/MM/DD` 供側欄顯示
+**重點：週次資料存放規則**
+- 已確認資料：`backend/data/weeks/W##.json`（提交至 git）
+- AI 草稿：`backend/drafts/ProgramSync_W##_date_draft.md`（不提交，僅本機暫存）
 
 ---
 
@@ -389,35 +393,65 @@ CMD ["node", "backend/src/index.js"]
 
 ## 6. 新增週報流程
 
-### 方式一：使用 new-week.py 自動生成（建議）
+### 標準流程（AI 草稿 → 審閱 → 匯入）
+
+本系統採用「AI 輔助生成 → 人工審閱 → 一鍵匯入」的三階段流程，無需手動編輯 JSON。
+
+#### Stage 1：AI 生成草稿（Claude Code）
+
+在 Claude Code 中提供本週資料來源：
+
+| # | 來源 | 提供方式 |
+|---|------|----------|
+| 1–N | 本週 Notion 會議記錄 | 提供頁面 URL，AI 自動讀取 |
+| N+1 | PM Tasks（Open Tasks view） | 在 Notion 全選任務欄 → 複製貼入對話視窗 |
+
+AI 讀取後產出草稿，存入 `backend/drafts/ProgramSync_W##_YYYY-MM-DD_draft.md`。
+
+**找到本週會議 URL 的方式：**  
+開啟 Notion `Meeting & Decision Log` 資料庫，依 `Meeting Date` 篩選該週，複製所有頁面 URL。
+
+#### Stage 2：審閱草稿
+
+開啟 `backend/drafts/ProgramSync_W##_YYYY-MM-DD_draft.md`，確認：
+
+- [ ] 週次正確（W##）
+- [ ] 所有專案狀態合法（on-track / at-risk / behind / completed）
+- [ ] 所有 Action Items 均有負責人與分類
+- [ ] Risks 嚴重度已填寫
+- [ ] 沒有捏造的數字或人名
+
+#### Stage 3：匯入 Dashboard
+
+在 Claude Code 說「**請將 W## 草稿匯入 Dashboard**」，AI 執行：
 
 ```bash
-# Step 1：從上週自動生成新週 JSON（攜帶未完成專案與任務）
-python3 scripts/new-week.py W21
-
-# Step 2：編輯 backend/data/weeks/W21.json
-#   - 更新各專案 progress、description
-#   - 新增本週 Action Items
-#   - 修改已解決的 risks
-#   - 加入本週 snapshot 資料
-
-# Step 3：驗證資料（可加 --fix 自動修正常見問題）
-python3 scripts/validate-week.py W21
-
-# Step 4：commit & push（pre-push hook 會自動再驗證一次）
-git add backend/data/weeks/W21.json
-git commit -m "data: add W21 weekly snapshot"
-git push
+python3 scripts/import-draft.py backend/drafts/ProgramSync_W##_YYYY-MM-DD_draft.md --push
 ```
 
-### 方式二：手動建立 JSON
+工具會自動完成：
+1. 解析草稿 Markdown 表格
+2. 與現有 W##.json 合併（保留 id、_createdAt）
+3. 重新計算 snapshot（on-track/at-risk/behind 計數）
+4. 驗證資料格式
+5. 推送至 Railway PostgreSQL
 
-直接複製前一週 JSON 並修改，完成後務必執行驗證：
+---
+
+### 備用流程：使用 new-week.py 生成骨架後手動填寫
+
+適合無 AI 協助或需要快速建立骨架的場景：
 
 ```bash
-cp backend/data/weeks/W20.json backend/data/weeks/W21.json
-# 編輯 W21.json...
-python3 scripts/validate-week.py W21 --fix
+# Step 1：生成新週骨架（攜帶未完成事項）
+python3 scripts/new-week.py W21
+
+# Step 2：手動編輯 backend/data/weeks/W21.json
+
+# Step 3：驗證
+python3 scripts/validate-week.py W21
+
+# Step 4：commit & push
 git add backend/data/weeks/W21.json
 git commit -m "data: add W21 weekly snapshot"
 git push
@@ -460,6 +494,35 @@ git push
 ## 8. 資料品質工具
 
 所有工具位於 `scripts/` 目錄，使用 Python 3.8+，無需安裝額外套件。
+
+### import-draft.py — 草稿匯入工具
+
+將 AI 產出的週報草稿（Markdown 格式）解析並推送至 Railway Dashboard。
+
+**功能：**
+- 解析草稿中的「專案進度」、「Action Items」、「Risks」、「下週重點」Markdown 表格
+- 與現有週次 JSON 合併（匹配現有項目，保留 `id` 與 `_createdAt`）
+- 自動重新計算 snapshot 計數
+- 執行 `validate-week.py` 驗證後推送至 Railway API
+
+```bash
+# 預覽（不實際寫入）
+python3 scripts/import-draft.py backend/drafts/ProgramSync_W21_draft.md
+
+# 確認並推送至 Railway
+python3 scripts/import-draft.py backend/drafts/ProgramSync_W21_draft.md --push
+
+# 跳過確認提示
+python3 scripts/import-draft.py backend/drafts/ProgramSync_W21_draft.md --push --yes
+```
+
+**前置需求：** 環境變數 `ADMIN_TOKEN`（Railway 後端 API Token）
+
+```bash
+export ADMIN_TOKEN="your-token-here"
+```
+
+---
 
 ### validate-week.py — JSON 資料驗證器
 
@@ -643,6 +706,12 @@ curl https://pgm-weekly-report-production.up.railway.app/api/weeks | jq '.[] | {
 | | | Auto-seed：首次啟動自動將 W09–W20 匯入 DB |
 | | | `DATABASE_URL` + `?sslmode=disable` 設定於主服務 |
 | | | 網頁編輯資料永久保存，不受 redeploy 影響 |
+| **v3.23** | **2026/05/15** | **AI 草稿生成 + 一鍵匯入流程** |
+| | | 新工具：`scripts/import-draft.py`（草稿 MD → Railway API） |
+| | | 新目錄：`backend/drafts/`（AI 草稿暫存，已加入 .gitignore） |
+| | | SKILL.md：program-sync-report Skill 更新為 5 來源標準流程 |
+| | | input.html：移除「週報歸檔」Tab，改為非技術三步驟說明 |
+| | | 每週流程：AI 草稿 → 審閱 → import-draft.py → Railway |
 
 ---
 
