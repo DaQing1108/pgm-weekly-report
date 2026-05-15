@@ -71,11 +71,14 @@ pgm-weekly-report/
 
 ---
 
-## 完整文件
+## 文件
 
-詳細架構說明、Railway 部署步驟、PostgreSQL 設定、週報 AI 生成流程、import-draft.py 使用方式，請參閱：
-
-[PgM_週報系統_建置指南.md](PgM_週報系統_建置指南.md)
+| 文件 | 說明 |
+|------|------|
+| [PgM_週報系統_建置指南.md](PgM_週報系統_建置指南.md) | 完整架構、Railway 部署、AI 草稿流程 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本異動紀錄 |
+| [docs/PRD.md](docs/PRD.md) | 產品需求文件 |
+| [docs/AAD_整合建議.md](docs/AAD_整合建議.md) | Microsoft AAD 整合規劃（待實作） |
 
 ---
 
