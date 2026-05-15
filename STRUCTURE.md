@@ -52,11 +52,14 @@ Vanilla JS SPA，所有網頁管理功能都在這裡。
 
 ```
 program-sync/
+├── CLAUDE.md         Claude Code 在此目錄的工作說明（session 指引）
+├── README.md         program-sync 子模組說明
 ├── index.html        Dashboard（KPI + 專案狀態總覽）
 ├── input.html        快速輸入 / 本週資料建立（⬅ 每週主要操作入口）
 ├── risks.html        風險管理（多選篩選 + 跨週齡 badge）
 ├── actions.html      Action Items（逾期預警 + 跨週追蹤）
 ├── milestones.html   里程碑時間軸
+├── tracker.html      跨週未結項目追蹤（Projects / Risks / Actions 三合一）
 ├── review.html       審核與快照建立（⬅ 週結束時在這裡歸檔）
 ├── trends.html       歷史趨勢圖表 + 資源矩陣
 ├── report.html       週報草稿編輯
@@ -90,7 +93,8 @@ program-sync/
 
 | 腳本 | 用途 | 執行時機 |
 |------|------|---------|
-| `new-week.sh` | 建立新週 JSON（從上週複製資料） | 每週一，開始新週前 |
+| `new-week.sh` | 建立新週 JSON（從上週複製資料，Shell 版） | 每週一，開始新週前（**主要使用**） |
+| `new-week.py` | 建立新週 JSON（Python 版，與 .sh 功能相同） | 同上，bash 不可用時備用 |
 | `import-draft.py` | 將 AI 草稿推送至 Railway（跳過手動 JSON 編輯） | 審閱草稿後執行 |
 | `validate-week.py` | 驗證週次 JSON 格式是否正確 | release 前，或懷疑資料有問題時 |
 | `release-week.sh` | 週結束發布：驗證 → git commit → git push → Railway 自動部署 | 每週結束，完成歸檔後 |
@@ -127,6 +131,7 @@ program-sync/
 |------|------|
 | `PRD.md` | 產品需求文件（v1.0，2026/04/06） |
 | `AAD_整合建議.md` | Microsoft AAD 登入整合方案（待規劃，Pre-implementation） |
+| `組織架構與人員名單.md` | Claude 週報草稿校正字典：人名、產品名、術語對照表（AI 整理會議記錄時自動讀取） |
 
 ---
 
@@ -138,6 +143,18 @@ program-sync/
 ```
 
 通常不需要修改，除非要調整自動化排程或檢查條件。
+
+---
+
+### `program-sync-report-src/` — Skill 原始內容
+
+`program-sync-report.skill` 的完整提示詞原始檔，方便版控和審閱。
+
+| 檔案 | 說明 |
+|------|------|
+| `SKILL.md` | 週報草稿生成 Skill 的完整提示詞（與根目錄 `.skill` 檔同步） |
+
+> **注意**：`.skill` 是打包後的單一檔案（給 Claude Code 載入用），`-src/` 內是可讀的原始版本。兩者修改時需保持同步。
 
 ---
 
