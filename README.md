@@ -75,6 +75,7 @@ pgm-weekly-report/
 
 | 文件 | 說明 |
 |------|------|
+| [STRUCTURE.md](STRUCTURE.md) | 專案結構說明（每個資料夾與檔案的用途） |
 | [PgM_週報系統_建置指南.md](PgM_週報系統_建置指南.md) | 完整架構、Railway 部署、AI 草稿流程 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本異動紀錄 |
 | [docs/PRD.md](docs/PRD.md) | 產品需求文件 |
