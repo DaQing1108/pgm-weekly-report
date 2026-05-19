@@ -3,16 +3,25 @@
 scripts/import-draft.py — 從週報草稿 MD 匯入 Dashboard
 
 用法：
-    python3 scripts/import-draft.py ~/Desktop/ProgramSync_W21_2026-05-22_draft.md
-    python3 scripts/import-draft.py ~/Desktop/ProgramSync_W21_2026-05-22_draft.md --push
-    python3 scripts/import-draft.py ~/Desktop/ProgramSync_W21_2026-05-22_draft.md --yes
+    # 舊版草稿（四張表格格式）
+    python3 scripts/import-draft.py backend/drafts/ProgramSync_W21_2026-05-22_draft.md
+    python3 scripts/import-draft.py backend/drafts/ProgramSync_W21_2026-05-22_draft.md --push
+
+    # v2 九章敘事週報（含 Appendix: Dashboard Export）
+    python3 scripts/import-draft.py VIA_Cowork/.../260519_ProgramSync_Week21_FINAL.md --push
+
+    # 略過確認提示
+    python3 scripts/import-draft.py <path> --push --yes
 
 功能：
-    1. 解析草稿 MD 中的 專案進度、Action Items、Risks 三張表
+    1. 自動偵測格式：
+       - v2 格式（九章報告）：從 "Appendix: Dashboard Export" 解析
+       - 舊版格式（草稿）：從四張 Markdown 表格解析
     2. 轉換為 Dashboard JSON 格式
     3. 若目標 W##.json 已存在，合併（保留已有項目的 ID 與 _createdAt）
-    4. 寫入 backend/data/weeks/W##.json
-    5. --push：呼叫 Railway API 同步至線上 DB（需 ADMIN_TOKEN 環境變數）
+    4. 進度 % 處理：v2 格式的 [keep] 標記會保留現有週次的進度值
+    5. 寫入 backend/data/weeks/W##.json
+    6. --push：呼叫 Railway API 同步至線上 DB（需 ADMIN_TOKEN 環境變數）
 """
 
 import sys
@@ -75,18 +84,8 @@ def parse_date(raw):
     return ""
 
 # ── Markdown 表格解析 ────────────────────────────────────────────────────────
-def parse_table(text, section_header):
-    """
-    找到 section_header 之後的第一張 markdown table，
-    回傳 list of dict（key = header 欄名）。
-    """
-    # 找 section
-    pattern = rf"##\s+{re.escape(section_header)}\s*\n(.*?)(?=\n##\s|\Z)"
-    m = re.search(pattern, text, re.DOTALL)
-    if not m:
-        return []
-
-    block = m.group(1)
+def _extract_table_rows(block: str) -> list:
+    """從 Markdown 區塊中解析表格，回傳 list of dict。"""
     lines = [l.strip() for l in block.splitlines() if l.strip().startswith("|")]
     if len(lines) < 2:
         return []
@@ -100,12 +99,46 @@ def parse_table(text, section_header):
         if re.match(r"\|[-| ]+\|", line):
             continue
         cells = split_row(line)
-        # pad or trim to match header count
         while len(cells) < len(headers):
             cells.append("")
         row = {h: cells[i] for i, h in enumerate(headers)}
         rows.append(row)
     return rows
+
+def parse_table(text, section_header):
+    """
+    找到 ## section_header 之後的第一張 markdown table，
+    回傳 list of dict（key = header 欄名）。
+    """
+    pattern = rf"##\s+{re.escape(section_header)}\s*\n(.*?)(?=\n##\s|\Z)"
+    m = re.search(pattern, text, re.DOTALL)
+    if not m:
+        return []
+    return _extract_table_rows(m.group(1))
+
+# ── v2 格式偵測與 Appendix 解析 ─────────────────────────────────────────────
+
+def is_v2_format(text: str) -> bool:
+    """偵測是否為九章敘事週報（v2）格式，含 Appendix: Dashboard Export。"""
+    return "## Appendix: Dashboard Export" in text
+
+def parse_appendix_table(text: str, section_name: str) -> list:
+    """
+    從 v2 週報的 Appendix 區塊中，解析指定子章節（### 標題）的 Markdown 表格。
+    """
+    appendix_match = re.search(
+        r"## Appendix: Dashboard Export\s*\n(.*?)(?=\n## |\Z)",
+        text, re.DOTALL
+    )
+    if not appendix_match:
+        return []
+
+    appendix_text = appendix_match.group(1)
+    pattern = rf"###\s+{re.escape(section_name)}\s*\n(.*?)(?=\n### |\Z)"
+    m = re.search(pattern, appendix_text, re.DOTALL)
+    if not m:
+        return []
+    return _extract_table_rows(m.group(1))
 
 # ── ID 生成 & 合併工具 ───────────────────────────────────────────────────────
 def make_id(prefix, week_label, index):
@@ -125,15 +158,15 @@ def find_existing(existing_list, key_field, value):
     return None
 
 # ── 草稿解析：專案進度 ────────────────────────────────────────────────────────
-def parse_projects(text, week_label, week_start, existing):
-    rows = parse_table(text, "專案進度")
+def parse_projects(text, week_label, week_start, existing, v2=False):
+    rows = parse_appendix_table(text, "專案進度") if v2 else parse_table(text, "專案進度")
     projects = []
     for i, row in enumerate(rows, 1):
-        name       = row.get("專案名稱", "").strip()
-        status     = row.get("狀態", "on-track").strip().lower()
-        progress   = row.get("進度 %", "0").strip().rstrip("%")
-        week_done  = row.get("本週更新", "").strip()
-        notes      = row.get("備註", "").strip()
+        name         = row.get("專案名稱", "").strip()
+        status       = row.get("狀態", "on-track").strip().lower()
+        progress_raw = row.get("進度 %", "0").strip().rstrip("%")
+        week_done    = row.get("本週更新", "").strip()
+        notes        = row.get("備註", "").strip()
 
         if not name or name.startswith("-"):
             continue
@@ -142,12 +175,17 @@ def parse_projects(text, week_label, week_start, existing):
         owner_match = re.search(r"(\w+(?:\s+\w+)?)\s*(?:主導|負責|Responsible)", notes)
         owner = owner_match.group(1) if owner_match else ""
 
-        try:
-            progress_int = int(float(progress))
-        except (ValueError, TypeError):
-            progress_int = 0
-
         existing_item = find_existing(existing, "name", name)
+
+        # [keep] 標記（v2 格式）：保留現有週次的進度值，不以草稿覆蓋
+        if progress_raw == "[keep]":
+            progress_int = existing_item.get("progress", 0) if existing_item else 0
+        else:
+            try:
+                progress_int = int(float(progress_raw))
+            except (ValueError, TypeError):
+                progress_int = 0
+
         proj = {
             "id":           existing_item["id"] if existing_item else make_id("proj", week_label, i),
             "name":         name,
@@ -177,8 +215,8 @@ STATUS_MAP = {
     "completed":   "done",
 }
 
-def parse_actions(text, week_label, week_start, existing, projects):
-    rows = parse_table(text, "Action Items")
+def parse_actions(text, week_label, week_start, existing, projects, v2=False):
+    rows = parse_appendix_table(text, "Action Items") if v2 else parse_table(text, "Action Items")
     actions = []
     proj_name_to_id = {p["name"]: p["id"] for p in projects}
 
@@ -226,8 +264,8 @@ def parse_actions(text, week_label, week_start, existing, projects):
     return actions
 
 # ── 草稿解析：Risks ───────────────────────────────────────────────────────────
-def parse_risks(text, week_label, week_start, existing):
-    rows = parse_table(text, "Risks")
+def parse_risks(text, week_label, week_start, existing, v2=False):
+    rows = parse_appendix_table(text, "Risks") if v2 else parse_table(text, "Risks")
     risks = []
     for i, row in enumerate(rows, 1):
         desc       = row.get("風險描述", "").strip()
@@ -308,12 +346,20 @@ def main():
         print(f"❌  找不到草稿：{draft_path}")
         sys.exit(1)
 
-    # 從檔名取得週次
-    m = re.search(r"ProgramSync_(W\d{1,2})_", draft_path.name, re.IGNORECASE)
-    if not m:
-        print("❌  無法從檔名解析週次，檔名格式應為 ProgramSync_W##_YYYY-MM-DD_draft.md")
+    # 從檔名取得週次，支援兩種命名格式：
+    # v2:  YYMMDD_ProgramSync_WeekXX_FINAL.md
+    # 舊版: ProgramSync_W##_YYYY-MM-DD_draft.md
+    m_v2  = re.search(r"ProgramSync_Week(\d{1,2})_", draft_path.name, re.IGNORECASE)
+    m_old = re.search(r"ProgramSync_(W\d{1,2})_",    draft_path.name, re.IGNORECASE)
+    if m_v2:
+        week_label = f"W{int(m_v2.group(1)):02d}"
+    elif m_old:
+        week_label = m_old.group(1).upper()
+    else:
+        print("❌  無法從檔名解析週次")
+        print("    v2  格式：YYMMDD_ProgramSync_WeekXX_FINAL.md")
+        print("    舊版格式：ProgramSync_W##_YYYY-MM-DD_draft.md")
         sys.exit(1)
-    week_label = m.group(1).upper()
     week_start = week_start_for(week_label)
     if not week_start:
         print(f"❌  無法計算 {week_label} 的 weekStart")
@@ -324,6 +370,13 @@ def main():
 
     # 讀取草稿
     text = draft_path.read_text(encoding="utf-8")
+
+    # 偵測格式
+    v2 = is_v2_format(text)
+    if v2:
+        print("📋  格式：九章敘事週報（v2）— 從 Appendix: Dashboard Export 解析")
+    else:
+        print("📋  格式：Dashboard 草稿（舊版）— 從四張表格解析")
 
     # 讀取現有 JSON（合併用）
     out_path = WEEKS_DIR / f"{week_label}.json"
@@ -339,9 +392,9 @@ def main():
     existing_risks    = existing_data.get("risks",    [])
 
     # 解析草稿
-    projects = parse_projects(text, week_label, week_start, existing_projects)
-    actions  = parse_actions(text, week_label, week_start, existing_actions, projects)
-    risks    = parse_risks(text, week_label, week_start, existing_risks)
+    projects = parse_projects(text, week_label, week_start, existing_projects, v2=v2)
+    actions  = parse_actions(text, week_label, week_start, existing_actions, projects, v2=v2)
+    risks    = parse_risks(text, week_label, week_start, existing_risks, v2=v2)
 
     print(f"\n📊  解析結果：")
     print(f"    專案進度：{len(projects)} 筆")
@@ -405,7 +458,7 @@ def main():
         "members":      existing_data.get("members",    []),
         "_exportedAt":  now,
         "_savedAt":     now,
-        "_version":     "import-draft-v1",
+        "_version":     "import-draft-v2" if v2 else "import-draft-v1",
         "_dataVersion": existing_data.get("_dataVersion", 1),
     }
 
