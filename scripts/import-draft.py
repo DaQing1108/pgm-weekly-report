@@ -328,6 +328,25 @@ def parse_milestones(text, week_label, week_start, existing, v2=False):
         milestones.append(milestone)
     return milestones
 
+# ── 從 Railway 抓現有資料 ─────────────────────────────────────────────────────
+def _fetch_railway(week_label):
+    """GET /api/weeks/{week_label}，回傳 dict 或 None（失敗時靜默）。"""
+    url = f"{RAILWAY_URL}/api/weeks/{week_label}"
+    try:
+        result = subprocess.run(
+            ["curl", "-s", "--max-time", "10", url],
+            capture_output=True, text=True, timeout=15
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return None
+        data = json.loads(result.stdout)
+        # Railway 回傳的是週資料本身（dict），若有 error key 則代表不存在
+        if isinstance(data, dict) and "error" not in data:
+            return data
+    except Exception:
+        pass
+    return None
+
 # ── Push 至 Railway ───────────────────────────────────────────────────────────
 def push_to_railway(week_label, payload):
     # 嘗試從環境變數或 .env 取得 token（Railway 未設定時 API 為開放模式，token 可為空）
@@ -434,9 +453,21 @@ def main():
         print("📋  格式：Dashboard 草稿（舊版）— 從四張表格解析")
 
     # 讀取現有 JSON（合併用）
+    # --push 時優先從 Railway 抓最新資料，確保不蓋掉 Quick Input 的手動編輯
     out_path = WEEKS_DIR / f"{week_label}.json"
     existing_data = {}
-    if out_path.exists():
+
+    if args.push:
+        railway_data = _fetch_railway(week_label)
+        if railway_data:
+            existing_data = railway_data
+            print(f"🌐  已從 Railway 取得 {week_label} 現有資料（保留 Quick Input 手動編輯）")
+        elif out_path.exists():
+            existing_data = json.loads(out_path.read_text(encoding="utf-8"))
+            print(f"🔀  Railway 無資料，改用本地 {week_label}.json 合併")
+        else:
+            print(f"🆕  {week_label}.json 不存在，將全新建立")
+    elif out_path.exists():
         existing_data = json.loads(out_path.read_text(encoding="utf-8"))
         print(f"🔀  找到現有 {week_label}.json，將合併（保留已有項目的 ID）")
     else:
@@ -512,8 +543,8 @@ def main():
         "risks":        risks,
         "milestones":   milestones if milestones else existing_data.get("milestones", []),
         "snapshots":    existing_snapshots,
-        "drafts":       existing_data.get("drafts",     []),
-        "members":      existing_data.get("members",    []),
+        "drafts":       existing_data.get("drafts",  []),
+        "members":      existing_data.get("members", []),  # 從 Railway 繼承，不被覆蓋
         "_exportedAt":  now,
         "_savedAt":     now,
         "_version":     "import-draft-v2" if v2 else "import-draft-v1",
