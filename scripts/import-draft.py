@@ -245,13 +245,25 @@ def parse_actions(text, week_label, week_start, existing, projects, v2=False):
                 project_name = pname
                 break
 
+        # 狀態保留規則：Railway 已有紀錄時，保留 Railway 的 status
+        # （避免 Quick Input 手動改成 done 後被 MD 的舊值蓋回）
+        # 例外：MD 明確標 done → 仍以 done 更新（進度只進不退除非人工退回）
+        if existing_item:
+            existing_status = existing_item.get("status", "not-started")
+            if status_norm == "done":
+                final_status = "done"           # MD 說完成 → 採用
+            else:
+                final_status = existing_status  # 否則保留 Railway 的狀態
+        else:
+            final_status = status_norm
+
         action = {
             "id":        existing_item["id"] if existing_item else make_id("action", week_label, i),
             "task":      task,
             "owner":     owner,
             "team":      existing_item.get("team", infer_team(task)) if existing_item else infer_team(task),
             "dueDate":   parse_date(due_raw),
-            "status":    status_norm,
+            "status":    final_status,
             "priority":  existing_item.get("priority", "P2") if existing_item else "P2",
             "weekStart": week_start,
             "projectId": existing_item.get("projectId", project_id) if existing_item else project_id,
