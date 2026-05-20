@@ -327,11 +327,19 @@ def parse_milestones(text, week_label, week_start, existing, v2=False):
         status_norm = MILESTONE_STATUS_MAP.get(status, "upcoming")
         existing_item = find_existing(existing, "name", name)
 
+        # 狀態保留規則（同 Action Items）：
+        # Railway 有紀錄時保留 Railway status；MD 為 done → 仍更新為 done
+        if existing_item:
+            existing_status = existing_item.get("status", "upcoming")
+            final_status = "done" if status_norm == "done" else existing_status
+        else:
+            final_status = status_norm
+
         milestone = {
             "id":        existing_item["id"] if existing_item else make_id("ms", week_label, i),
             "name":      name,
             "date":      parse_date(date_raw),
-            "status":    status_norm,
+            "status":    final_status,
             "team":      team_raw if team_raw else infer_team(name),
             "weekStart": week_start,
             "_createdAt": existing_item["_createdAt"] if existing_item else iso_now(),
