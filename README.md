@@ -66,12 +66,22 @@ Railway Dashboard 更新完成
 | v2 敘事週報 | `YYMMDD_ProgramSync_Week##_FINAL.md` | `Appendix: Dashboard Export` |
 | 舊版草稿 | `ProgramSync_W##_YYYY-MM-DD_draft.md` | 四張 Markdown 表格 |
 
-**進度 % 保留邏輯**：v2 格式的進度欄位標記 `[keep]`，`import-draft.py` 自動保留現有週次的進度值，不覆蓋。
+**資料保留邏輯**：`--push` 時先從 Railway 抓現有資料作為合併基底，確保 Quick Input 手動更新不被覆蓋。
+
+| 欄位 | push 時行為 |
+|------|------------|
+| 專案 progress % | `[keep]` → 保留 Railway 現有值 |
+| Action Items status | Railway 有紀錄 → 保留；MD=`done` → 更新 |
+| Milestones status | Railway 有紀錄 → 保留；MD=`done` → 更新 |
+| members | 完整繼承 Railway，不被空值覆蓋 |
 
 ```bash
 # v2 九章週報匯入
 python3 scripts/import-draft.py \
-  "VIA_Cowork/.../Final/Week21_0518/260519_ProgramSync_Week21_FINAL.md" --push
+  "VIA_Cowork/.../Final/Week21_0518/260520_ProgramSync_Week21_FINAL.md" --push
+
+# 略過確認直接推送
+python3 scripts/import-draft.py <path> --push --yes
 
 # 舊版草稿匯入（仍相容）
 python3 scripts/import-draft.py backend/drafts/ProgramSync_W##_YYYY-MM-DD_draft.md --push

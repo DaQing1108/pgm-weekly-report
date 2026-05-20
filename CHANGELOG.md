@@ -1,5 +1,29 @@
 # Changelog — PgM Weekly Report System
 
+## 2026/05/20 — import-draft.py 全面修正（v2 週報整合）
+
+**[功能] 里程碑解析**
+- `import-draft.py` 新增 `parse_milestones()`，從 Appendix `### 里程碑` 自動解析
+- `SKILL.md` Appendix 生成規則加入 `### 里程碑` 表格格式（日期／里程碑事項／團隊／狀態）
+
+**[修正] Quick Input 手動更新被覆蓋**
+- 根因：`--push` 用本地 W##.json 做合併基底，不含使用者在 Quick Input 做的手動變更
+- 修復：新增 `_fetch_railway()`，`--push` 前先 GET Railway 現有資料作為合併基底
+- 效果：Quick Input 更新的 progress、status、members 等欄位在下次 push 時完整保留
+
+**[修正] Action Items status 被 MD 覆蓋**
+- 根因：`parse_actions()` status 永遠採用 MD 值，忽略 Railway 手動更新
+- 修復：Railway 有紀錄時保留 Railway status；MD 標 `done` 時仍更新（進度只進不退）
+
+**[修正] Milestones status 被 MD 覆蓋**
+- 同 Action Items 邏輯：Railway 有紀錄時保留 status；MD 標 `done` 時更新
+
+**[修正] Members 被空值覆蓋**
+- 根因：v2 格式 import 時 members 預設空陣列，蓋掉 Quick Input 新增的成員
+- 修復：members 從 Railway 繼承，不被覆蓋
+
+---
+
 ## 2026/05/08 — Dashboard UX 優化
 
 **[修正]** MD-only 週 Dashboard 週次 Tab 顯示錯誤週次
