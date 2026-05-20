@@ -29,8 +29,8 @@ import os
 import re
 import json
 import argparse
-import urllib.request
-import urllib.error
+import subprocess
+import tempfile
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
@@ -291,47 +291,102 @@ def parse_risks(text, week_label, week_start, existing, v2=False):
         risks.append(risk)
     return risks
 
+# ── 草稿解析：里程碑 ──────────────────────────────────────────────────────────
+MILESTONE_STATUS_MAP = {
+    "done":       "done",
+    "completed":  "done",
+    "upcoming":   "upcoming",
+    "in-progress":"in-progress",
+    "in progress":"in-progress",
+}
+
+def parse_milestones(text, week_label, week_start, existing, v2=False):
+    rows = parse_appendix_table(text, "里程碑") if v2 else parse_table(text, "里程碑")
+    milestones = []
+    for i, row in enumerate(rows, 1):
+        date_raw = row.get("日期", "").strip()
+        name     = row.get("里程碑事項", "").strip()
+        team_raw = row.get("團隊", "").strip()
+        status   = row.get("狀態", "upcoming").strip().lower()
+
+        if not name or name.startswith("-"):
+            continue
+
+        status_norm = MILESTONE_STATUS_MAP.get(status, "upcoming")
+        existing_item = find_existing(existing, "name", name)
+
+        milestone = {
+            "id":        existing_item["id"] if existing_item else make_id("ms", week_label, i),
+            "name":      name,
+            "date":      parse_date(date_raw),
+            "status":    status_norm,
+            "team":      team_raw if team_raw else infer_team(name),
+            "weekStart": week_start,
+            "_createdAt": existing_item["_createdAt"] if existing_item else iso_now(),
+            "_updatedAt": iso_now(),
+        }
+        milestones.append(milestone)
+    return milestones
+
 # ── Push 至 Railway ───────────────────────────────────────────────────────────
 def push_to_railway(week_label, payload):
+    # 嘗試從環境變數或 .env 取得 token（Railway 未設定時 API 為開放模式，token 可為空）
     token = os.environ.get("ADMIN_TOKEN", "")
     if not token:
-        # 嘗試讀取 .env
         env_path = REPO_ROOT / ".env"
         if env_path.exists():
             for line in env_path.read_text().splitlines():
                 if line.startswith("ADMIN_TOKEN="):
                     token = line.split("=", 1)[1].strip().strip('"').strip("'")
                     break
-    if not token:
-        print("❌  ADMIN_TOKEN 未設定，無法 push。請設定環境變數或 .env 檔。")
-        return False
 
-    url  = f"{RAILWAY_URL}/api/weeks/{week_label}"
-    data = json.dumps(payload).encode("utf-8")
-    req  = urllib.request.Request(
-        url,
-        data=data,
-        headers={
-            "Content-Type":  "application/json",
-            "Authorization": f"Bearer {token}",
-        },
-        method="POST",
-    )
+    url = f"{RAILWAY_URL}/api/weeks/{week_label}"
+
+    # 將 JSON 寫入暫存檔，避免 shell 轉義與 Python latin-1 編碼問題
+    with tempfile.NamedTemporaryFile(
+        mode="w", encoding="utf-8", suffix=".json", delete=False
+    ) as tmp:
+        json.dump(payload, tmp, ensure_ascii=False, indent=None)
+        tmp_path = tmp.name
+
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            body = json.loads(resp.read())
-            if body.get("success"):
-                print(f"✅  Railway 同步成功：{url}")
-                return True
-            else:
-                print(f"⚠️   Railway 回應異常：{body}")
-                return False
-    except urllib.error.HTTPError as e:
-        print(f"❌  HTTP {e.code}：{e.read().decode()}")
+        cmd = [
+            "curl", "-s", "-X", "POST",
+            "-H", "Content-Type: application/json; charset=utf-8",
+            "--data-binary", f"@{tmp_path}",
+            url,
+        ]
+        if token:
+            cmd += ["-H", f"x-admin-token: {token}"]
+
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        raw = result.stdout.strip()
+
+        if result.returncode != 0:
+            print(f"❌  curl 執行失敗：{result.stderr[:200]}")
+            return False
+
+        try:
+            resp_json = json.loads(raw)
+        except json.JSONDecodeError:
+            print(f"❌  Railway 回應無法解析：{raw[:200]}")
+            return False
+
+        if resp_json.get("success"):
+            print(f"✅  Railway 同步成功：{url}")
+            return True
+        else:
+            print(f"⚠️   Railway 回應異常：{resp_json}")
+            return False
+
+    except subprocess.TimeoutExpired:
+        print("❌  Push 逾時（30 秒）")
         return False
     except Exception as e:
         print(f"❌  Push 失敗：{e}")
         return False
+    finally:
+        os.unlink(tmp_path)
 
 # ── 主程式 ────────────────────────────────────────────────────────────────────
 def main():
@@ -392,14 +447,17 @@ def main():
     existing_risks    = existing_data.get("risks",    [])
 
     # 解析草稿
-    projects = parse_projects(text, week_label, week_start, existing_projects, v2=v2)
-    actions  = parse_actions(text, week_label, week_start, existing_actions, projects, v2=v2)
-    risks    = parse_risks(text, week_label, week_start, existing_risks, v2=v2)
+    existing_milestones = existing_data.get("milestones", [])
+    projects   = parse_projects(text, week_label, week_start, existing_projects, v2=v2)
+    actions    = parse_actions(text, week_label, week_start, existing_actions, projects, v2=v2)
+    risks      = parse_risks(text, week_label, week_start, existing_risks, v2=v2)
+    milestones = parse_milestones(text, week_label, week_start, existing_milestones, v2=v2)
 
     print(f"\n📊  解析結果：")
     print(f"    專案進度：{len(projects)} 筆")
     print(f"    Action Items：{len(actions)} 筆")
     print(f"    Risks：{len(risks)} 筆")
+    print(f"    里程碑：{len(milestones)} 筆")
 
     if not projects and not actions and not risks:
         print("\n⚠️   未解析到任何資料，請確認草稿格式正確。")
@@ -452,7 +510,7 @@ def main():
         "projects":     projects,
         "actions":      actions,
         "risks":        risks,
-        "milestones":   existing_data.get("milestones", []),
+        "milestones":   milestones if milestones else existing_data.get("milestones", []),
         "snapshots":    existing_snapshots,
         "drafts":       existing_data.get("drafts",     []),
         "members":      existing_data.get("members",    []),

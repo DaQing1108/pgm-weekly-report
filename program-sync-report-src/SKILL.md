@@ -381,6 +381,16 @@ Humanizer 後處理完成後，在報告末尾（章節 9 之後）加入以下 
 「影響範圍」欄位填入最相關的負責人；「緩解行動」填入「因應措施」欄）
 
 ```markdown
+### 里程碑
+
+| 日期 | 里程碑事項 | 團隊 | 狀態 |
+|------|-----------|------|------|
+```
+（從章節 9 里程碑總表提取；日期格式用 `YYYY/MM/DD` 或 `YYYY-MM-DD`，季度目標如「Q3 / 9 月」可填 `2026/09/30`；
+團隊用 `media-agent` / `tv-solution` / `chuangzaoli` / `learnmode` / `bu2-healthcare`；
+狀態用 `upcoming` / `in-progress` / `done`；未來里程碑預設填 `upcoming`）
+
+```markdown
 ### 下週重點
 
 | 優先級 | 任務 | 負責人 |
