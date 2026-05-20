@@ -67,6 +67,10 @@ function _dispatch(name) {
   window.dispatchEvent(ev);
 }
 
+// ── Action status 常數（與 schema.js ACTION_STATUSES 保持一致）──────────
+// 健康檢查依賴此處宣告以驗證狀態值完整性
+export const ACTION_STATUSES = ['pending', 'in-progress', 'done', 'blocked'];
+
 // ── 基本 CRUD ──────────────────────────────────────────────────
 export const store = {
 
