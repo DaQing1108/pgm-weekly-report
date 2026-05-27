@@ -1,5 +1,33 @@
 # Changelog — PgM Weekly Report System
 
+## 2026/05/28 — W22 資料修復與匯入流程強化
+
+**[修正] new-week.sh 遺漏必要欄位**
+- 根因：`new-week.sh` 產生的 JSON 缺少 `weekLabel`、`weekStart`、`_dataVersion`，導致首次客戶端存取時以種子資料（11 筆假成員、無里程碑）初始化 Railway DB
+- 修復：Python 生成區塊補入 `weekLabel`、`weekStart`、`_dataVersion: 1`，確保 DB 從一開始就有正確結構
+
+**[功能] new-week.sh 新增 `--push` 旗標**
+- `./scripts/new-week.sh W## --push` 建立新週後立即 POST 至 Railway，防止種子資料污染 DB
+- 支援任意順序傳遞旗標，與週號解析互不干擾
+
+**[修正] import-draft.py STATUS_MAP 錯誤**
+- 根因：`STATUS_MAP` 將 `"pending"` 映射至 `"not-started"`（系統不認識的狀態），導致 W22 全部 21 筆 Action Items 狀態無效
+- 修復：改為 `"pending" → "pending"`；`"not-started"` 也映射至 `"pending"` 以相容舊格式
+
+**[功能] import-draft.py 自動遞增 `_dataVersion`**
+- 根因：`_dataVersion` 固定寫死為 1，導致已快取的客戶端瀏覽器不觸發強制重新載入
+- 修復：push 前先讀取 Railway 現有版本，`_dataVersion = existing + 1`，每次匯入都強制客戶端更新
+
+**[功能] import-draft.py 匯入後自動驗證**
+- push 完成後自動檢查 payload 完整性：`weekLabel`、`weekStart`、`milestones`、`members` 是否為空；Action 狀態是否合法
+- 有問題時印出警告列表，方便快速發現 Appendix 缺漏
+
+**[修正] app-init.js SUPPLEMENTABLE 補充 `members`**
+- 根因：`SUPPLEMENTABLE` 不含 `members`，當本機版本較新時，空的 `members` 不會從 Railway 補填
+- 修復：`SUPPLEMENTABLE` 陣列加入 `'members'`，確保本機 members 為空時從 Railway 繼承
+
+---
+
 ## 2026/05/20 — import-draft.py 全面修正（v2 週報整合）
 
 **[功能] 里程碑解析**
