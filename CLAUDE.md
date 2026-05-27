@@ -44,6 +44,29 @@ npm run dev        # 啟動於 localhost:3001（nodemon，自動重載）
 python3 scripts/import-draft.py backend/drafts/ProgramSync_W##_YYYY-MM-DD_draft.md
 ```
 
+### Appendix 必填區塊（v2 週報格式）
+
+`import-draft.py` 從 `## Appendix: Dashboard Export` 解析四個子區塊，**缺少任何一個將導致該資料為空**：
+
+```markdown
+## Appendix: Dashboard Export
+
+### 專案進度
+| 專案名稱 | 狀態 | 進度 % | 本週更新 | 備註 |
+
+### Action Items
+| # | 任務描述 | 負責人 | 目標日期 | 狀態 | 分類 |
+
+### Risks
+| Risk ID | 風險描述 | 嚴重度 | 負責人 | 因應措施 |
+
+### 里程碑
+| 日期 | 里程碑事項 | 團隊 | 狀態 |
+```
+
+> Action 狀態合法值：`pending` / `in-progress` / `done` / `blocked`
+> 里程碑狀態合法值：`upcoming` / `in-progress` / `done` / `delayed`
+
 ---
 
 ## 架構

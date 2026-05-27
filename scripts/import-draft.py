@@ -594,6 +594,35 @@ def main():
         print(f"\n🚀  推送至 Railway...")
         push_to_railway(week_label, payload)
 
+    # ── 後驗證 ──────────────────────────────────────────────────────────────────
+    VALID_ACTION_STATUSES = {"pending", "in-progress", "done", "blocked"}
+    warnings = []
+
+    if not payload.get("weekLabel"):
+        warnings.append("❌  weekLabel 為空")
+    if not payload.get("weekStart"):
+        warnings.append("❌  weekStart 為空")
+    if not payload.get("milestones"):
+        warnings.append("⚠️   milestones 為空（報告 Appendix 缺少 ### 里程碑 區塊）")
+    if not payload.get("members"):
+        warnings.append("⚠️   members 為空（成員資料未從 Railway 繼承）")
+
+    bad_statuses = [
+        a["task"][:30] for a in payload.get("actions", [])
+        if a.get("status") not in VALID_ACTION_STATUSES
+    ]
+    if bad_statuses:
+        warnings.append(
+            f"❌  {len(bad_statuses)} 個 action 狀態不合法：{bad_statuses[:3]}{'...' if len(bad_statuses) > 3 else ''}"
+        )
+
+    if warnings:
+        print("\n⚠️   驗證警告：")
+        for w in warnings:
+            print(f"    {w}")
+    else:
+        print("\n✅  驗證通過：weekLabel / weekStart / milestones / members / action 狀態均正常")
+
     print(f"\n🎉  完成！開啟 Dashboard 確認：{RAILWAY_URL}")
 
 if __name__ == "__main__":

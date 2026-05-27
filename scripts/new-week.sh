@@ -44,12 +44,19 @@ PYEOF
 }
 
 # ── 解析參數 ──────────────────────────────────────────────────────────────────
-WEEK="${1:-}"
+PUSH=false
+WEEK=""
+for arg in "$@"; do
+  case "${arg}" in
+    --push) PUSH=true ;;
+    W*|w*) WEEK="$(echo "${arg}" | tr '[:lower:]' '[:upper:]')" ;;
+  esac
+done
+
 if [[ -z "${WEEK}" ]]; then
   WEEK="$(current_week_label)"
   info "未指定週次，自動偵測為：${BOLD}${WEEK}${RESET}"
 else
-  WEEK="$(echo "${WEEK}" | tr '[:lower:]' '[:upper:]')"
   [[ "${WEEK}" =~ ^W[0-9]{2}$ ]] || error "週次格式錯誤：'${WEEK}'。應為 W01…W53"
 fi
 
@@ -243,6 +250,8 @@ new_snap = {
 hist_snaps = [s for s in base.get('snapshots', []) if s.get('weekLabel') != new_label]
 
 out = {
+    'weekLabel':  new_label,
+    'weekStart':  week_start,
     'projects':   projects,
     'risks':      risks,
     'actions':    actions,
@@ -251,6 +260,7 @@ out = {
     'drafts':     copy.deepcopy(base.get('drafts', [])),
     'members':    copy.deepcopy(base.get('members', [])),
     '_savedAt':   saved_at,
+    '_dataVersion': 1,
 }
 
 with open(out_path, 'w') as f:
@@ -327,11 +337,14 @@ new_snap = {
 hist_snaps = [s for s in base.get('snapshots', []) if s.get('weekLabel') != new_label]
 
 out = {
+    'weekLabel':  new_label,
+    'weekStart':  week_start,
     'projects': projects, 'risks': risks, 'actions': actions,
     'milestones': milestones, 'snapshots': hist_snaps + [new_snap],
     'drafts': copy.deepcopy(base.get('drafts', [])),
     'members': copy.deepcopy(base.get('members', [])),
     '_savedAt': saved_at,
+    '_dataVersion': 1,
 }
 
 with open(out_path, 'w') as f:
@@ -357,3 +370,32 @@ echo -e "   逾期 Actions：${AT_RISK} 項"
 echo ""
 echo -e "下一步：更新本週資料後，執行 ${CYAN}./scripts/release-week.sh ${WEEK}${RESET} 發布。"
 echo ""
+
+# ── 選擇性推送至 Railway ──────────────────────────────────────────────────────
+if [[ "${PUSH}" == "true" ]]; then
+  info "推送至 Railway..."
+  # 從 .env 取得 ADMIN_TOKEN
+  ADMIN_TOKEN_VAL=""
+  ENV_FILE="${REPO_ROOT}/.env"
+  if [[ -f "${ENV_FILE}" ]]; then
+    ADMIN_TOKEN_VAL="$(grep '^ADMIN_TOKEN=' "${ENV_FILE}" | cut -d= -f2- | tr -d '"' | tr -d "'")"
+  fi
+
+  RAILWAY_URL="https://pgm-weekly-report-production.up.railway.app"
+  TMP_JSON="$(mktemp /tmp/new-week-push-XXXXXX.json)"
+  cp "${TARGET}" "${TMP_JSON}"
+
+  CURL_ARGS=("-s" "-X" "POST" "-H" "Content-Type: application/json; charset=utf-8" "--data-binary" "@${TMP_JSON}")
+  [[ -n "${ADMIN_TOKEN_VAL}" ]] && CURL_ARGS+=("-H" "x-admin-token: ${ADMIN_TOKEN_VAL}")
+  CURL_ARGS+=("${RAILWAY_URL}/api/weeks/${WEEK}")
+
+  PUSH_RESP="$(curl "${CURL_ARGS[@]}")"
+  rm -f "${TMP_JSON}"
+
+  if echo "${PUSH_RESP}" | python3 -c "import json,sys; d=json.load(sys.stdin); exit(0 if d.get('success') else 1)" 2>/dev/null; then
+    success "Railway 同步成功：${RAILWAY_URL}/api/weeks/${WEEK}"
+  else
+    warn "Railway 推送失敗或無回應：${PUSH_RESP:0:200}"
+    warn "可手動執行：python3 scripts/import-draft.py <週報MD> --push"
+  fi
+fi
