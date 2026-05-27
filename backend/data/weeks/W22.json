@@ -17,7 +17,7 @@
       "weekDone": "API 對齊發現 Ola Pedia 範圍缺口；B1 UI 方向定案；本週三 double check",
       "blockers": "Ola Pedia 2.10 範圍待正式承接",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "proj-w22-02",
@@ -34,7 +34,7 @@
       "weekDone": "架構定案：完整 subsystem，不拆散為 OpenMAM API；B2 文件補齊中",
       "blockers": "技術架構與交付時程仍是最弱環節",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "proj-w22-03",
@@ -51,7 +51,7 @@
       "weekDone": "500TB 入庫時間從 2–3 週重算至約 141 天；DGX 報價本週回來；到貨 6 月下旬",
       "blockers": "入庫 policy 與期待管理是當前首要任務",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "proj-w22-04",
@@ -68,7 +68,7 @@
       "weekDone": "NLP API 尚未被正式承接；技術邊界待本週三確認；8月 demo 目標不變",
       "blockers": "待 Devops 對齊技術現況",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "proj-w22-05",
@@ -85,7 +85,7 @@
       "weekDone": "晶片暫定 X5（X7 觀望）；閉環生態系戰略定調；展廳三點推進中",
       "blockers": "載板漲至 ¥900，整機成本超 ¥1,500",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "proj-w22-06",
@@ -102,7 +102,7 @@
       "weekDone": "雲林土庫強力突破；金門機會正式評估；花蓮 6 月中安排",
       "blockers": "基隆延至 6 月初",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "proj-w22-07",
@@ -119,7 +119,7 @@
       "weekDone": "Stevens Lee 定調策略方向；Janet 接手 Owner；6 月底第一次成果檢視",
       "blockers": "目前活躍率約 2%，爆發點需 5%+",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "proj-w22-08",
@@ -136,7 +136,7 @@
       "weekDone": "Grace 接手；近 20 個月無人處理；下週 Weekly 提出 Promotion Package 方案",
       "blockers": "百萬以上庫存閒置",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     }
   ],
   "actions": [
@@ -153,7 +153,7 @@
       "category": "technical",
       "project": "Open Edit Plus / Media Clip",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-02",
@@ -168,7 +168,7 @@
       "category": "technical",
       "project": "OpenMAM 2.10 × 人臉識別整合",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-03",
@@ -183,7 +183,7 @@
       "category": "technical",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-04",
@@ -198,7 +198,7 @@
       "category": "business",
       "project": "Open Edit Plus / Media Clip",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-05",
@@ -213,7 +213,7 @@
       "category": "technical",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-04",
@@ -228,7 +228,7 @@
       "category": "technical",
       "project": "Open Edit Plus / Media Clip",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-07",
@@ -243,7 +243,7 @@
       "category": "technical",
       "project": "Open Edit Plus / Media Clip",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-08",
@@ -258,7 +258,7 @@
       "category": "technical",
       "project": "STT / 語音轉文字",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-09",
@@ -273,7 +273,7 @@
       "category": "technical",
       "project": "TVBS DGX 部署與歷史片庫入庫",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-10",
@@ -288,7 +288,7 @@
       "category": "technical",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-11",
@@ -303,7 +303,7 @@
       "category": "technical",
       "project": "OpenMAM 2.10 × 人臉識別整合",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-12",
@@ -318,7 +318,7 @@
       "category": "technical",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-13",
@@ -333,7 +333,7 @@
       "category": "technical",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-14",
@@ -348,7 +348,7 @@
       "category": "technical",
       "project": "Open Edit Plus / Media Clip",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-15",
@@ -363,7 +363,7 @@
       "category": "business",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-16",
@@ -378,7 +378,7 @@
       "category": "resource",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-04",
@@ -393,7 +393,7 @@
       "category": "business",
       "project": "Open Edit Plus / Media Clip",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-18",
@@ -408,7 +408,7 @@
       "category": "business",
       "project": "TVBS DGX 部署與歷史片庫入庫",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-19",
@@ -423,7 +423,7 @@
       "category": "technical",
       "project": "TVBS DGX 部署與歷史片庫入庫",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-20",
@@ -438,7 +438,7 @@
       "category": "technical",
       "project": "TVBS DGX 部署與歷史片庫入庫",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-21",
@@ -453,7 +453,7 @@
       "category": "business",
       "project": "TVBS DGX 部署與歷史片庫入庫",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-22",
@@ -468,7 +468,7 @@
       "category": "business",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-23",
@@ -483,7 +483,7 @@
       "category": "business",
       "project": "UGC 飛輪策略",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-24",
@@ -498,7 +498,7 @@
       "category": "business",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-25",
@@ -513,7 +513,7 @@
       "category": "technical",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-26",
@@ -528,7 +528,7 @@
       "category": "business",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-27",
@@ -543,7 +543,7 @@
       "category": "business",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-28",
@@ -558,7 +558,7 @@
       "category": "business",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "action-w22-29",
@@ -573,7 +573,7 @@
       "category": "business",
       "project": "",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     }
   ],
   "risks": [
@@ -586,7 +586,7 @@
       "weekStart": "2026-05-25",
       "mitigation": "差異化轉向編輯 UX；模型選型原則在 AI Server 架構中定義",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "risk-w22-02",
@@ -597,7 +597,7 @@
       "weekStart": "2026-05-25",
       "mitigation": "DGX 實測 benchmark；入庫 policy 在提案前對 TVBS 說明",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "risk-w22-03",
@@ -608,7 +608,7 @@
       "weekStart": "2026-05-25",
       "mitigation": "本週三例會前補確認；必要時獨立開會對齊",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "risk-w22-04",
@@ -619,7 +619,7 @@
       "weekStart": "2026-05-25",
       "mitigation": "提案前確認 TVBS 日常同時使用人數；多台 DGX 並行為擴展路線",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "risk-w22-05",
@@ -630,7 +630,7 @@
       "weekStart": "2026-05-25",
       "mitigation": "Backup 機制列入 2.10；先提供 API / storage location 讓 AI Server 推送備份",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "risk-w22-06",
@@ -641,43 +641,124 @@
       "weekStart": "2026-05-25",
       "mitigation": "導入 Local Hybrid LLM，目標壓至 300 TWD 以下",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "risk-w22-07",
       "description": "三 RD 團隊整合困難，1–2 個月磨合期",
       "level": "medium",
-      "status": "in-progress",
+      "status": "closed",
       "team": "media-agent",
       "weekStart": "2026-05-25",
       "mitigation": "持續透過 Agentic Meeting 拉近距離",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "risk-w22-08",
       "description": "FDE 台灣只有 Eddy 一人，單點風險高",
       "level": "medium",
-      "status": "in-progress",
+      "status": "closed",
       "team": "media-agent",
       "weekStart": "2026-05-25",
       "mitigation": "先前端後後端分階段交付；Michael Transition 會議已啟動",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     },
     {
       "id": "risk-w22-09",
       "description": "AI 模型大陸口音 / 用語問題，政治敏感場合失分風險",
       "level": "medium",
-      "status": "in-progress",
+      "status": "closed",
       "team": "media-agent",
       "weekStart": "2026-05-25",
       "mitigation": "Demo 管控原則全員落實；長期更換或微調 TW 版模型",
       "_createdAt": "2026-05-27T13:50:33.000Z",
-      "_updatedAt": "2026-05-27T13:51:39.000Z"
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
     }
   ],
-  "milestones": [],
+  "milestones": [
+    {
+      "id": "ms-w22-01",
+      "name": "Alex AI Sharing 截止",
+      "date": "2026-06-06",
+      "status": "upcoming",
+      "team": "media-agent",
+      "weekStart": "2026-05-25",
+      "_createdAt": "2026-05-27T16:13:42.000Z",
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
+    },
+    {
+      "id": "ms-w22-02",
+      "name": "台北整合測試環境啟動；花蓮 + 宜蘭拜訪",
+      "date": "2026-06-15",
+      "status": "upcoming",
+      "team": "tv-solution",
+      "weekStart": "2026-05-25",
+      "_createdAt": "2026-05-27T16:13:42.000Z",
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
+    },
+    {
+      "id": "ms-w22-03",
+      "name": "鵬林展廳開幕活動",
+      "date": "2026-06-15",
+      "status": "upcoming",
+      "team": "chuangzaoli",
+      "weekStart": "2026-05-25",
+      "_createdAt": "2026-05-27T16:13:42.000Z",
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
+    },
+    {
+      "id": "ms-w22-04",
+      "name": "Logo + OpenMAM Demo（TVBS，Steve 確認 OK）",
+      "date": "2026-06-24",
+      "status": "upcoming",
+      "team": "tv-solution",
+      "weekStart": "2026-05-25",
+      "_createdAt": "2026-05-27T16:13:42.000Z",
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
+    },
+    {
+      "id": "ms-w22-05",
+      "name": "Face API 對接完成；Janet UGC/KOL 第一次成果檢視",
+      "date": "2026-06-30",
+      "status": "upcoming",
+      "team": "tv-solution",
+      "weekStart": "2026-05-25",
+      "_createdAt": "2026-05-27T16:13:42.000Z",
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
+    },
+    {
+      "id": "ms-w22-06",
+      "name": "繪本 demo 每年級 2 篇目標",
+      "date": "2026-07-01",
+      "status": "upcoming",
+      "team": "chuangzaoli",
+      "weekStart": "2026-05-25",
+      "_createdAt": "2026-05-27T16:13:42.000Z",
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
+    },
+    {
+      "id": "ms-w22-07",
+      "name": "OpenMAM 2.10 正式交付 TVBS；節目 STT demo 前置準備完成",
+      "date": "2026-07-31",
+      "status": "upcoming",
+      "team": "tv-solution",
+      "weekStart": "2026-05-25",
+      "_createdAt": "2026-05-27T16:13:42.000Z",
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
+    },
+    {
+      "id": "ms-w22-08",
+      "name": "節目 STT Demo 目標",
+      "date": "2026-08-31",
+      "status": "upcoming",
+      "team": "media-agent",
+      "weekStart": "2026-05-25",
+      "_createdAt": "2026-05-27T16:13:42.000Z",
+      "_updatedAt": "2026-05-27T16:13:42.000Z"
+    }
+  ],
   "snapshots": [
     {
       "id": "snap-w22",
@@ -690,7 +771,7 @@
       "mediumRisks": 7,
       "lowRisks": 0,
       "totalProjects": 8,
-      "overdueActions": 1,
+      "overdueActions": 4,
       "completedActions": 0,
       "totalActions": 29
     }
@@ -814,8 +895,8 @@
       "_updatedAt": "2026-05-20T09:32:02.229Z"
     }
   ],
-  "_exportedAt": "2026-05-27T13:51:39.000Z",
-  "_savedAt": "2026-05-27T13:51:39.000Z",
+  "_exportedAt": "2026-05-27T16:13:42.000Z",
+  "_savedAt": "2026-05-27T16:13:42.000Z",
   "_version": "import-draft-v2",
-  "_dataVersion": 2
+  "_dataVersion": 4
 }

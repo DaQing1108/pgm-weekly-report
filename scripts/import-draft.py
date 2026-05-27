@@ -208,11 +208,13 @@ def parse_projects(text, week_label, week_start, existing, v2=False):
 
 # ── 草稿解析：Action Items ────────────────────────────────────────────────────
 STATUS_MAP = {
-    "pending":     "not-started",
-    "in-progress": "in-progress",
-    "in progress": "in-progress",
-    "done":        "done",
-    "completed":   "done",
+    "pending":       "pending",
+    "not-started":   "pending",
+    "in-progress":   "in-progress",
+    "in progress":   "in-progress",
+    "done":          "done",
+    "completed":     "done",
+    "blocked":       "blocked",
 }
 
 def parse_actions(text, week_label, week_start, existing, projects, v2=False):
@@ -568,7 +570,7 @@ def main():
         "_exportedAt":  now,
         "_savedAt":     now,
         "_version":     "import-draft-v2" if v2 else "import-draft-v1",
-        "_dataVersion": existing_data.get("_dataVersion", 1),
+        "_dataVersion": existing_data.get("_dataVersion", 1) + 1,
     }
 
     # 確認
