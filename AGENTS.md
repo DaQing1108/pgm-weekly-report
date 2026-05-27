@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## 專案概覽
 
@@ -89,9 +89,9 @@ program-sync/ (Vanilla JS SPA，Express static serve)
    ```markdown
    # Title: [Title of the Note]
    - Date: YYYY-MM-DD
-   - Tags: Claude, Notion, Automation, Workflow (根據討論內容挑選)
+   - Tags: Codex, Notion, Automation, Workflow (根據討論內容挑選)
    - Status: Done
-   - Source: Claude chat
+   - Source: Codex chat
    - BLUF: [Short one-sentence summary]
    ```
 3. **寫入檔案**：將內容寫入本機 `knowledge_note.md` (複寫覆蓋)。

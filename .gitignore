@@ -10,4 +10,6 @@ frontend/dist/
 .env
 .env.local
 .claude/
+.codex/
 backend/drafts/*.md
+knowledge_note.md
