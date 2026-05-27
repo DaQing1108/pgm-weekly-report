@@ -5,6 +5,9 @@
 
 const PREFIX = 'pgm_sync_';
 
+// ── Action 狀態合法值清單（供健康檢查與驗證使用）──────────────
+export const ACTION_STATUSES = ['pending', 'in-progress', 'done', 'blocked'];
+
 // Safari 無痕模式 / 嚴格 ITP：localStorage 可讀不可寫，以 in-memory Map 作為 fallback
 const _memStore = new Map();
 const _lsAvailable = (() => {
