@@ -696,9 +696,126 @@
     }
   ],
   "drafts": [],
-  "members": [],
+  "members": [
+    {
+      "id": "steve-liu",
+      "name": "Steve Liu",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "alex-liao",
+      "name": "Alex Liao",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "michael-chien",
+      "name": "Michael Chien",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "dream-ku",
+      "name": "Dream Ku",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "bachchen",
+      "name": "Bachchen",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "tc-peng",
+      "name": "TC Peng",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "tonny-shen",
+      "name": "Tonny Shen",
+      "team": "media-agent",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "luffy-luan",
+      "name": "Luffy Luan",
+      "team": "chuangzaoli",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "steven-ch",
+      "name": "Steven CH",
+      "team": "chuangzaoli",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "sean-peng",
+      "name": "Sean Peng",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "grace",
+      "name": "Grace",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "ruru-lin",
+      "name": "Ruru Lin",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "eddy-lin",
+      "name": "Eddy Lin",
+      "team": "learnmode",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "sophia",
+      "name": "Sophia",
+      "team": "chuangzaoli",
+      "_createdAt": "2026-04-23T08:00:00.000Z",
+      "_updatedAt": "2026-04-23T08:00:00.000Z"
+    },
+    {
+      "id": "33779f3d-2d2c-43a7-8873-2c48dde76225",
+      "name": "JH Tseng",
+      "role": "",
+      "team": "tv-solution",
+      "avatar": "JT",
+      "_createdAt": "2026-05-14T08:24:53.275Z",
+      "_updatedAt": "2026-05-14T08:24:53.275Z"
+    },
+    {
+      "id": "c31aa455-f132-428a-9fa0-13b05c65b10f",
+      "name": "Tom Liu",
+      "role": "",
+      "team": "media-agent",
+      "avatar": "TL",
+      "_createdAt": "2026-05-20T09:32:02.229Z",
+      "_updatedAt": "2026-05-20T09:32:02.229Z"
+    }
+  ],
   "_exportedAt": "2026-05-27T13:51:39.000Z",
   "_savedAt": "2026-05-27T13:51:39.000Z",
   "_version": "import-draft-v2",
-  "_dataVersion": 1
+  "_dataVersion": 2
 }

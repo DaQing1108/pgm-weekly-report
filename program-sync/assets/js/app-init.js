@@ -126,7 +126,7 @@ export async function appInit() {
         console.info(`[appInit] 本機資料(${localTs}) 比後端(${serverTs || 'none'})新，保留本機，稍後推送`);
         // P3 修正：本機較新時保留用戶的 projects 編輯，
         //   但 actions / risks / milestones / snapshots 若本機為空，則從後端補入。
-        const SUPPLEMENTABLE = ['actions', 'risks', 'milestones', 'snapshots'];
+        const SUPPLEMENTABLE = ['actions', 'risks', 'milestones', 'snapshots', 'members'];
         SUPPLEMENTABLE.forEach(key => {
           try {
             const localRaw = localStorage.getItem(`pgm_sync_${key}`);
