@@ -67,6 +67,10 @@ function _dispatch(name) {
   window.dispatchEvent(ev);
 }
 
+// ── Action 狀態常數（與 schema.js ACTION_STATUSES 保持同步）────────────────
+// 健康檢查與 importAll 驗證均依賴此列表確認合法的 action status 值
+export const ACTION_STATUSES = ['pending', 'in-progress', 'done', 'blocked'];
+
 // ── 基本 CRUD ──────────────────────────────────────────────────
 export const store = {
 

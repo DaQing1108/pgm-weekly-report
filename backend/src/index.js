@@ -80,7 +80,7 @@ app.get('/api/reports', (req, res) => {
       .map(f => {
         const content = fs.readFileSync(path.join(REPORTS_DIR, f), 'utf-8');
         const versionMatch = f.match(/(?:v|_)(\d+)/) || f.match(/\d{6}/); // try to catch v1 or date
-        const dateMatch = content.match(/報告日期[：:]\s*(?:\*\*\s*)?([\d/]+)/);
+        const dateMatch = content.match(/報告日期[：:]\s*(?:\*\*\s*)?([\\d/]+)/);
         const periodMatch = content.match(/報告週期[：:]\s*(?:\*\*\s*)?([^\n\*]+)/);
         return {
           filename: f,
@@ -277,6 +277,113 @@ if (fs.existsSync(PROGRAM_SYNC)) {
   });
 }
 
+// ── 工具函式：計算當前 ISO 週次標籤（e.g. 'W23'）────────────────
+function _currentWeekLabel() {
+  const now = new Date();
+  const jan1 = new Date(now.getFullYear(), 0, 1);
+  const weekNo = Math.ceil(((now - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return `W${String(weekNo).padStart(2, '0')}`;
+}
+
+// ── 工具函式：取得當週週一日期（'YYYY-MM-DD'）────────────────────
+function _currentWeekStart() {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun, 1=Mon, …
+  const diff = (day === 0 ? -6 : 1 - day); // shift to Monday
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diff);
+  return monday.toISOString().split('T')[0];
+}
+
+// ── 當週 JSON 自動建立（FS 模式）────────────────────────────────
+// 若 DATABASE_URL 未設定（FS 模式）且當週 JSON 不存在，
+// 自動從最新一週的 JSON carry-forward 建立本週佔位檔案，
+// 確保 /api/weeks/:weekLabel 不會回傳 404。
+function _autoSeedCurrentWeek() {
+  if (process.env.DATABASE_URL) return; // PostgreSQL 模式由 db 層處理，不需要 FS seed
+  try {
+    const weekLabel = _currentWeekLabel();
+    const weekStart = _currentWeekStart();
+    const targetFile = path.join(WEEKS_DIR, `${weekLabel}.json`);
+    if (fs.existsSync(targetFile)) return; // 已存在，不覆蓋
+
+    // 找最近一週的 JSON 作為 carry-forward 基礎
+    const existing = fs.readdirSync(WEEKS_DIR)
+      .filter(f => /^W\d{2}\.json$/.test(f))
+      .sort()
+      .reverse();
+
+    const now = new Date().toISOString();
+    let payload;
+
+    if (existing.length > 0) {
+      try {
+        const prev = JSON.parse(fs.readFileSync(path.join(WEEKS_DIR, existing[0]), 'utf8'));
+        // 更新週次識別欄位，其餘資料 carry-forward（projects / risks / milestones 等）
+        payload = {
+          ...prev,
+          weekLabel,
+          weekStart,
+          // 快照重設為當週佔位
+          snapshots: [{
+            id: `snap-${weekStart}`,
+            weekStart,
+            weekLabel,
+            onTrackPct:      prev.snapshots?.[0]?.onTrackPct      ?? 0,
+            atRiskCount:     prev.snapshots?.[0]?.atRiskCount     ?? 0,
+            behindCount:     prev.snapshots?.[0]?.behindCount     ?? 0,
+            highRisks:       prev.snapshots?.[0]?.highRisks       ?? 0,
+            mediumRisks:     prev.snapshots?.[0]?.mediumRisks     ?? 0,
+            lowRisks:        prev.snapshots?.[0]?.lowRisks        ?? 0,
+            totalProjects:   prev.snapshots?.[0]?.totalProjects   ?? 0,
+            overdueActions:  0,
+            completedActions:0,
+            totalActions:    (prev.actions || []).length,
+          }],
+          drafts: [],
+          _exportedAt: now,
+          _savedAt:    now,
+          _version:    '2.1',
+        };
+      } catch {
+        payload = _emptyWeekPayload(weekLabel, weekStart, now);
+      }
+    } else {
+      payload = _emptyWeekPayload(weekLabel, weekStart, now);
+    }
+
+    fs.writeFileSync(targetFile, JSON.stringify(payload, null, 2), 'utf8');
+    console.log(`[auto-seed] 建立當週佔位檔案：${weekLabel}.json`);
+  } catch (err) {
+    console.warn('[auto-seed] 建立當週 JSON 失敗：', err.message);
+  }
+}
+
+function _emptyWeekPayload(weekLabel, weekStart, now) {
+  return {
+    weekLabel,
+    weekStart,
+    projects: [],
+    actions: [],
+    risks: [],
+    milestones: [],
+    snapshots: [{
+      id: `snap-${weekStart}`,
+      weekStart,
+      weekLabel,
+      onTrackPct: 0, atRiskCount: 0, behindCount: 0,
+      highRisks: 0, mediumRisks: 0, lowRisks: 0,
+      totalProjects: 0, overdueActions: 0, completedActions: 0, totalActions: 0,
+    }],
+    drafts: [],
+    members: [],
+    _exportedAt: now,
+    _savedAt: now,
+    _version: '2.1',
+    _dataVersion: 1,
+  };
+}
+
 (async () => {
   try {
     await db.initDB();
@@ -287,6 +394,10 @@ if (fs.existsSync(PROGRAM_SYNC)) {
     console.error('[db] initDB failed:', err.message);
     // Non-fatal: continue in filesystem mode if PG unavailable
   }
+
+  // 自動建立當週 JSON 佔位（FS 模式）
+  _autoSeedCurrentWeek();
+
   app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
   });
