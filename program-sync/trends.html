@@ -275,10 +275,13 @@ function _computeMetrics(s) {
   const medium = open.filter(r => r.level === 'medium').length;
   const low    = open.filter(r => r.level === 'low').length;
 
-  // 逾期：dueDate ≤ 週末 且 not done
-  const overdue = (we && acts.length)
-    ? acts.filter(a => a.dueDate && a.dueDate <= we && a.status !== 'done').length
-    : (s.snap?.overdueActions ?? 0);
+  // 逾期：歷史週優先使用 snapshot 存值（import 時計算準確）；
+  // 當週（snap=null，由 _injectCurrentWeek 注入）才從 raw actions 重算。
+  const overdue = s.snap?.overdueActions != null
+    ? s.snap.overdueActions
+    : (we && acts.length)
+      ? acts.filter(a => a.dueDate && a.dueDate <= we && a.status !== 'done').length
+      : 0;
 
   // Action 完成率
   // 優先使用 snapshot 存值（import 時計算，歷史準確）；
