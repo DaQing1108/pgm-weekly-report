@@ -50,6 +50,7 @@
 
 <!-- ── Page ────────────────────────────────────────────────── -->
 <main id="main-content" class="page-container">
+  <h1 class="sr-only">PgM Program Sync 儀表板</h1>
 
   <!-- 週次歷史選擇器 -->
   <div id="weekNavBar" style="display:none;margin-bottom:var(--space-md);background:var(--color-bg-primary);border:1px solid var(--color-border-default);border-radius:var(--radius-md);padding:10px var(--space-lg);align-items:center;gap:16px;">
@@ -216,7 +217,7 @@
 </main>
 
 <!-- Toast container -->
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast-container" id="toastContainer" role="status" aria-live="polite" aria-atomic="false"></div>
 
 <script type="module">
 import { store }    from './assets/js/store.js';
@@ -868,7 +869,7 @@ async function initArchive() {
           <button class="btn btn-ghost btn-sm" style="color:var(--color-info);" onclick="openReport('${r.filename}')">📖 閱讀</button>
           <a href="${downloadUrl(r.filename)}" class="btn btn-ghost btn-sm" download title="下載 MD">⬇ MD</a>
           <button class="btn btn-ghost btn-sm" onclick="exportReportPdf('${r.filename}', this)" title="匯出 PDF">📥 PDF</button>
-          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="removeReport('${r.filename}')" title="刪除">🗑</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="removeReport('${r.filename}')" aria-label="刪除" title="刪除">🗑</button>
         </div>
       </div>
     `).join('');
@@ -1026,17 +1027,21 @@ initImport();
   var btn = document.getElementById('navHamburger');
   var menu = document.getElementById('mobileNav');
   if (!btn || !menu) return;
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-controls', 'mobileNav');
   btn.addEventListener('click', function() {
     var open = menu.style.display === 'flex';
     menu.style.display = open ? 'none' : 'flex';
     btn.textContent = open ? '☰' : '✕';
     btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
   });
   menu.querySelectorAll('a').forEach(function(a) {
     a.addEventListener('click', function() {
       menu.style.display = 'none';
       btn.textContent = '☰';
       btn.setAttribute('aria-label', '開啟選單');
+      btn.setAttribute('aria-expanded', 'false');
     });
   });
 })();

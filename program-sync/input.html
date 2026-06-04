@@ -159,7 +159,7 @@
                 <span class="text-xs text-secondary" style="font-weight:600;letter-spacing:.03em;">專案基本資料</span>
                 <div style="display:flex;gap:4px;">
                   <button type="button" id="btnToggleEditProj" class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px;">✏️ 變更</button>
-                  <button type="button" id="btnDeleteProj" class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px;color:var(--color-danger);" title="刪除此專案">🗑 刪除</button>
+                  <button type="button" id="btnDeleteProj" class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px;color:var(--color-danger);" aria-label="刪除此專案" title="刪除此專案">🗑 刪除</button>
                 </div>
               </div>
               <div id="editProjFields" style="display:none;">
@@ -317,7 +317,7 @@
 
 </main>
 
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast-container" id="toastContainer" role="status" aria-live="polite" aria-atomic="false"></div>
 
 <script type="module">
 import { store }   from './assets/js/store.js';
@@ -720,8 +720,8 @@ function renderMemberList() {
         <div class="text-sm" style="font-weight:600;">${m.name}</div>
         <div class="text-xs text-secondary">${TEAM_LABEL[m.team] || m.team || '—'}${m.role ? ' · ' + m.role : ''}</div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="window.editMember('${m.id}')" title="編輯" style="padding:4px 6px;">✏️</button>
-      <button class="btn btn-ghost btn-sm" onclick="window.deleteMember('${m.id}')" title="刪除" style="padding:4px 6px;color:var(--color-danger);">🗑</button>
+      <button class="btn btn-ghost btn-sm" onclick="window.editMember('${m.id}')" aria-label="編輯" title="編輯" style="padding:4px 6px;">✏️</button>
+      <button class="btn btn-ghost btn-sm" onclick="window.deleteMember('${m.id}')" aria-label="刪除" title="刪除" style="padding:4px 6px;color:var(--color-danger);">🗑</button>
     </div>`).join('');
 }
 
@@ -846,17 +846,21 @@ function _warnPastDate(input) {
   var btn = document.getElementById('navHamburger');
   var menu = document.getElementById('mobileNav');
   if (!btn || !menu) return;
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-controls', 'mobileNav');
   btn.addEventListener('click', function() {
     var open = menu.style.display === 'flex';
     menu.style.display = open ? 'none' : 'flex';
     btn.textContent = open ? '☰' : '✕';
     btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
   });
   menu.querySelectorAll('a').forEach(function(a) {
     a.addEventListener('click', function() {
       menu.style.display = 'none';
       btn.textContent = '☰';
       btn.setAttribute('aria-label', '開啟選單');
+      btn.setAttribute('aria-expanded', 'false');
     });
   });
 })();

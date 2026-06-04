@@ -98,7 +98,7 @@
           <span class="text-xs text-secondary">On Track %</span>
         </div>
         <div class="panel__body" style="padding:var(--space-lg);">
-          <canvas id="chartHealth" height="220"></canvas>
+          <canvas id="chartHealth" height="220" role="img" aria-label="整體健康度趨勢折線圖"></canvas>
         </div>
       </div>
       <!-- 風險堆疊長條圖 -->
@@ -108,7 +108,7 @@
           <span class="text-xs text-secondary">High / Medium / Low</span>
         </div>
         <div class="panel__body" style="padding:var(--space-lg);">
-          <canvas id="chartRisk" height="220"></canvas>
+          <canvas id="chartRisk" height="220" role="img" aria-label="風險分佈趨勢堆疊長條圖（高/中/低）"></canvas>
         </div>
       </div>
     </div>
@@ -120,7 +120,7 @@
         <span class="text-xs text-secondary">完成率 % / 逾期數</span>
       </div>
       <div class="panel__body" style="padding:var(--space-lg);">
-        <canvas id="chartActions" height="130"></canvas>
+        <canvas id="chartActions" height="130" role="img" aria-label="Action 完成率趨勢折線圖"></canvas>
       </div>
     </div>
 
@@ -131,7 +131,7 @@
         <span class="text-xs text-secondary" id="resourceSubtitle">Top 5 未完成任務 — 最新一週</span>
       </div>
       <div class="panel__body" style="padding:var(--space-lg);">
-        <canvas id="chartResource" height="100"></canvas>
+        <canvas id="chartResource" height="100" role="img" aria-label="資源瓶頸熱區圖"></canvas>
       </div>
     </div>
   </div>
@@ -578,17 +578,21 @@ document.querySelectorAll('.range-btn').forEach(btn => {
   var btn = document.getElementById('navHamburger');
   var menu = document.getElementById('mobileNav');
   if (!btn || !menu) return;
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-controls', 'mobileNav');
   btn.addEventListener('click', function() {
     var open = menu.style.display === 'flex';
     menu.style.display = open ? 'none' : 'flex';
     btn.textContent = open ? '☰' : '✕';
     btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
   });
   menu.querySelectorAll('a').forEach(function(a) {
     a.addEventListener('click', function() {
       menu.style.display = 'none';
       btn.textContent = '☰';
       btn.setAttribute('aria-label', '開啟選單');
+      btn.setAttribute('aria-expanded', 'false');
     });
   });
 })();

@@ -126,7 +126,7 @@
   </div>
 </main>
 
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast-container" id="toastContainer" role="status" aria-live="polite" aria-atomic="false"></div>
 
 <script type="module">
 import { appInit } from './assets/js/app-init.js';
@@ -328,8 +328,8 @@ function renderQuarterly() {
           <td class="text-xs text-secondary mbo-cell">${escHtml(mboPreview).replace(/\n/g,'<br>')}</td>
           <td class="text-xs text-secondary">${e.remark ? escHtml(e.remark) : '—'}</td>
           <td>
-            <button class="btn btn-ghost btn-sm" onclick="editEntry('${e.id}')" title="編輯">✏️</button>
-            <button class="btn btn-ghost btn-sm" onclick="delEntry('${e.id}')"  title="刪除">✕</button>
+            <button class="btn btn-ghost btn-sm" onclick="editEntry('${e.id}')" aria-label="編輯" title="編輯">✏️</button>
+            <button class="btn btn-ghost btn-sm" onclick="delEntry('${e.id}')"  aria-label="刪除" title="刪除">✕</button>
           </td>
         </tr>`;
       }).join('')
@@ -452,8 +452,8 @@ function renderBusiness() {
         ${meta.keys.map(k=>`<td class="num">${c[k]??0}</td>`).join('')}
         <td class="text-xs text-secondary">${c.notes ? escHtml(c.notes) : '—'}</td>
         <td>
-          <button class="btn btn-ghost btn-sm" onclick="editCharge('${c.id}')" title="編輯">✏️</button>
-          <button class="btn btn-ghost btn-sm" onclick="delCharge('${c.id}')"  title="刪除">✕</button>
+          <button class="btn btn-ghost btn-sm" onclick="editCharge('${c.id}')" aria-label="編輯" title="編輯">✏️</button>
+          <button class="btn btn-ghost btn-sm" onclick="delCharge('${c.id}')"  aria-label="刪除" title="刪除">✕</button>
         </td>
       </tr>`).join('')
     : `<tr><td colspan="${meta.cols.length+3}" class="empty-cell">此期間尚無資料</td></tr>`;
@@ -649,17 +649,21 @@ document.getElementById('btnAdd').addEventListener('click', () => {
   var btn = document.getElementById('navHamburger');
   var menu = document.getElementById('mobileNav');
   if (!btn || !menu) return;
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-controls', 'mobileNav');
   btn.addEventListener('click', function() {
     var open = menu.style.display === 'flex';
     menu.style.display = open ? 'none' : 'flex';
     btn.textContent = open ? '☰' : '✕';
     btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
   });
   menu.querySelectorAll('a').forEach(function(a) {
     a.addEventListener('click', function() {
       menu.style.display = 'none';
       btn.textContent = '☰';
       btn.setAttribute('aria-label', '開啟選單');
+      btn.setAttribute('aria-expanded', 'false');
     });
   });
 })();

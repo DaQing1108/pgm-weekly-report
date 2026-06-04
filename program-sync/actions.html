@@ -71,7 +71,7 @@
     </div>
     <div class="page-header__right">
       <!-- 新增：Loop 匯入按鈕與隱藏的 file input -->
-      <button class="btn btn-outline btn-sm" id="btnImportLoop" title="匯入由 Python 腳本萃取的 Loop 任務 JSON 檔" style="margin-right: 8px;">🔄 從 Loop 匯入</button>
+      <button class="btn btn-outline btn-sm" id="btnImportLoop" aria-label="匯入由 Python 腳本萃取的 Loop 任務 JSON 檔" title="匯入由 Python 腳本萃取的 Loop 任務 JSON 檔" style="margin-right: 8px;">🔄 從 Loop 匯入</button>
       <input type="file" id="loopFileInput" accept=".json" style="display:none;">
       
       <!-- V-11 修正：批次完成按鈕加 title 說明，並調整樣式提升可見度 -->
@@ -115,7 +115,7 @@
 
 </main>
 
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast-container" id="toastContainer" role="status" aria-live="polite" aria-atomic="false"></div>
 
 <script type="module">
 import { store }   from './assets/js/store.js';
@@ -296,8 +296,8 @@ function renderPanels() {
                   title="點擊切換 → ${statusLabel(STATUS_CYCLE[(STATUS_CYCLE.indexOf(a.status)+1)%STATUS_CYCLE.length])}">
               ${statusLabel(a.status)}
             </span>
-            <button class="btn btn-ghost btn-sm" onclick="editAction('${a.id}')" style="padding:4px 8px;color:var(--color-text-tertiary);" title="編輯">✏️</button>
-            <button class="btn btn-ghost btn-sm" onclick="deleteAction('${a.id}')" style="padding:4px 8px;color:var(--color-text-tertiary);" title="刪除">✕</button>
+            <button class="btn btn-ghost btn-sm" onclick="editAction('${a.id}')" style="padding:4px 8px;color:var(--color-text-tertiary);" aria-label="編輯" title="編輯">✏️</button>
+            <button class="btn btn-ghost btn-sm" onclick="deleteAction('${a.id}')" style="padding:4px 8px;color:var(--color-text-tertiary);" aria-label="刪除" title="刪除">✕</button>
           </div>
         </div>`;
     }).join('');
@@ -696,17 +696,21 @@ body.is-history-readonly .btn-ghost { opacity:.35; pointer-events:none; cursor:n
   var btn = document.getElementById('navHamburger');
   var menu = document.getElementById('mobileNav');
   if (!btn || !menu) return;
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-controls', 'mobileNav');
   btn.addEventListener('click', function() {
     var open = menu.style.display === 'flex';
     menu.style.display = open ? 'none' : 'flex';
     btn.textContent = open ? '☰' : '✕';
     btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
   });
   menu.querySelectorAll('a').forEach(function(a) {
     a.addEventListener('click', function() {
       menu.style.display = 'none';
       btn.textContent = '☰';
       btn.setAttribute('aria-label', '開啟選單');
+      btn.setAttribute('aria-expanded', 'false');
     });
   });
 })();

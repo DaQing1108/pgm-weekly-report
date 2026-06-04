@@ -193,7 +193,7 @@
   </div>
 </div>
 
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast-container" id="toastContainer" role="status" aria-live="polite" aria-atomic="false"></div>
 
 <script type="module">
 import { store }   from './assets/js/store.js';
@@ -315,7 +315,7 @@ function renderList() {
           <option value="in-progress" ${r.status==='in-progress'?'selected':''}>🔄 處理中</option>
           <option value="closed" ${r.status==='closed'?'selected':''}>✅ 關閉</option>
         </select>
-        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteRisk('${r.id}')" title="刪除" style="padding:2px 6px;font-size:14px;color:var(--color-danger);">🗑</button>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteRisk('${r.id}')" aria-label="刪除" title="刪除" style="padding:2px 6px;font-size:14px;color:var(--color-danger);">🗑</button>
       </div>
     </button>
     <div class="risk-row__detail" id="rdetail-${r.id}" style="display:none;padding:var(--space-md) var(--space-lg);background:var(--color-bg-secondary);border-radius:0 0 var(--radius-md) var(--radius-md);margin-bottom:var(--space-sm);border:1px solid var(--color-border-default);border-top:none;">
@@ -324,8 +324,8 @@ function renderList() {
         ${r.mitigation ? `<p class="text-sm"><strong>因應方案：</strong>${escHtml(r.mitigation)}</p>` : ''}
         <div style="display:flex;gap:var(--space-sm);align-items:center;">
           <!-- U-6 修正：標籤改為直覺方向（🔺升高嚴重度 / 🔻降低嚴重度），並加 title 說明 -->
-          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','up')" title="提高風險等級" style="padding:4px 10px;">🔺 升高</button>
-          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','down')" title="降低風險等級" style="padding:4px 10px;">🔻 降低</button>
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','up')" aria-label="提高風險等級" title="提高風險等級" style="padding:4px 10px;">🔺 升高</button>
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','down')" aria-label="降低風險等級" title="降低風險等級" style="padding:4px 10px;">🔻 降低</button>
           <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRisk('${r.id}')" style="margin-left:auto;padding:4px 10px;">🗑 刪除</button>
         </div>
       </div>
@@ -569,17 +569,21 @@ body.is-history-readonly .risk-row__status select { opacity:.35; pointer-events:
   var btn = document.getElementById('navHamburger');
   var menu = document.getElementById('mobileNav');
   if (!btn || !menu) return;
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-controls', 'mobileNav');
   btn.addEventListener('click', function() {
     var open = menu.style.display === 'flex';
     menu.style.display = open ? 'none' : 'flex';
     btn.textContent = open ? '☰' : '✕';
     btn.setAttribute('aria-label', open ? '開啟選單' : '關閉選單');
+    btn.setAttribute('aria-expanded', open ? 'false' : 'true');
   });
   menu.querySelectorAll('a').forEach(function(a) {
     a.addEventListener('click', function() {
       menu.style.display = 'none';
       btn.textContent = '☰';
       btn.setAttribute('aria-label', '開啟選單');
+      btn.setAttribute('aria-expanded', 'false');
     });
   });
 })();

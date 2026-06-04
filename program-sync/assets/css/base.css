@@ -10,7 +10,7 @@
   --color-bg-tertiary: #eeece6;
   --color-text-primary: #1a1a18;
   --color-text-secondary: #6b6a63;
-  --color-text-tertiary: #9a9890;
+  --color-text-tertiary: #6e6d66; /* 從 #9a9890（2.6:1）提高至 ~4.6:1，通過 WCAG AA */
   --color-border-default: rgba(0, 0, 0, 0.1);
   --color-border-emphasis: rgba(0, 0, 0, 0.2);
 
