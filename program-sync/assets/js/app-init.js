@@ -133,7 +133,7 @@ export async function appInit() {
             const localArr = localRaw ? JSON.parse(localRaw) : [];
             if ((!Array.isArray(localArr) || localArr.length === 0) &&
                 Array.isArray(data[key]) && data[key].length > 0) {
-              store.save(key, data[key]);
+              data[key].forEach(item => store.save(key, item));
               console.info(`[appInit] 本機 ${key} 為空，從後端補入 ${data[key].length} 筆`);
             }
           } catch { /* silent */ }
@@ -310,6 +310,12 @@ function _showAuthBanner() {
   nav.insertAdjacentElement('afterend', bar);
 }
 
+/** 最小 HTML 跳脫，避免 banner 注入 XSS */
+function _esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 // P0-3：一般同步失敗 banner（非 401，例如網路中斷或後端 5xx）
 function _showSyncFailedBanner(message) {
   if (document.getElementById('appInitSyncFailedBanner')) return;
@@ -318,7 +324,7 @@ function _showSyncFailedBanner(message) {
   const bar = document.createElement('div');
   bar.id = 'appInitSyncFailedBanner';
   bar.style.cssText = 'background:var(--color-warning-bg,#fff8e1);border-bottom:1px solid var(--color-warning,#e4a23c);padding:6px 24px;font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
-  const msg = message ? `（${message}）` : '';
+  const msg = message ? `（${_esc(message)}）` : '';
   bar.innerHTML = `
     <span style="font-weight:600;color:var(--color-warning,#e4a23c);">⚠ 後端同步失敗${msg}</span>
     <span style="color:var(--color-text-secondary,#555);">本機資料已保存，但尚未同步至後端。</span>
@@ -339,11 +345,12 @@ function _showCorruptBanner(key) {
   const bar = document.createElement('div');
   bar.id = bannerId;
   bar.style.cssText = 'background:var(--color-danger-bg,#fdecea);border-bottom:2px solid var(--color-danger,#d94f4f);padding:8px 24px;font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;';
-  const keyLabel = key ? `「${key}」` : '';
+  const keyLabel = key ? `「${_esc(key)}」` : '';
+  const safeKey = _esc(key);
   bar.innerHTML = `
     <span style="font-weight:700;color:var(--color-danger,#d94f4f);">🚨 資料損壞警告</span>
     <span style="color:var(--color-text-secondary,#555);">localStorage 中的 ${keyLabel} 資料無法讀取，已重置為空。</span>
-    <button onclick="localStorage.removeItem('${key}'); location.reload();"
+    <button onclick="localStorage.removeItem('${safeKey}'); location.reload();"
       style="margin-left:12px;background:var(--color-danger,#d94f4f);color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;">
       🔄 一鍵重置該變數
     </button>

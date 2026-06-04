@@ -59,7 +59,9 @@ app.use(express.json({ limit: '2mb' }));
 // Railway 部署時於 Variables 設定 ADMIN_TOKEN=<隨機字串> 即可啟用
 function requireAdminToken(req, res, next) {
   const expected = process.env.ADMIN_TOKEN;
-  if (!expected) return next(); // 未設定 → 開放
+  if (!expected) {
+    return res.status(503).json({ error: '伺服器設定錯誤：ADMIN_TOKEN 未設定', code: 'MISCONFIGURED' });
+  }
   const provided = req.headers['x-admin-token'];
   if (!provided || provided !== expected) {
     return res.status(401).json({ error: '需要管理員 Token', code: 'UNAUTHORIZED' });
