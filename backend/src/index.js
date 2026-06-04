@@ -374,7 +374,8 @@ app.get('/read', (req, res) => {
           .replace(/\|.+\|/g, '')
           .replace(/[-*]\s/g, '')
           .trim();
-        return `<section><h2>${f.replace('.md', '')}</h2><pre>${text}</pre></section>`;
+        const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        return `<section><h2>${esc(f.replace('.md', ''))}</h2><pre>${esc(text)}</pre></section>`;
       } catch { return ''; }
     }).filter(Boolean).join('<hr>');
 

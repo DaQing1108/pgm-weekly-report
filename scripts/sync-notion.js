@@ -120,11 +120,12 @@ function parseRichText(text) {
           annotations: { code: true }
         });
       } else {
+        const safeLink = /^https?:\/\//i.test(url) ? { url } : undefined;
         results.push({
           type: 'text',
           text: {
             content: match[4],
-            link: { url: url }
+            ...(safeLink ? { link: safeLink } : {})
           }
         });
       }
