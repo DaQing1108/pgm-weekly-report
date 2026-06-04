@@ -281,8 +281,13 @@ function _computeMetrics(s) {
     : (s.snap?.overdueActions ?? 0);
 
   // Action 完成率
-  const total = acts.length;
-  const done  = acts.filter(a => a.status === 'done').length;
+  // 優先使用 snapshot 存值（import 時計算，歷史準確）；
+  // snapshot 不存在或 totalActions=0 時才從 raw actions 重算。
+  const snapTotal = s.snap?.totalActions;
+  const snapDone  = s.snap?.completedActions;
+  const useSnap   = typeof snapTotal === 'number' && snapTotal > 0;
+  const total = useSnap ? snapTotal : acts.length;
+  const done  = useSnap ? (snapDone ?? 0) : acts.filter(a => a.status === 'done').length;
 
   return { onTrackPct: health, highRisks: high, mediumRisks: medium, lowRisks: low,
            overdueActions: overdue, totalActions: total, completedActions: done };
