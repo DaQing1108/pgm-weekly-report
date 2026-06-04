@@ -1,5 +1,40 @@
 # Changelog — PgM Weekly Report System
 
+## 2026/06/04 — Trends 歷史資料修復 + Code Review 修正
+
+### [修復] trends.html 完成率 & 逾期數歷史資料不準確
+
+**根因**：`_computeMetrics` 一律從 raw actions 重算，但 actions 狀態在後續 import 中被覆蓋，導致歷史週的數值與當週實際情況不符：
+- 完成率：W11–W13 應為 50%，raw 重算顯示 0%
+- 逾期數：W15–W17 應為 0，raw 重算虛增至 8/15/5 筆
+
+**修復**：歷史週（`s.snap` 存在）優先使用 snapshot 存值（import 時計算準確），當週（`s.snap = null`，由 `_injectCurrentWeek` 注入）才從 raw actions 重算：
+
+```javascript
+// 逾期數
+const overdue = s.snap?.overdueActions != null
+  ? s.snap.overdueActions         // 歷史週：snapshot 存值
+  : rawCalculation;               // 當週：即時重算
+
+// 完成率
+const useSnap = typeof s.snap?.totalActions === 'number' && s.snap.totalActions > 0;
+const total   = useSnap ? s.snap.totalActions    : acts.length;
+const done    = useSnap ? (s.snap.completedActions ?? 0) : rawDoneCount;
+```
+
+**影響週次**：W11–W23 的完成率與逾期數趨勢圖現在顯示歷史準確值。
+
+---
+
+### [修復] Code Review 三項修正（M1、M2、M3）
+
+- **M1 `input.html`**：刪除 `filenameLabel.textContent` 無效的雙重賦值（第 910 行立即被覆蓋）
+- **M2 `index.js`**：兩個 admin 端點加入 5MB body 上限，超過回 HTTP 413 並中斷連線
+- **M3 `import-draft.py`**：`--auto-release` 加 `returncode` 檢查，失敗時印出警告而非靜默吞掉
+- **L1 `input.html`**：刪除宣告後從未讀取的 `doneMsg` 變數
+
+---
+
 ## 2026/06/04 — 全系統安全加固 & 無障礙改善（Ultra Code Review）
 
 Ultra Code Review 發現並修復 7 Critical、14 High 問題，同時完成 WCAG 2.1 AA 無障礙升級。
