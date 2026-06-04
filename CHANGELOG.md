@@ -1,5 +1,51 @@
 # Changelog — PgM Weekly Report System
 
+## 2026/06/04 — AI 週報匯入 UI + 流程自動化強化
+
+### [功能] Quick Input 頁面新增「AI 週報匯入 & 發布」面板（localhost-only）
+
+三段式匯入流程，取代原本的純命令列操作，適合非技術用戶在本機操作：
+
+**① 匯入前解析預覽**
+- 選擇 Final MD 後自動呼叫 `/api/admin/parse-draft`（dry-run，不寫入任何檔案）
+- 顯示摘要卡：週次、weekStart、專案數 / Actions 數 / Risks 數 / 里程碑數
+- 列出各專案名稱、狀態、進度百分比，讓用戶確認解析結果正確
+
+**② 確認閘門**
+- 按「🚀 匯入並發布」前彈出 confirm 對話框，明列即將匯入的週次與各資料筆數
+- 確認後才執行，防止誤觸
+
+**③ 部署驗證**
+- 匯入 + git release 完成後，自動輪詢 Railway 生產環境 `/api/weeks/WXX`
+- 比對 `_savedAt` 時間戳，確認 Railway 已接收最新資料
+- 最多輪詢 3 分鐘（每 15 秒一次），成功顯示「✅ 部署驗證通過」
+
+**後端新端點（localhost-only）**
+- `POST /api/admin/parse-draft` — dry-run 解析，回傳摘要 JSON
+- `POST /api/admin/import-release` — SSE 串流執行完整匯入 + release，done 事件回傳 `weekLabel` + `savedAt`
+
+---
+
+### [功能] import-draft.py 新增旗標
+
+| 旗標 | 說明 |
+|------|------|
+| `--dry-run` | 只解析 MD 並輸出摘要 JSON，不寫入任何檔案或 Railway |
+| `--auto-release` | push 成功後自動呼叫 `release-week.sh WXX --yes`（需搭配 `--push`） |
+
+### [功能] import-draft.py push 成功後自動同步本地 JSON + 印出 release 提示
+
+- Railway push 成功後自動將 payload 寫回 `backend/data/weeks/WXX.json`
+- 印出提示：`📌 下一步：執行 ./scripts/release-week.sh WXX`
+- 防止 Production 有資料、git 無記錄的落差
+
+### [修復] W23 本地 git 落差補齊
+
+- 根因：W23 透過 Quick Input 頁面直接寫入 Railway PostgreSQL，未走 `import-draft.py` 流程，本地 JSON 與 git 均未更新
+- 修復：從 Railway API 拉回 W23 完整資料 → `W23.json` → Final MD 複製至 `backend/reports/` → `release-week.sh W23` 補齊 git 記錄
+
+---
+
 ## 2026/05/28 — W22 資料修復與匯入流程強化
 
 **[修正] new-week.sh 遺漏必要欄位**
