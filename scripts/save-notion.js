@@ -23,10 +23,14 @@ function loadEnv() {
 loadEnv();
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
-const DATABASE_ID = '3430ce3a-023e-498e-a0a9-c3e98f29bf5f'; // 工作總結倉庫
+const DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
 if (!NOTION_TOKEN || NOTION_TOKEN === '你的token') {
   console.error('\x1b[31mError: NOTION_TOKEN is not configured in .env file.\x1b[0m');
+  process.exit(1);
+}
+if (!DATABASE_ID) {
+  console.error('\x1b[31mError: NOTION_DATABASE_ID is not configured in .env file.\x1b[0m');
   process.exit(1);
 }
 

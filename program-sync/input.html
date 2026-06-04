@@ -320,7 +320,7 @@
 <script type="module">
 import { store }   from './assets/js/store.js';
 import { appInit } from './assets/js/app-init.js';
-import { fetchReports, fetchReportContent, saveWeekState } from './assets/js/api.js';
+import { fetchReports, fetchReportContent, saveWeekState, getAdminToken } from './assets/js/api.js';
 import { toast, renderBadge, formatDate, generateId, relativeTime, modal, confirm as uiConfirm } from './assets/js/ui.js';
 import { MEMBERS, TEAMS } from './assets/data/schema.js';
 
@@ -916,6 +916,7 @@ function _warnPastDate(input) {
       var xhr = new XMLHttpRequest();
       xhr.open('POST', '/api/admin/parse-draft?filename=' + encodeURIComponent(selectedFile.name), true);
       xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
+      var _tok = getAdminToken(); if (_tok) xhr.setRequestHeader('X-Admin-Token', _tok);
       xhr.onload = function() {
         if (xhr.status === 200) {
           try {
@@ -1002,6 +1003,7 @@ function _warnPastDate(input) {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/admin/import-release?filename=' + encodeURIComponent(selectedFile.name), true);
     xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
+    var _tok2 = getAdminToken(); if (_tok2) xhr.setRequestHeader('X-Admin-Token', _tok2);
 
     var lastIdx = 0;
 

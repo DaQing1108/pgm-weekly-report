@@ -24,8 +24,12 @@ function loadEnv() {
 loadEnv();
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN || process.env.ADMIN_TOKEN;
-const DEFAULT_PAGE_ID = '367280a9-5f76-81e7-a64e-d8151e486739';
-const PAGE_ID = process.env.NOTION_PAGE_ID || DEFAULT_PAGE_ID;
+const PAGE_ID = process.env.NOTION_PAGE_ID;
+
+if (!PAGE_ID) {
+  console.error('\x1b[31mError: NOTION_PAGE_ID is not configured in .env file.\x1b[0m');
+  process.exit(1);
+}
 
 if (!NOTION_TOKEN || NOTION_TOKEN === '你的token') {
   console.error('\x1b[31mError: NOTION_TOKEN or ADMIN_TOKEN is not set or is still a placeholder in .env file.\x1b[0m');
@@ -340,15 +344,8 @@ async function syncToNotion() {
     mdContent = fs.readFileSync(planPath, 'utf8');
     activePlanName = 'docs/組織架構與人員名單.md';
   } else {
-    // Check if we can find any .md files or artifact files
-    const localArtifactPath = '/Users/daqingliao/.gemini/antigravity/brain/c9392640-0b19-4d79-9ec7-342e9a0c798e/implementation_plan.md';
-    if (fs.existsSync(localArtifactPath)) {
-      mdContent = fs.readFileSync(localArtifactPath, 'utf8');
-      activePlanName = 'Artifact implementation_plan.md';
-    } else {
-      console.error('\x1b[31mError: No valid Markdown plan files found in standard locations.\x1b[0m');
-      process.exit(1);
-    }
+    console.error('\x1b[31mError: No valid Markdown plan files found in standard locations.\x1b[0m');
+    process.exit(1);
   }
 
   console.log(`\x1b[32m✔ Loaded plan file: ${activePlanName}\x1b[0m`);

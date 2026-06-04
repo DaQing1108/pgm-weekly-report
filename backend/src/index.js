@@ -207,11 +207,7 @@ app.post('/api/weeks/:weekLabel', requireAdminToken, async (req, res) => {
 
 // ── AI 週報解析預覽（localhost-only，dry-run）────────────────────
 // 選完 MD 後呼叫，只解析不寫入，回傳摘要供前端顯示確認卡
-app.post('/api/admin/parse-draft', (req, res) => {
-  const remote = req.socket.remoteAddress || '';
-  if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(remote)) {
-    return res.status(403).json({ error: '此端點僅允許本機呼叫' });
-  }
+app.post('/api/admin/parse-draft', requireAdminToken, (req, res) => {
 
   const filename = (req.query.filename || 'parse_temp.md').replace(/[^a-zA-Z0-9_.\-]/g, '_');
   const draftsDir = path.join(REPO_ROOT, 'backend', 'drafts');
@@ -255,11 +251,7 @@ app.post('/api/admin/parse-draft', (req, res) => {
 // ── AI 週報匯入並發布（localhost-only，SSE 串流）─────────────────
 // 接收 MD 文字內容 → 存至 drafts/ → import-draft.py --push --auto-release
 // 使用 SSE 將 stdout/stderr 即時推送到前端
-app.post('/api/admin/import-release', (req, res) => {
-  const remote = req.socket.remoteAddress || '';
-  if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(remote)) {
-    return res.status(403).json({ error: '此端點僅允許本機呼叫' });
-  }
+app.post('/api/admin/import-release', requireAdminToken, (req, res) => {
 
   const filename = (req.query.filename || 'import_temp.md').replace(/[^a-zA-Z0-9_.\-]/g, '_');
   const draftsDir = path.join(REPO_ROOT, 'backend', 'drafts');
@@ -336,11 +328,7 @@ app.post('/api/admin/import-release', (req, res) => {
 // ── 本機自動發布（localhost-only）─────────────────────────────
 // 瀏覽器完成歸檔後呼叫此端點，自動執行 release-week.sh --yes
 // 只接受 127.0.0.1 / ::1 連線，Production Railway 無法觸發
-app.post('/api/release/:weekLabel', (req, res) => {
-  const remote = req.socket.remoteAddress || '';
-  if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(remote)) {
-    return res.status(403).json({ error: '此端點僅允許本機呼叫' });
-  }
+app.post('/api/release/:weekLabel', requireAdminToken, (req, res) => {
   const safe = req.params.weekLabel.replace(/[^a-zA-Z0-9]/g, '');
   if (!/^W\d{2}$/.test(safe)) {
     return res.status(400).json({ error: '週次格式錯誤，應為 W01…W53' });
