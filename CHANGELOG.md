@@ -1,5 +1,59 @@
 # Changelog — PgM Weekly Report System
 
+## 2026/06/04 — 全系統安全加固 & 無障礙改善（Ultra Code Review）
+
+Ultra Code Review 發現並修復 7 Critical、14 High 問題，同時完成 WCAG 2.1 AA 無障礙升級。
+
+### [安全] 認證與授權
+
+- **ADMIN_TOKEN bypass 修復**：`requireAdminToken` 未設定時改為回傳 503，不再 bypass 認證
+- **Admin 端點保護**：`/api/admin/parse-draft`、`/api/admin/import-release`、`/api/release/:weekLabel` 從無效的 localhost IP 判斷改為 `requireAdminToken`（Railway 代理後 IP 判斷失效）
+- **Token 比對防 timing attack**：改用 `crypto.timingSafeEqual`
+- **前端補送 token header**：`input.html` 兩個 XHR 補 `X-Admin-Token`
+
+### [安全] XSS 防護
+
+- **stored XSS — marked.js**：`report.html`、`review.html` 所有 `marked.parse()` 輸出套 DOMPurify
+- **stored XSS — list render**：全站 7 個頁面所有自由文字欄位（name、task、description、blockers、owner 等）套 `escHtml()`
+- **banner XSS**：`app-init.js` 的 sync-failed / corrupt banner 加 `_esc()` 跳脫
+- **`/read` 端點 XSS**：後端 HTML 輸出的檔名與內容套 HTML encode
+- **Notion link URL 驗證**：`save-notion.js`、`sync-notion.js` 只允許 `http(s)://`，拒絕 `javascript:` 等危險 protocol
+
+### [安全] 機密管理
+
+- **移除硬編碼 Notion ID**：`DATABASE_ID`、`PAGE_ID` 改讀 `NOTION_DATABASE_ID`、`NOTION_PAGE_ID` env var
+- **移除絕對路徑**：`sync-notion.js` 中 `/Users/daqingliao/...` 硬編碼路徑完全移除
+- **修復 .env 手寫 parser**：`import-draft.py` 改用 `python-dotenv`，新增 `scripts/requirements.txt`
+
+### [安全] 其他
+
+- **AI agent 寫入範圍縮小**：`fix-agent.js` 移除 `backend/src/index.js` 的可寫授權
+- **child process 最小化 env**：移除子程序繼承全部 secrets 的預設行為
+
+### [修復] 邏輯 Bug
+
+- **localStorage 損壞**：`store.save(key, array)` 改為逐筆 `forEach` 寫入，修復 P3 補入邏輯
+- **store 不可變**：`store.save()` 先 spread clone 再賦值，不 mutate 呼叫方物件
+
+### [無障礙] WCAG 2.1 AA 升級
+
+- **焦點樣式**：加 `:focus-visible` 全域樣式、`.sr-only` / `.sr-only-focusable` 工具類、`prefers-reduced-motion` 支援
+- **Landmark 結構**：全站 10 頁加 skip link、`<main id="main-content">`、`<nav aria-label="主導覽">`
+- **Modal 語意**：`ui.js modal()` 加 `role="dialog" aria-modal="true"`、focus trap、Escape 關閉、焦點還原
+- **Button 語意**：KPI 卡片、risk-row、section header 從 `<div onclick>` 改為 `<button>`，加 `aria-expanded`/`aria-controls`
+- **Hamburger 狀態**：全站 hamburger 補 `aria-expanded`、`aria-controls`
+- **表單標籤**：主要頁面搜尋框、週次選擇、篩選下拉加 `aria-label`/`label`
+- **Toast 公告**：全站 `toastContainer` 加 `role="status" aria-live="polite"`
+- **Canvas 替代文字**：`trends.html` 四個圖表加 `role="img" aria-label`
+- **對比度修正**：`--color-text-tertiary` 從 `#9a9890`（2.6:1）提升至 `#6e6d66`（~4.6:1），通過 WCAG AA
+- **Icon 按鈕**：編輯/刪除/升降級等 icon-only 按鈕補 `aria-label`
+
+### [維護]
+
+- Python `open()` 全加 `encoding='utf-8'`（`validate-week.py`、`new-week.py`）
+
+---
+
 ## 2026/06/04 — AI 週報匯入 UI + 流程自動化強化
 
 ### [功能] Quick Input 頁面新增「AI 週報匯入 & 發布」面板（localhost-only）
