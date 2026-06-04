@@ -214,7 +214,13 @@ app.post('/api/admin/parse-draft', (req, res) => {
   const draftPath = path.join(draftsDir, filename);
 
   let body = '';
-  req.on('data', chunk => { body += chunk.toString(); });
+  req.on('data', chunk => {
+    body += chunk.toString();
+    if (body.length > 5 * 1024 * 1024) {
+      res.status(413).json({ error: '檔案過大（上限 5MB）' });
+      req.destroy();
+    }
+  });
   req.on('end', () => {
     if (!body.trim()) return res.status(400).json({ error: '未收到 MD 內容' });
 
@@ -265,7 +271,14 @@ app.post('/api/admin/import-release', (req, res) => {
 
   // 接收 MD 文字內容（express.text() middleware 需在路由前設定）
   let body = '';
-  req.on('data', chunk => { body += chunk.toString(); });
+  req.on('data', chunk => {
+    body += chunk.toString();
+    if (body.length > 5 * 1024 * 1024) {
+      send({ type: 'error', text: '❌ 檔案過大（上限 5MB）' });
+      req.destroy();
+      res.end();
+    }
+  });
   req.on('end', () => {
     if (!body.trim()) {
       send({ type: 'error', text: '❌ 未收到 MD 內容' });

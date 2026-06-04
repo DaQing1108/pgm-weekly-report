@@ -907,7 +907,6 @@ function _warnPastDate(input) {
       filenameLabel.style.color = 'var(--color-text-secondary)';
       return;
     }
-    filenameLabel.textContent = selectedFile.name;
     filenameLabel.style.color = 'var(--color-text-primary)';
     filenameLabel.textContent = '⏳ 解析中…';
 
@@ -1005,7 +1004,6 @@ function _warnPastDate(input) {
     xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
 
     var lastIdx = 0;
-    var doneMsg = null;
 
     xhr.onreadystatechange = function() {
       if (xhr.readyState >= 3 && xhr.responseText.length > lastIdx) {

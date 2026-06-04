@@ -621,7 +621,9 @@ def main():
         if push_ok and args.auto_release:
             print(f"\n🚀  執行 release-week.sh {week_label}...")
             release_script = REPO_ROOT / "scripts" / "release-week.sh"
-            subprocess.run(["bash", str(release_script), week_label, "--yes"], check=False)
+            result = subprocess.run(["bash", str(release_script), week_label, "--yes"], check=False)
+            if result.returncode != 0:
+                print(f"⚠️  release-week.sh 結束碼 {result.returncode}，請手動確認 git 狀態")
 
     # ── 後驗證 ──────────────────────────────────────────────────────────────────
     VALID_ACTION_STATUSES = {"pending", "in-progress", "done", "blocked"}
