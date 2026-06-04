@@ -200,6 +200,47 @@ app.post('/api/weeks/:weekLabel', requireAdminToken, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── AI 週報解析預覽（localhost-only，dry-run）────────────────────
+// 選完 MD 後呼叫，只解析不寫入，回傳摘要供前端顯示確認卡
+app.post('/api/admin/parse-draft', (req, res) => {
+  const remote = req.socket.remoteAddress || '';
+  if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(remote)) {
+    return res.status(403).json({ error: '此端點僅允許本機呼叫' });
+  }
+
+  const filename = (req.query.filename || 'parse_temp.md').replace(/[^a-zA-Z0-9_.\-]/g, '_');
+  const draftsDir = path.join(REPO_ROOT, 'backend', 'drafts');
+  if (!fs.existsSync(draftsDir)) fs.mkdirSync(draftsDir, { recursive: true });
+  const draftPath = path.join(draftsDir, filename);
+
+  let body = '';
+  req.on('data', chunk => { body += chunk.toString(); });
+  req.on('end', () => {
+    if (!body.trim()) return res.status(400).json({ error: '未收到 MD 內容' });
+
+    try { fs.writeFileSync(draftPath, body, 'utf-8'); }
+    catch (e) { return res.status(500).json({ error: `暫存失敗：${e.message}` }); }
+
+    const scriptPath = path.join(REPO_ROOT, 'scripts', 'import-draft.py');
+    let output = '';
+    const child = spawn('python3', [scriptPath, draftPath, '--dry-run'], {
+      cwd: REPO_ROOT,
+      env: { ...process.env, PYTHONUNBUFFERED: '1' },
+    });
+    child.stdout.on('data', d => { output += d.toString(); });
+    child.stderr.on('data', d => { output += d.toString(); });
+    child.on('close', code => {
+      try {
+        const summary = JSON.parse(output.trim());
+        res.json({ success: true, summary });
+      } catch {
+        res.status(500).json({ error: `解析失敗：${output.slice(0, 300)}` });
+      }
+    });
+    child.on('error', e => res.status(500).json({ error: e.message }));
+  });
+});
+
 // ── AI 週報匯入並發布（localhost-only，SSE 串流）─────────────────
 // 接收 MD 文字內容 → 存至 drafts/ → import-draft.py --push --auto-release
 // 使用 SSE 將 stdout/stderr 即時推送到前端
@@ -245,18 +286,26 @@ app.post('/api/admin/import-release', (req, res) => {
       env: { ...process.env, TERM: 'dumb', PYTHONUNBUFFERED: '1' },
     });
 
+    let allOutput = '';
     child.stdout.on('data', d => {
-      d.toString().split('\n').filter(Boolean).forEach(line =>
+      const text = d.toString();
+      allOutput += text;
+      text.split('\n').filter(Boolean).forEach(line =>
         send({ type: 'log', text: line })
       );
     });
     child.stderr.on('data', d => {
-      d.toString().split('\n').filter(Boolean).forEach(line =>
+      const text = d.toString();
+      allOutput += text;
+      text.split('\n').filter(Boolean).forEach(line =>
         send({ type: 'log', text: line })
       );
     });
     child.on('close', code => {
-      send({ type: 'done', exitCode: code, success: code === 0 });
+      const weekMatch = allOutput.match(/W\d{2}/);
+      const weekLabel = weekMatch ? weekMatch[0] : null;
+      const savedAt = new Date().toISOString();
+      send({ type: 'done', exitCode: code, success: code === 0, weekLabel, savedAt });
       res.end();
     });
     child.on('error', e => {

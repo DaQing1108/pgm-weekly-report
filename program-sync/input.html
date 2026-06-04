@@ -82,6 +82,9 @@
           </span>
         </div>
 
+        <!-- 解析預覽卡（選檔後自動出現） -->
+        <div id="importPreviewCard" style="display:none;"></div>
+
         <!-- 匯入按鈕 -->
         <button id="importReleaseBtn" class="btn btn-primary" disabled style="width:100%;margin-bottom:var(--space-md);">
           🚀 匯入並發布
@@ -864,95 +867,236 @@ function _warnPastDate(input) {
     document.getElementById('importHintPanel').style.display = 'none';
   }
 
-  var fileInput = document.getElementById('importMdFile');
+  var fileInput   = document.getElementById('importMdFile');
   var filenameLabel = document.getElementById('importFilename');
-  var importBtn = document.getElementById('importReleaseBtn');
-  var logBox = document.getElementById('importLog');
+  var importBtn   = document.getElementById('importReleaseBtn');
+  var logBox      = document.getElementById('importLog');
   var selectedFile = null;
+  var parsedSummary = null;
+  var fileContent = null;
 
+  // ── 工具：log 輸出 ──
+  function appendLog(text, color) {
+    var line = document.createElement('div');
+    line.style.color = color || '#94a3b8';
+    line.textContent = text;
+    logBox.appendChild(line);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  function logColor(text) {
+    return text.startsWith('✅') ? '#4ade80'
+         : text.startsWith('❌') ? '#f87171'
+         : text.startsWith('⚠')  ? '#fbbf24'
+         : text.startsWith('🚀') ? '#60a5fa'
+         : text.startsWith('📌') ? '#a78bfa'
+         : text.startsWith('🎉') ? '#4ade80'
+         : '#94a3b8';
+  }
+
+  // ── ① 選檔後自動解析預覽 ──
   fileInput.addEventListener('change', function() {
     selectedFile = fileInput.files[0] || null;
-    if (selectedFile) {
-      filenameLabel.textContent = selectedFile.name;
-      filenameLabel.style.color = 'var(--color-text-primary)';
-      importBtn.disabled = false;
-    } else {
+    parsedSummary = null;
+    fileContent = null;
+    importBtn.disabled = true;
+    document.getElementById('importPreviewCard').style.display = 'none';
+
+    if (!selectedFile) {
       filenameLabel.textContent = '尚未選擇檔案';
       filenameLabel.style.color = 'var(--color-text-secondary)';
-      importBtn.disabled = true;
+      return;
     }
+    filenameLabel.textContent = selectedFile.name;
+    filenameLabel.style.color = 'var(--color-text-primary)';
+    filenameLabel.textContent = '⏳ 解析中…';
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      fileContent = e.target.result;
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/admin/parse-draft?filename=' + encodeURIComponent(selectedFile.name), true);
+      xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          try {
+            var resp = JSON.parse(xhr.responseText);
+            if (resp.success) {
+              parsedSummary = resp.summary;
+              showPreviewCard(parsedSummary, selectedFile.name);
+              importBtn.disabled = false;
+            } else {
+              filenameLabel.textContent = selectedFile.name + '（解析失敗）';
+              filenameLabel.style.color = '#f87171';
+            }
+          } catch(e) {
+            filenameLabel.textContent = selectedFile.name + '（解析異常）';
+          }
+        } else {
+          filenameLabel.textContent = selectedFile.name + '（後端錯誤 ' + xhr.status + '）';
+          filenameLabel.style.color = '#f87171';
+        }
+      };
+      xhr.onerror = function() {
+        filenameLabel.textContent = selectedFile.name + '（無法連線本機後端）';
+        filenameLabel.style.color = '#f87171';
+      };
+      xhr.send(fileContent);
+    };
+    reader.readAsText(selectedFile, 'utf-8');
   });
 
-  importBtn.addEventListener('click', function() {
-    if (!selectedFile) return;
+  // ── ① 顯示預覽卡 ──
+  function showPreviewCard(s, fname) {
+    filenameLabel.textContent = fname;
+    var card = document.getElementById('importPreviewCard');
+    var statusMap = { 'on-track': '✅', 'at-risk': '⚠️', 'behind': '🔴', 'paused': '⏸' };
+    var projectRows = (s.projects || []).map(function(p) {
+      return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1e293b;font-size:11px;">'
+        + '<span>' + (statusMap[p.status] || '•') + ' ' + (p.name || '–') + '</span>'
+        + '<span style="color:#64748b;">' + (p.progress || 0) + '%</span>'
+        + '</div>';
+    }).join('');
 
+    card.innerHTML = '<div style="background:#131929;border:1px solid #1e3a5f;border-radius:8px;padding:12px 16px;margin-bottom:12px;">'
+      + '<div style="font-size:12px;color:#60a5fa;font-weight:600;margin-bottom:8px;">📋 解析摘要 — ' + s.weekLabel + '（' + s.weekStart + '）</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;">'
+      + _statChip('專案', s.projectCount, '#3b82f6')
+      + _statChip('Actions', s.actionCount, '#8b5cf6')
+      + _statChip('Risks', s.riskCount, '#ef4444')
+      + _statChip('里程碑', s.milestoneCount, '#f59e0b')
+      + '</div>'
+      + (projectRows ? '<div style="margin-top:6px;">' + projectRows + '</div>' : '')
+      + '</div>';
+    card.style.display = 'block';
+  }
+
+  function _statChip(label, count, color) {
+    return '<div style="background:#0f1117;border-radius:6px;padding:6px;text-align:center;">'
+      + '<div style="font-size:18px;font-weight:700;color:' + color + ';">' + count + '</div>'
+      + '<div style="font-size:10px;color:#64748b;">' + label + '</div>'
+      + '</div>';
+  }
+
+  // ── ② 確認閘門 ──
+  importBtn.addEventListener('click', function() {
+    if (!selectedFile || !parsedSummary || !fileContent) return;
+    var s = parsedSummary;
+    var msg = '即將匯入 ' + s.weekLabel + '\n\n'
+            + '  • 專案：' + s.projectCount + ' 個\n'
+            + '  • Actions：' + s.actionCount + ' 筆\n'
+            + '  • Risks：' + s.riskCount + ' 筆\n'
+            + '  • 里程碑：' + s.milestoneCount + ' 個\n\n'
+            + '確認後將寫入 Railway DB 並執行 git release，無法復原。\n繼續？';
+    if (!window.confirm(msg)) return;
+    runImport();
+  });
+
+  // ── 執行匯入 ──
+  function runImport() {
     importBtn.disabled = true;
     importBtn.textContent = '⏳ 執行中…';
     logBox.style.display = 'block';
     logBox.innerHTML = '';
+    appendLog('📂 開始匯入：' + selectedFile.name, '#60a5fa');
 
-    var appendLog = function(text, color) {
-      var line = document.createElement('div');
-      line.style.color = color || '#94a3b8';
-      line.textContent = text;
-      logBox.appendChild(line);
-      logBox.scrollTop = logBox.scrollHeight;
-    };
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/admin/import-release?filename=' + encodeURIComponent(selectedFile.name), true);
+    xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
 
-    appendLog('📂 讀取檔案：' + selectedFile.name, '#60a5fa');
+    var lastIdx = 0;
+    var doneMsg = null;
 
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var content = e.target.result;
-      appendLog('🚀 送出至本機後端…', '#60a5fa');
-
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/admin/import-release?filename=' + encodeURIComponent(selectedFile.name), true);
-      xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
-
-      var lastIdx = 0;
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState >= 3 && xhr.responseText.length > lastIdx) {
-          var chunk = xhr.responseText.slice(lastIdx);
-          lastIdx = xhr.responseText.length;
-          chunk.split('\n').forEach(function(line) {
-            line = line.trim();
-            if (!line.startsWith('data:')) return;
-            try {
-              var msg = JSON.parse(line.slice(5).trim());
-              if (msg.type === 'log') {
-                var color = msg.text.startsWith('✅') ? '#4ade80'
-                          : msg.text.startsWith('❌') ? '#f87171'
-                          : msg.text.startsWith('⚠') ? '#fbbf24'
-                          : msg.text.startsWith('🚀') ? '#60a5fa'
-                          : msg.text.startsWith('📌') ? '#a78bfa'
-                          : '#94a3b8';
-                appendLog(msg.text, color);
-              } else if (msg.type === 'done') {
-                if (msg.success) {
-                  appendLog('', '');
-                  appendLog('🎉 發布完成！Railway 約 1–2 分鐘後自動部署。', '#4ade80');
-                  importBtn.textContent = '✅ 發布成功';
-                  importBtn.style.background = '#16a34a';
-                } else {
-                  appendLog('❌ 流程結束，exitCode=' + msg.exitCode, '#f87171');
-                  importBtn.textContent = '❌ 發生錯誤';
-                  importBtn.disabled = false;
-                }
-              } else if (msg.type === 'error') {
-                appendLog(msg.text, '#f87171');
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState >= 3 && xhr.responseText.length > lastIdx) {
+        var chunk = xhr.responseText.slice(lastIdx);
+        lastIdx = xhr.responseText.length;
+        chunk.split('\n').forEach(function(line) {
+          line = line.trim();
+          if (!line.startsWith('data:')) return;
+          try {
+            var msg = JSON.parse(line.slice(5).trim());
+            if (msg.type === 'log') {
+              appendLog(msg.text, logColor(msg.text));
+            } else if (msg.type === 'done') {
+              doneMsg = msg;
+              if (msg.success) {
+                appendLog('', '');
+                appendLog('🎉 git 發布完成！開始驗證 Railway 部署…', '#4ade80');
+                importBtn.textContent = '🔍 驗證部署中…';
+                verifyDeploy(msg.weekLabel, msg.savedAt);
+              } else {
+                appendLog('❌ 流程結束，exitCode=' + msg.exitCode, '#f87171');
                 importBtn.textContent = '❌ 發生錯誤';
                 importBtn.disabled = false;
               }
-            } catch(e) {}
-          });
+            } else if (msg.type === 'error') {
+              appendLog(msg.text, '#f87171');
+              importBtn.textContent = '❌ 發生錯誤';
+              importBtn.disabled = false;
+            }
+          } catch(e) {}
+        });
+      }
+    };
+    xhr.send(fileContent);
+  }
+
+  // ── ③ 部署驗證：輪詢 Railway 生產環境 ──
+  function verifyDeploy(weekLabel, savedAt) {
+    if (!weekLabel) {
+      appendLog('⚠ 無法取得 weekLabel，跳過部署驗證', '#fbbf24');
+      importBtn.textContent = '✅ 發布完成（未驗證）';
+      return;
+    }
+    var RAILWAY_URL = 'https://pgm-weekly-report-production.up.railway.app';
+    var attempts = 0;
+    var maxAttempts = 12; // 最多 3 分鐘（每 15 秒一次）
+    var savedTs = new Date(savedAt).getTime();
+
+    appendLog('🔍 輪詢 Railway：' + RAILWAY_URL + '/api/weeks/' + weekLabel, '#60a5fa');
+
+    var poll = function() {
+      attempts++;
+      var xhr2 = new XMLHttpRequest();
+      xhr2.open('GET', RAILWAY_URL + '/api/weeks/' + weekLabel, true);
+      xhr2.onload = function() {
+        if (xhr2.status === 200) {
+          try {
+            var data = JSON.parse(xhr2.responseText);
+            var railwayTs = new Date(data._savedAt || 0).getTime();
+            if (railwayTs >= savedTs - 5000) {
+              appendLog('✅ Railway 已確認部署，_savedAt=' + (data._savedAt || '–'), '#4ade80');
+              importBtn.textContent = '✅ 部署驗證通過';
+              importBtn.style.background = '#16a34a';
+              return;
+            }
+          } catch(e) {}
+        }
+        if (attempts >= maxAttempts) {
+          appendLog('⚠ 3 分鐘內 Railway 未更新，請手動確認', '#fbbf24');
+          importBtn.textContent = '⚠ 請手動驗證';
+          importBtn.style.background = '#b45309';
+        } else {
+          appendLog('　↻ 第 ' + attempts + ' 次輪詢，15 秒後再試…', '#475569');
+          setTimeout(poll, 15000);
         }
       };
-
-      xhr.send(content);
+      xhr2.onerror = function() {
+        if (attempts >= maxAttempts) {
+          appendLog('⚠ 無法連線 Railway，請手動確認', '#fbbf24');
+          importBtn.textContent = '⚠ 請手動驗證';
+        } else {
+          setTimeout(poll, 15000);
+        }
+      };
+      xhr2.send();
     };
-    reader.readAsText(selectedFile, 'utf-8');
-  });
+
+    // Railway git 部署約 1–2 分鐘，先等 30 秒再開始輪詢
+    appendLog('　⏳ 等待 30 秒讓 Railway 完成部署…', '#475569');
+    setTimeout(poll, 30000);
+  }
 })();
 </script>
 </body>

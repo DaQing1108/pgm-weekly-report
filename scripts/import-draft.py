@@ -445,6 +445,7 @@ def main():
     parser.add_argument("--push",         action="store_true", help="同步至 Railway 線上 DB")
     parser.add_argument("--yes",          action="store_true", help="略過確認直接寫入")
     parser.add_argument("--auto-release", action="store_true", help="push 成功後自動執行 release-week.sh（需搭配 --push）")
+    parser.add_argument("--dry-run",      action="store_true", help="只解析並輸出 JSON 摘要，不寫入任何檔案")
     args = parser.parse_args()
 
     draft_path = Path(args.draft).expanduser().resolve()
@@ -582,6 +583,20 @@ def main():
         "_version":     "import-draft-v2" if v2 else "import-draft-v1",
         "_dataVersion": existing_data.get("_dataVersion", 1) + 1,
     }
+
+    # Dry-run：只輸出摘要 JSON，不寫入任何檔案
+    if args.dry_run:
+        summary = {
+            "weekLabel":      week_label,
+            "weekStart":      week_start,
+            "projectCount":   len(projects),
+            "actionCount":    len(actions),
+            "riskCount":      len(risks),
+            "milestoneCount": len(milestones),
+            "projects":       [{"name": p.get("name"), "status": p.get("status"), "progress": p.get("progress")} for p in projects],
+        }
+        print(json.dumps(summary, ensure_ascii=False))
+        sys.exit(0)
 
     # 確認
     if not args.yes:
