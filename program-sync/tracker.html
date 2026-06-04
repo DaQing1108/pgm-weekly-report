@@ -156,7 +156,7 @@
 <script type="module">
 import { store }   from './assets/js/store.js';
 import { appInit } from './assets/js/app-init.js';
-import { toast, formatDate, confirm } from './assets/js/ui.js';
+import { toast, formatDate, confirm, escHtml } from './assets/js/ui.js';
 
 await appInit();
 
@@ -338,7 +338,7 @@ function renderProjects(items) {
     return `<div style="display:flex;flex-direction:column;gap:6px;padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--color-border-default);" class="tracker-row">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
         <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;">
-          <div style="font-weight:600;font-size:14px;line-height:1.4;">${p.name}</div>
+          <div style="font-weight:600;font-size:14px;line-height:1.4;">${escHtml(p.name)}</div>
           <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
             ${_ageBadge(p)}
             ${_teamBadge(p.team)}
@@ -350,10 +350,10 @@ function renderProjects(items) {
         </div>
       </div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);">
-        <span>👤 ${p.owner || '—'}</span>
+        <span>👤 ${p.owner ? escHtml(p.owner) : '—'}</span>
         <span>📅 目標：${p.targetDate ? formatDate(p.targetDate) : '未設定'}</span>
         <span>📊 進度：${p.progress ?? 0}%</span>
-        ${p.blockers ? `<span style="color:var(--color-danger);">⛔ ${p.blockers.substring(0,60)}${p.blockers.length>60?'…':''}</span>` : ''}
+        ${p.blockers ? `<span style="color:var(--color-danger);">⛔ ${escHtml(p.blockers.substring(0,60))}${p.blockers.length>60?'…':''}</span>` : ''}
       </div>
       <div style="display:flex;gap:8px;">
         <select class="inp" style="width:140px;padding:3px 6px;font-size:12px;" onchange="updateProjectStatus('${p.id}', this.value, this)" title="更新專案狀態">
@@ -380,7 +380,7 @@ function renderRisks(items) {
     return `<div style="display:flex;flex-direction:column;gap:6px;padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--color-border-default);" class="tracker-row">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
         <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;">
-          <div style="font-weight:600;font-size:14px;line-height:1.4;">${r.description.substring(0,120)}${r.description.length>120?'…':''}</div>
+          <div style="font-weight:600;font-size:14px;line-height:1.4;">${escHtml(r.description.substring(0,120))}${r.description.length>120?'…':''}</div>
           <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
             ${_ageBadge(r)}
             ${_teamBadge(r.team)}
@@ -392,9 +392,9 @@ function renderRisks(items) {
         </div>
       </div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);">
-        <span>👤 ${r.owner || '—'}</span>
+        <span>👤 ${r.owner ? escHtml(r.owner) : '—'}</span>
         <span>📅 截止：${r.dueDate ? formatDate(r.dueDate) : '未設定'}</span>
-        ${r.mitigation ? `<span>💡 ${r.mitigation.substring(0,60)}${r.mitigation.length>60?'…':''}</span>` : ''}
+        ${r.mitigation ? `<span>💡 ${escHtml(r.mitigation.substring(0,60))}${r.mitigation.length>60?'…':''}</span>` : ''}
       </div>
       <div>
         <select class="inp" style="width:160px;padding:3px 6px;font-size:12px;" onchange="updateRiskStatus('${r.id}', this.value, this)" title="更新風險狀態">
@@ -429,11 +429,11 @@ function renderActionsList(items) {
     return `<div style="display:flex;flex-direction:column;gap:6px;padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--color-border-default);" class="tracker-row">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
         <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;">
-          <div style="font-weight:600;font-size:14px;line-height:1.4;">${a.task}</div>
+          <div style="font-weight:600;font-size:14px;line-height:1.4;">${escHtml(a.task)}</div>
           <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">
             ${_ageBadge(a)}
             ${a.category ? `<span class="badge badge-neutral">${catLabel[a.category]||a.category}</span>` : ''}
-            ${a.project  ? `<span class="badge badge-neutral" style="font-size:10px;">${a.project.substring(0,20)}</span>` : ''}
+            ${a.project  ? `<span class="badge badge-neutral" style="font-size:10px;">${escHtml(a.project.substring(0,20))}</span>` : ''}
             ${overdue ? '<span class="badge badge-danger">逾期</span>' : ''}
           </div>
         </div>
@@ -442,7 +442,7 @@ function renderActionsList(items) {
         </div>
       </div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);">
-        <span>👤 ${a.owner || '—'}</span>
+        <span>👤 ${a.owner ? escHtml(a.owner) : '—'}</span>
         <span>📅 截止：${a.dueDate ? formatDate(a.dueDate) : '未設定'}</span>
       </div>
     </div>`;

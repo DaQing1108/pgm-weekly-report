@@ -130,7 +130,7 @@
 
 <script type="module">
 import { appInit } from './assets/js/app-init.js';
-import { toast, modal } from './assets/js/ui.js';
+import { toast, modal, escHtml } from './assets/js/ui.js';
 
 // ── 儲存層 ───────────────────────────────────────────────────────
 const R_KEY = 'pgm_resources_entries';
@@ -320,13 +320,13 @@ function renderQuarterly() {
         const mboPreview = mboLines.slice(0,3).join('\n') + (mboLines.length > 3 ? '\n…' : '');
         const isHot = e.total >= 40;
         return `<tr class="${isHot ? 'resource-hot' : ''}">
-          <td><span class="font-600">${e.productLine}</span></td>
+          <td><span class="font-600">${escHtml(e.productLine)}</span></td>
           <td class="num">${e.cn||0}</td>
           <td class="num">${e.tw||0}</td>
           <td class="num">${e.jp ? e.jp : '<span class="text-secondary">—</span>'}</td>
           <td class="num" style="font-weight:700;">${e.total||0}</td>
-          <td class="text-xs text-secondary mbo-cell">${mboPreview.replace(/\n/g,'<br>')}</td>
-          <td class="text-xs text-secondary">${e.remark||'—'}</td>
+          <td class="text-xs text-secondary mbo-cell">${escHtml(mboPreview).replace(/\n/g,'<br>')}</td>
+          <td class="text-xs text-secondary">${e.remark ? escHtml(e.remark) : '—'}</td>
           <td>
             <button class="btn btn-ghost btn-sm" onclick="editEntry('${e.id}')" title="編輯">✏️</button>
             <button class="btn btn-ghost btn-sm" onclick="delEntry('${e.id}')"  title="刪除">✕</button>
@@ -448,9 +448,9 @@ function renderBusiness() {
 
   document.getElementById('businessBody').innerHTML = charges.length
     ? charges.map(c=>`<tr>
-        <td><span class="font-600">${c.area}</span></td>
+        <td><span class="font-600">${escHtml(c.area)}</span></td>
         ${meta.keys.map(k=>`<td class="num">${c[k]??0}</td>`).join('')}
-        <td class="text-xs text-secondary">${c.notes||'—'}</td>
+        <td class="text-xs text-secondary">${c.notes ? escHtml(c.notes) : '—'}</td>
         <td>
           <button class="btn btn-ghost btn-sm" onclick="editCharge('${c.id}')" title="編輯">✏️</button>
           <button class="btn btn-ghost btn-sm" onclick="delCharge('${c.id}')"  title="刪除">✕</button>

@@ -72,16 +72,35 @@ export function toast(message, type = 'success', duration = 3000, options = {}) 
  * @returns {{ close: Function, el: HTMLElement }}
  */
 export function modal(html, options = {}) {
+  const previousFocus = document.activeElement;
+
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
 
   const box = document.createElement('div');
   box.className = `modal${options.size ? ` modal--${options.size}` : ''}`;
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-modal', 'true');
   box.innerHTML = html;
+
+  // aria-labelledby：指向 modal 內第一個標題元素
+  const titleEl = box.querySelector('.modal__title, h2, h3');
+  if (titleEl) {
+    if (!titleEl.id) titleEl.id = `modal-title-${Date.now()}`;
+    box.setAttribute('aria-labelledby', titleEl.id);
+  }
 
   overlay.appendChild(box);
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
+
+  // 將焦點移至 modal 內第一個可聚焦元素
+  const focusable = box.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+  const firstFocusable = focusable[0];
+  const lastFocusable = focusable[focusable.length - 1];
+  if (firstFocusable) requestAnimationFrame(() => firstFocusable.focus());
 
   const close = () => {
     let done = false;
@@ -90,10 +109,12 @@ export function modal(html, options = {}) {
       done = true;
       overlay.remove();
       document.body.style.overflow = '';
+      // 焦點還原給開啟 modal 的元素
+      previousFocus?.focus?.();
     };
     overlay.style.animation = 'overlay-in 0.15s ease reverse';
     overlay.addEventListener('animationend', cleanup, { once: true });
-    setTimeout(cleanup, 200); // fallback: animationend 未觸發時保底移除
+    setTimeout(cleanup, 200);
   };
 
   // 點擊背景關閉
@@ -101,11 +122,30 @@ export function modal(html, options = {}) {
     if (e.target === overlay) close();
   });
 
-  // ESC 關閉
+  // ESC 關閉 + Tab focus trap
   const onKey = e => {
-    if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); }
+    if (e.key === 'Escape') {
+      close();
+      document.removeEventListener('keydown', onKey);
+      return;
+    }
+    if (e.key === 'Tab' && focusable.length) {
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable.focus();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable.focus();
+        }
+      }
+    }
   };
   document.addEventListener('keydown', onKey);
+  // cleanup listener when overlay is removed
+  overlay.addEventListener('animationend', () => document.removeEventListener('keydown', onKey), { once: true });
 
   // 綁定 .modal__close 按鈕
   box.querySelector('.modal__close')?.addEventListener('click', close);

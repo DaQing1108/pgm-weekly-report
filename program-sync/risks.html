@@ -199,7 +199,7 @@
 import { store }   from './assets/js/store.js';
 import { appInit, setSessionWeek } from './assets/js/app-init.js';
 import { listWeeks } from './assets/js/api.js';
-import { toast, renderBadge, formatDate, generateId, confirm } from './assets/js/ui.js';
+import { toast, renderBadge, formatDate, generateId, confirm, escHtml } from './assets/js/ui.js';
 
 (async () => {
   const currentLabel = await appInit();
@@ -302,12 +302,12 @@ function renderList() {
     <button type="button" class="risk-row" data-id="${r.id}" aria-expanded="false" aria-controls="rdetail-${r.id}" onclick="toggleRiskDetail('${r.id}')" style="width:100%;text-align:left;">
       <div class="risk-row__level risk-row__level--${r.level}">${levelLabel[r.level] || r.level}</div>
       <div class="risk-row__desc">
-        ${r.description.substring(0,80)}${r.description.length>80?'…':''}
-        ${r.project ? `<span class="badge badge-neutral" style="margin-left:4px;">${r.project}</span>` : ''}
+        ${escHtml(r.description.substring(0,80))}${r.description.length>80?'…':''}
+        ${r.project ? `<span class="badge badge-neutral" style="margin-left:4px;">${escHtml(r.project)}</span>` : ''}
         ${overdue ? `<span class="badge badge-danger" style="margin-left:4px;">逾期</span>` : ''}
         ${_carryoverBadge(r.weekStart)}
       </div>
-      <div class="risk-row__owner">${r.owner || '—'}</div>
+      <div class="risk-row__owner">${r.owner ? escHtml(r.owner) : '—'}</div>
       <div class="risk-row__date">${r.dueDate ? formatDate(r.dueDate) : '—'}</div>
       <div class="risk-row__status" style="display:flex; gap:4px; align-items:center;">
         <select class="inp" style="padding:3px;font-size:var(--font-size-xs);" data-id="${r.id}" onclick="event.stopPropagation()" onchange="changeStatus('${r.id}', this.value, this)">
@@ -320,8 +320,8 @@ function renderList() {
     </button>
     <div class="risk-row__detail" id="rdetail-${r.id}" style="display:none;padding:var(--space-md) var(--space-lg);background:var(--color-bg-secondary);border-radius:0 0 var(--radius-md) var(--radius-md);margin-bottom:var(--space-sm);border:1px solid var(--color-border-default);border-top:none;">
       <div class="stack-sm">
-        <p class="text-sm"><strong>完整描述：</strong>${r.description}</p>
-        ${r.mitigation ? `<p class="text-sm"><strong>因應方案：</strong>${r.mitigation}</p>` : ''}
+        <p class="text-sm"><strong>完整描述：</strong>${escHtml(r.description)}</p>
+        ${r.mitigation ? `<p class="text-sm"><strong>因應方案：</strong>${escHtml(r.mitigation)}</p>` : ''}
         <div style="display:flex;gap:var(--space-sm);align-items:center;">
           <!-- U-6 修正：標籤改為直覺方向（🔺升高嚴重度 / 🔻降低嚴重度），並加 title 說明 -->
           <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();upgradeRisk('${r.id}','up')" title="提高風險等級" style="padding:4px 10px;">🔺 升高</button>

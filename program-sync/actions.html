@@ -121,7 +121,7 @@
 import { store }   from './assets/js/store.js';
 import { appInit, setSessionWeek } from './assets/js/app-init.js';
 import { listWeeks } from './assets/js/api.js';
-import { toast, renderBadge, formatDate, generateId, modal, isOverdue, confirm } from './assets/js/ui.js';
+import { toast, renderBadge, formatDate, generateId, modal, isOverdue, confirm, escHtml } from './assets/js/ui.js';
 
 (async () => {
   const currentLabel = await appInit();
@@ -274,13 +274,13 @@ function renderPanels() {
         <div class="action-row ${rowClass.trim()}" data-id="${a.id}" id="arow-${a.id}">
           <div class="action-row__drag">⋮⋮</div>
           <div class="action-row__task inline-edit">
-            <span>${a.task}</span>
-            ${a.project ? `<span class="badge badge-neutral" style="margin-left:4px;font-size:10px;">${_resolveProjectName(a.project).substring(0,20)}</span>` : ''}
+            <span>${escHtml(a.task)}</span>
+            ${a.project ? `<span class="badge badge-neutral" style="margin-left:4px;font-size:10px;">${escHtml(_resolveProjectName(a.project).substring(0,20))}</span>` : ''}
             ${_carryoverBadge(a.weekStart)}
           </div>
           <div class="action-row__owner text-xs text-secondary inline-edit">
-            <span class="avatar" style="width:18px;height:18px;font-size:9px;margin-right:4px;">${a.owner ? a.owner.substring(0,1).toUpperCase() : '?'}</span>
-            ${a.owner || '—'}
+            <span class="avatar" style="width:18px;height:18px;font-size:9px;margin-right:4px;">${a.owner ? escHtml(a.owner.substring(0,1).toUpperCase()) : '?'}</span>
+            ${a.owner ? escHtml(a.owner) : '—'}
           </div>
           <div class="action-row__due text-xs inline-edit" style="${dueStyle}">
             ${a.dueDate ? formatDate(a.dueDate) : '—'}

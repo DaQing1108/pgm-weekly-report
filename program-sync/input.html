@@ -520,12 +520,12 @@ function updatePreview(p) {
   el.innerHTML = `
     <div class="stack-sm">
       <div class="row row--between">
-        <strong style="font-size:var(--font-size-md)">${p.name}</strong>
+        <strong style="font-size:var(--font-size-md)">${escHtml(p.name)}</strong>
         ${renderBadge(p.status)}
       </div>
       <div class="row">
         <span class="badge badge-neutral">${TEAM_NAMES[p.team] || p.team}</span>
-        <span class="text-sm text-secondary">負責：${p.owner || '—'}</span>
+        <span class="text-sm text-secondary">負責：${p.owner ? escHtml(p.owner) : '—'}</span>
       </div>
       <div>
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
@@ -534,8 +534,8 @@ function updatePreview(p) {
         </div>
         <div class="progress-bar"><div class="progress-bar__fill" style="width:${p.progress}%;background:${barColor}"></div></div>
       </div>
-      ${p.weekDone ? `<p class="text-sm"><strong>本週完成：</strong>${p.weekDone}</p>` : ''}
-      ${p.blockers  ? `<p class="text-sm" style="color:var(--color-danger)"><strong>⚠️ 阻塞：</strong>${p.blockers}</p>` : ''}
+      ${p.weekDone ? `<p class="text-sm"><strong>本週完成：</strong>${escHtml(p.weekDone)}</p>` : ''}
+      ${p.blockers  ? `<p class="text-sm" style="color:var(--color-danger)"><strong>⚠️ 阻塞：</strong>${escHtml(p.blockers)}</p>` : ''}
     </div>`;
 }
 
