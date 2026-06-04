@@ -415,6 +415,15 @@ def push_to_railway(week_label, payload):
 
         if resp_json.get("success"):
             print(f"✅  Railway 同步成功：{url}")
+            # 自動將 payload 同步回本地 JSON，確保 git 記錄不落後 Production
+            local_json = WEEKS_DIR / f"{week_label}.json"
+            local_json.write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2),
+                encoding="utf-8"
+            )
+            print(f"✅  本地 JSON 已同步：{local_json.relative_to(REPO_ROOT)}")
+            print(f"\n📌  下一步：執行 release-week.sh 將資料提交到 git")
+            print(f"     ./scripts/release-week.sh {week_label}")
             return True
         else:
             print(f"⚠️   Railway 回應異常：{resp_json}")
