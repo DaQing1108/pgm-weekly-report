@@ -442,8 +442,9 @@ def push_to_railway(week_label, payload):
 def main():
     parser = argparse.ArgumentParser(description="從週報草稿 MD 匯入 Dashboard JSON")
     parser.add_argument("draft", help="草稿 MD 檔案路徑（例：~/Desktop/ProgramSync_W21_2026-05-22_draft.md）")
-    parser.add_argument("--push",  action="store_true", help="同步至 Railway 線上 DB")
-    parser.add_argument("--yes",   action="store_true", help="略過確認直接寫入")
+    parser.add_argument("--push",         action="store_true", help="同步至 Railway 線上 DB")
+    parser.add_argument("--yes",          action="store_true", help="略過確認直接寫入")
+    parser.add_argument("--auto-release", action="store_true", help="push 成功後自動執行 release-week.sh（需搭配 --push）")
     args = parser.parse_args()
 
     draft_path = Path(args.draft).expanduser().resolve()
@@ -601,7 +602,11 @@ def main():
     # Push 至 Railway
     if args.push:
         print(f"\n🚀  推送至 Railway...")
-        push_to_railway(week_label, payload)
+        push_ok = push_to_railway(week_label, payload)
+        if push_ok and args.auto_release:
+            print(f"\n🚀  執行 release-week.sh {week_label}...")
+            release_script = REPO_ROOT / "scripts" / "release-week.sh"
+            subprocess.run(["bash", str(release_script), week_label, "--yes"], check=False)
 
     # ── 後驗證 ──────────────────────────────────────────────────────────────────
     VALID_ACTION_STATUSES = {"pending", "in-progress", "done", "blocked"}
