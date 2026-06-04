@@ -100,14 +100,14 @@
 
   <!-- Section: Projects -->
   <div class="panel" style="margin-bottom:var(--space-xl);">
-    <div class="panel__header" style="cursor:pointer;user-select:none;border-left:3px solid var(--color-danger);" onclick="toggleSection('projects')">
+    <button type="button" class="panel__header" aria-expanded="true" aria-controls="section-projects" style="cursor:pointer;user-select:none;border-left:3px solid var(--color-danger);width:100%;text-align:left;" onclick="toggleSection('projects')">
       <div style="display:flex;align-items:center;gap:var(--space-sm);">
         <span id="arrow-projects" style="font-size:12px;transition:transform .2s;">▼</span>
         <span class="panel__title">專案項目（待追蹤）</span>
         <span class="badge badge-danger" id="badge-projects">0</span>
       </div>
       <span class="text-xs text-secondary">at-risk / behind 且來自前週或更早</span>
-    </div>
+    </button>
     <div id="section-projects">
       <div class="panel__body" style="padding:0;">
         <div id="list-projects"></div>
@@ -117,14 +117,14 @@
 
   <!-- Section: Risks -->
   <div class="panel" style="margin-bottom:var(--space-xl);">
-    <div class="panel__header" style="cursor:pointer;user-select:none;border-left:3px solid var(--color-warning);" onclick="toggleSection('risks')">
+    <button type="button" class="panel__header" aria-expanded="true" aria-controls="section-risks" style="cursor:pointer;user-select:none;border-left:3px solid var(--color-warning);width:100%;text-align:left;" onclick="toggleSection('risks')">
       <div style="display:flex;align-items:center;gap:var(--space-sm);">
         <span id="arrow-risks" style="font-size:12px;transition:transform .2s;">▼</span>
         <span class="panel__title">未關閉風險</span>
         <span class="badge badge-warning" id="badge-risks">0</span>
       </div>
       <span class="text-xs text-secondary">open / in-progress 且來自前週或更早</span>
-    </div>
+    </button>
     <div id="section-risks">
       <div class="panel__body" style="padding:0;">
         <div id="list-risks"></div>
@@ -134,14 +134,14 @@
 
   <!-- Section: Actions -->
   <div class="panel" style="margin-bottom:var(--space-xl);">
-    <div class="panel__header" style="cursor:pointer;user-select:none;border-left:3px solid var(--color-info);" onclick="toggleSection('actions')">
+    <button type="button" class="panel__header" aria-expanded="true" aria-controls="section-actions" style="cursor:pointer;user-select:none;border-left:3px solid var(--color-info);width:100%;text-align:left;" onclick="toggleSection('actions')">
       <div style="display:flex;align-items:center;gap:var(--space-sm);">
         <span id="arrow-actions" style="font-size:12px;transition:transform .2s;">▼</span>
         <span class="panel__title">未完成 Action Items</span>
         <span class="badge badge-info" id="badge-actions">0</span>
       </div>
       <span class="text-xs text-secondary">pending / in-progress / blocked 且來自前週或更早</span>
-    </div>
+    </button>
     <div id="section-actions">
       <div class="panel__body" style="padding:0;">
         <div id="list-actions"></div>
@@ -189,8 +189,10 @@ window.toggleSection = function(key) {
   _collapsed[key] = !_collapsed[key];
   const sec = document.getElementById(`section-${key}`);
   const arrow = document.getElementById(`arrow-${key}`);
+  const btn = document.querySelector(`button[aria-controls="section-${key}"]`);
   if (sec) sec.style.display = _collapsed[key] ? 'none' : '';
   if (arrow) arrow.style.transform = _collapsed[key] ? 'rotate(-90deg)' : '';
+  if (btn) btn.setAttribute('aria-expanded', _collapsed[key] ? 'false' : 'true');
 };
 
 // ── 篩選狀態 ────────────────────────────────────────────────────

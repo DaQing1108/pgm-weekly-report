@@ -10,8 +10,10 @@
 </head>
 <body>
 
+<a href="#main-content" class="sr-only sr-only-focusable">跳至主要內容</a>
+
 <!-- ── Navbar ──────────────────────────────────────────────── -->
-<nav class="navbar">
+<nav class="navbar" aria-label="主導覽">
   <a href="index.html" class="navbar__logo">
     <div class="navbar__logo-icon">P</div>
     <span>P&amp;D CENTER</span>
@@ -47,7 +49,7 @@
 </div>
 
 <!-- ── Page ────────────────────────────────────────────────── -->
-<div class="page-container">
+<main id="main-content" class="page-container">
 
   <!-- 週次歷史選擇器 -->
   <div id="weekNavBar" style="display:none;margin-bottom:var(--space-md);background:var(--color-bg-primary);border:1px solid var(--color-border-default);border-radius:var(--radius-md);padding:10px var(--space-lg);align-items:center;gap:16px;">
@@ -57,7 +59,7 @@
     <div class="tab-bar" id="weekRadioGroup" style="overflow-x:auto; margin:0; flex-wrap:nowrap;"></div>
 
     <!-- 其餘歷史週次保留在下拉選單 -->
-    <select id="weekSelect" class="inp" style="width:140px;padding:4px 8px;font-size:var(--font-size-sm); display:none;" onchange="loadWeekView(this.value)">
+    <select id="weekSelect" class="inp" style="width:140px;padding:4px 8px;font-size:var(--font-size-sm); display:none;" onchange="loadWeekView(this.value)" aria-label="選擇歷史週次">
     </select>
     
     <span id="weekNavMeta" style="font-size:11px;color:var(--color-text-tertiary);margin-left:auto;"></span>
@@ -74,7 +76,7 @@
 
   <!-- KPI Row -->
   <div class="kpi-row" id="kpiRow">
-    <div class="kpi-card kpi-card--interactive kpi-ok" id="kpiHealthCard" onclick="document.querySelector('#statusFilter button[data-filter=\'all\']').click()" title="點擊顯示所有專案">
+    <button type="button" class="kpi-card kpi-card--interactive kpi-ok" id="kpiHealthCard" onclick="document.querySelector('#statusFilter button[data-filter=\'all\']').click()" title="點擊顯示所有專案">
       <div style="display:flex; justify-content:space-between; align-items:flex-start;">
         <div>
           <div class="kpi-card__label">專案健康度</div>
@@ -84,25 +86,25 @@
         </div>
         <div class="kpi-ring" id="kpiHealthRing" style="--p: 0%;"></div>
       </div>
-    </div>
-    <div class="kpi-card kpi-card--interactive" id="kpiTotalCard" onclick="document.querySelector('#statusFilter button[data-filter=\'all\']').click()" title="點擊顯示所有專案">
+    </button>
+    <button type="button" class="kpi-card kpi-card--interactive" id="kpiTotalCard" onclick="document.querySelector('#statusFilter button[data-filter=\'all\']').click()" title="點擊顯示所有專案">
       <div class="kpi-card__label">進行中專案</div>
       <div class="kpi-card__value" id="kpiTotal">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">個</span></div>
       <span class="kpi-delta-wrap" id="kpiTotalDelta"></span>
       <div class="kpi-card__sub" id="kpiTotalSub"></div>
-    </div>
-    <div class="kpi-card kpi-card--interactive" id="kpiRisksCard" onclick="document.querySelector('#statusFilter button[data-filter=\'at-risk\']').click()" title="點擊篩選風險專案">
+    </button>
+    <button type="button" class="kpi-card kpi-card--interactive" id="kpiRisksCard" onclick="document.querySelector('#statusFilter button[data-filter=\'at-risk\']').click()" title="點擊篩選風險專案">
       <div class="kpi-card__label">需關注專案</div>
       <div class="kpi-card__value" id="kpiRisks">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">個</span></div>
       <span class="kpi-delta-wrap" id="kpiRisksDelta"></span>
       <div class="kpi-card__sub" id="kpiRisksSub">At Risk + Behind (點擊篩選)</div>
-    </div>
-    <div class="kpi-card kpi-card--interactive" id="kpiActionsCard" onclick="window.location.href='actions.html'" title="前往 Actions 頁面">
+    </button>
+    <button type="button" class="kpi-card kpi-card--interactive" id="kpiActionsCard" onclick="window.location.href='actions.html'" title="前往 Actions 頁面">
       <div class="kpi-card__label">逾期 Actions</div>
       <div class="kpi-card__value" id="kpiActions">—<span style="font-size:.5em;font-weight:400;opacity:.7;margin-left:1px;">項</span></div>
       <span class="kpi-delta-wrap" id="kpiActionsDelta"></span>
       <div class="kpi-card__sub" id="kpiActionsSub">待追蹤 (點擊前往)</div>
-    </div>
+    </button>
   </div>
 
 
@@ -119,15 +121,15 @@
           <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;margin-left:auto;">
             <!-- 進階搜尋與排序 -->
             <div class="inp-group" style="margin:0;position:relative;">
-              <input type="text" class="inp" id="projectSearch" placeholder="🔍 搜尋..." style="width:140px;padding:4px 8px;font-size:var(--font-size-sm);" autocomplete="off">
+              <input type="text" class="inp" id="projectSearch" placeholder="🔍 搜尋..." style="width:140px;padding:4px 8px;font-size:var(--font-size-sm);" autocomplete="off" aria-label="搜尋專案">
             </div>
-            <select class="inp" id="projectSort" style="width:110px;padding:4px 8px;font-size:var(--font-size-sm);">
+            <select class="inp" id="projectSort" style="width:110px;padding:4px 8px;font-size:var(--font-size-sm);" aria-label="專案排序">
               <option value="default">預設排序</option>
               <option value="update-desc">最近更新</option>
               <option value="health-asc">需關注</option>
               <option value="progress-desc">進度最高</option>
             </select>
-            <select class="inp" id="teamFilter" style="width:110px;padding:4px 8px;font-size:var(--font-size-sm);">
+            <select class="inp" id="teamFilter" style="width:110px;padding:4px 8px;font-size:var(--font-size-sm);" aria-label="篩選 Objective">
               <option value="all">Objectives</option>
               <option value="media-agent">Media Agent</option>
               <option value="learnmode">LearnMode</option>
@@ -161,7 +163,7 @@
       <!-- V3：歷史週報中心（後端已連線時顯示） -->
       <div id="archiveSection" style="display:none;">
         <div class="panel" style="overflow:hidden;">
-          <div class="panel__header" id="archiveHeader" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;transition:background 0.2s;" onclick="toggleArchive()" onmouseover="this.style.background='var(--color-bg-secondary)'" onmouseout="this.style.background='transparent'">
+          <button type="button" class="panel__header" id="archiveHeader" aria-expanded="false" aria-controls="archiveWrapper" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;transition:background 0.2s;width:100%;text-align:left;" onclick="toggleArchive()" onmouseover="this.style.background='var(--color-bg-secondary)'" onmouseout="this.style.background='transparent'">
             <div style="display:flex;align-items:center;gap:var(--space-sm);">
               <span class="panel__title">☁ 歷史週報歸檔庫</span>
               <span class="badge badge--info" id="archiveBadge">載入中…</span>
@@ -171,7 +173,7 @@
               <button class="btn btn-primary btn-sm" id="btnImportMd" title="點擊選擇或拖放 .md 檔案至此區域">⬆ 匯入週報</button>
               <input type="file" id="mdFileInput" accept=".md" style="display:none;">
             </div>
-          </div>
+          </button>
           
           <div id="archiveWrapper" style="display:none; border-top:1px solid var(--color-border-default);">
             <div id="archiveOfflineHint" style="display:none;background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:8px var(--space-lg);font-size:12px;color:var(--color-text-tertiary);">
@@ -211,7 +213,7 @@
     </div>
 
   </div>
-</div>
+</main>
 
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
@@ -219,7 +221,7 @@
 <script type="module">
 import { store }    from './assets/js/store.js';
 import { seedData } from './assets/data/seed.js';
-import { toast, renderBadge, formatDate, isOverdue, confirm } from './assets/js/ui.js';
+import { toast, renderBadge, formatDate, isOverdue, confirm, escHtml } from './assets/js/ui.js';
 import { initApi, fetchReports, fetchReportContent, saveReport, downloadUrl, deleteReport, listWeeks, getWeekState, saveWeekState } from './assets/js/api.js';
 import { toPdf } from './assets/js/export.js';
 import { setSessionWeek } from './assets/js/app-init.js';
@@ -229,12 +231,15 @@ import { parseHistoricalReport, syncToStore } from './assets/js/parse-history.js
 window.toggleArchive = function() {
   const wrapper = document.getElementById('archiveWrapper');
   const icon = document.getElementById('archiveToggleIcon');
+  const btn = document.getElementById('archiveHeader');
   if (wrapper.style.display === 'none') {
     wrapper.style.display = 'block';
     icon.style.transform = 'rotate(-180deg)';
+    btn?.setAttribute('aria-expanded', 'true');
   } else {
     wrapper.style.display = 'none';
     icon.style.transform = 'rotate(0deg)';
+    btn?.setAttribute('aria-expanded', 'false');
   }
 };
 
@@ -613,15 +618,15 @@ function renderProjects(filter) {
         if (pRisks.length > 0) {
             relatedHtml += `<div style="margin-bottom:var(--space-xs);display:flex;align-items:center;gap:8px;">
                               <strong style="color:var(--color-danger);font-size:12px;">⚠️ 關聯風險:</strong> 
-                              ${pRisks.map(r => `<span class="badge ${r.level==='high'?'badge-danger':'badge-warning'} text-xs">${r.title}</span>`).join('')}
+                              ${pRisks.map(r => `<span class="badge ${r.level==='high'?'badge-danger':'badge-warning'} text-xs">${escHtml(r.title || r.description?.substring(0,30) || '')}</span>`).join('')}
                             </div>`;
         }
         if (pActions.length > 0) {
             const pendingActs = pActions.filter(a => a.status !== 'done');
             const doneActs = pActions.filter(a => a.status === 'done');
             relatedHtml += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                              <strong style="color:var(--color-info);font-size:12px;">📝 關聯行動:</strong> 
-                              ${pendingActs.slice(0, 3).map(a => `<span style="font-size:12px;color:var(--color-text-secondary);background:var(--color-bg-secondary);padding:2px 6px;border-radius:4px;">▫️ ${a.task}</span>`).join('')}
+                              <strong style="color:var(--color-info);font-size:12px;">📝 關聯行動:</strong>
+                              ${pendingActs.slice(0, 3).map(a => `<span style="font-size:12px;color:var(--color-text-secondary);background:var(--color-bg-secondary);padding:2px 6px;border-radius:4px;">▫️ ${escHtml(a.task)}</span>`).join('')}
                               ${pendingActs.length > 3 ? `<span style="font-size:12px;color:var(--color-text-tertiary);">等 ${pendingActs.length} 項待辦...</span>` : ''}
                               ${doneActs.length > 0 && pendingActs.length === 0 ? `<span style="font-size:12px;color:var(--color-success);">✅ 全部 (${doneActs.length}) 已完成</span>` : ''}
                             </div>`;
@@ -630,13 +635,13 @@ function renderProjects(filter) {
     }
 
     return `
-    <div class="project-row project-row--${p.status} ${overdue ? 'a-late' : urgent ? 'a-urgent' : ''}" data-id="${p.id}" onclick="toggleDetail('${p.id}')">
+    <button type="button" class="project-row project-row--${p.status} ${overdue ? 'a-late' : urgent ? 'a-urgent' : ''}" data-id="${p.id}" aria-expanded="false" aria-controls="detail-${p.id}" onclick="toggleDetail('${p.id}')" style="width:100%;text-align:left;">
       <div class="project-row__dot project-row__dot--${p.status} ${p.status !== 'paused' ? 'pulse-dot' : ''}"></div>
-      <div class="project-row__name">${p.name}</div>
+      <div class="project-row__name">${escHtml(p.name)}</div>
       <span class="badge badge-neutral text-xs">${TEAM_NAMES[p.team] || p.team}</span>
       ${overdue ? '<span class="badge badge-danger text-xs">⚠️ 逾期</span>' : urgent ? '<span class="badge badge-warning text-xs">⏳ 即將到期</span>' : ''}
       <div style="margin-left:auto; display:flex; align-items:center; gap:12px;">
-        <div class="avatar" title="${p.owner || '未指定'}">${p.owner ? p.owner.substring(0,1).toUpperCase() : '?'}</div>
+        <div class="avatar" title="${escHtml(p.owner || '未指定')}">${p.owner ? escHtml(p.owner.substring(0,1).toUpperCase()) : '?'}</div>
         <div class="project-row__progress-wrap" style="margin-left:0;">
           <div class="mini-progress">
             <div class="mini-progress__bar" style="width:${pct}%;background:${barColor}"></div>
@@ -644,11 +649,11 @@ function renderProjects(filter) {
           <div class="project-row__progress-pct">${pct}%${isAuto ? '<span title="依 Actions 自動計算" style="font-size:10px;margin-left:2px;opacity:.7;">🤖</span>' : ''}</div>
         </div>
       </div>
-    </div>
+    </button>
     <div class="project-row__detail" id="detail-${p.id}">
-      ${p.weekDone ? `<p><strong>本週完成：</strong>${p.weekDone}</p>` : ''}
-      ${p.blockers  ? `<p><strong>阻塞：</strong><span style="color:var(--color-danger)">${p.blockers}</span></p>` : ''}
-      <p><strong>負責人：</strong>${p.owner || '—'}　<strong>目標日期：</strong>${formatDate(p.targetDate)}
+      ${p.weekDone ? `<p><strong>本週完成：</strong>${escHtml(p.weekDone)}</p>` : ''}
+      ${p.blockers  ? `<p><strong>阻塞：</strong><span style="color:var(--color-danger)">${escHtml(p.blockers)}</span></p>` : ''}
+      <p><strong>負責人：</strong>${escHtml(p.owner || '—')}　<strong>目標日期：</strong>${formatDate(p.targetDate)}
       ${isAuto ? `　<span class="text-xs text-secondary">🤖 完成率依 Actions 計算</span>` : ''}</p>
       ${relatedHtml}
     </div>`;
@@ -658,6 +663,8 @@ function renderProjects(filter) {
 window.toggleDetail = function(id) {
   const el = document.getElementById(`detail-${id}`);
   el?.classList.toggle('open');
+  const btn = document.querySelector(`[data-id="${id}"][aria-controls="detail-${id}"]`);
+  if (btn) btn.setAttribute('aria-expanded', el?.classList.contains('open') ? 'true' : 'false');
 };
 
 // ── 需決策事項 ──────────────────────────────────────────────────
@@ -678,11 +685,11 @@ function renderDecisions() {
 
   el.innerHTML = risks.slice(0, 5).map(r => `
     <div class="decision-card">
-      <div class="decision-card__title">${r.description.substring(0,60)}${r.description.length>60?'…':''}</div>
+      <div class="decision-card__title">${escHtml(r.description.substring(0,60))}${r.description.length>60?'…':''}</div>
       <div class="decision-card__meta">
         ${renderBadge('high')} &nbsp;
-        <span>${r.project || '—'}</span> &nbsp;
-        <span>負責：${r.owner || '—'}</span>
+        <span>${escHtml(r.project || '—')}</span> &nbsp;
+        <span>負責：${escHtml(r.owner || '—')}</span>
         ${r.dueDate ? `&nbsp; <span>截止：${formatDate(r.dueDate)}</span>` : ''}
       </div>
     </div>`).join('');
@@ -976,6 +983,14 @@ async function _loadMarked() {
     s.onload = resolve; s.onerror = reject;
     document.head.appendChild(s);
   });
+  if (!window.DOMPurify) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/dompurify@3.2.3/dist/purify.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
   _markedReady = true;
 }
 
@@ -983,7 +998,7 @@ window.openReport = async function(filename) {
   try {
     await _loadMarked();
     const content = await fetchReportContent(filename);
-    const html = window.marked.parse(content);
+    const html = DOMPurify.sanitize(window.marked.parse(content));
     const title = filename.replace('.md', '');
 
     modal(`

@@ -10,7 +10,9 @@
 </head>
 <body>
 
-<nav class="navbar">
+<a href="#main-content" class="sr-only sr-only-focusable">跳至主要內容</a>
+
+<nav class="navbar" aria-label="主導覽">
   <a href="index.html" class="navbar__logo">
     <div class="navbar__logo-icon">P</div>
     <span>P&amp;D CENTER</span>
@@ -47,7 +49,7 @@
 
 <!-- 週次選擇器 -->
 <div id="weekSelectorStrip" style="background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:6px 24px;display:flex;align-items:center;gap:12px;font-size:13px;">
-  <span style="color:var(--color-text-secondary);">週次：</span>
+  <label for="weekSelect" style="color:var(--color-text-secondary);">週次：</label>
   <select class="inp" id="weekSelect" style="width:180px;padding:4px 8px;font-size:13px;">
     <option value="">— 載入中 —</option>
   </select>
@@ -297,7 +299,7 @@ function renderList() {
   el.innerHTML = risks.map(r => {
     const overdue = r.dueDate && r.dueDate < new Date().toISOString().split('T')[0] && r.status !== 'closed';
     return `
-    <div class="risk-row" data-id="${r.id}" onclick="toggleRiskDetail('${r.id}')">
+    <button type="button" class="risk-row" data-id="${r.id}" aria-expanded="false" aria-controls="rdetail-${r.id}" onclick="toggleRiskDetail('${r.id}')" style="width:100%;text-align:left;">
       <div class="risk-row__level risk-row__level--${r.level}">${levelLabel[r.level] || r.level}</div>
       <div class="risk-row__desc">
         ${r.description.substring(0,80)}${r.description.length>80?'…':''}
@@ -315,7 +317,7 @@ function renderList() {
         </select>
         <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();deleteRisk('${r.id}')" title="刪除" style="padding:2px 6px;font-size:14px;color:var(--color-danger);">🗑</button>
       </div>
-    </div>
+    </button>
     <div class="risk-row__detail" id="rdetail-${r.id}" style="display:none;padding:var(--space-md) var(--space-lg);background:var(--color-bg-secondary);border-radius:0 0 var(--radius-md) var(--radius-md);margin-bottom:var(--space-sm);border:1px solid var(--color-border-default);border-top:none;">
       <div class="stack-sm">
         <p class="text-sm"><strong>完整描述：</strong>${r.description}</p>
@@ -334,7 +336,10 @@ function renderList() {
 window.toggleRiskDetail = function(id) {
   const el = document.getElementById(`rdetail-${id}`);
   if (!el) return;
-  el.style.display = el.style.display === 'none' ? '' : 'none';
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : '';
+  const btn = document.querySelector(`button[aria-controls="rdetail-${id}"]`);
+  if (btn) btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
 };
 
 // U-41 修正：inline 狀態下拉改變前確認，避免誤觸

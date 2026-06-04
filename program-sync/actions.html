@@ -11,7 +11,9 @@
 </head>
 <body>
 
-<nav class="navbar">
+<a href="#main-content" class="sr-only sr-only-focusable">跳至主要內容</a>
+
+<nav class="navbar" aria-label="主導覽">
   <a href="index.html" class="navbar__logo">
     <div class="navbar__logo-icon">P</div>
     <span>P&amp;D CENTER</span>
@@ -48,14 +50,14 @@
 
 <!-- 週次選擇器 -->
 <div id="weekSelectorStrip" style="background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border-default);padding:6px 24px;display:flex;align-items:center;gap:12px;font-size:13px;">
-  <span style="color:var(--color-text-secondary);">週次：</span>
+  <label for="weekSelect" style="color:var(--color-text-secondary);">週次：</label>
   <select class="inp" id="weekSelect" style="width:180px;padding:4px 8px;font-size:13px;">
     <option value="">— 載入中 —</option>
   </select>
   <span id="historyBadge" style="display:none;background:var(--color-warning-bg,#fff8e1);border:1px solid var(--color-warning,#e4a23c);border-radius:4px;padding:2px 8px;font-size:12px;">📅 歷史瀏覽（唯讀）</span>
 </div>
 
-<div class="page-container">
+<main id="main-content" class="page-container">
   <div class="page-header">
     <div class="page-header__left">
       <!-- V-14 修正：加返回 Dashboard 路徑連結 -->
@@ -97,8 +99,8 @@
   <!-- 篩選列 -->
   <div class="panel" style="margin-bottom:var(--space-xl);">
     <div class="panel__body" style="padding:var(--space-sm) var(--space-xl); display:flex; gap:var(--space-md); align-items:center; flex-wrap:wrap;">
-      <input type="text" class="inp" id="filterKeyword" placeholder="🔍 搜尋任務名稱或專案..." style="flex:1; min-width: 200px;">
-      <select class="inp owner-select" id="filterOwner" style="width:160px;">
+      <input type="text" class="inp" id="filterKeyword" placeholder="🔍 搜尋任務名稱或專案..." style="flex:1; min-width: 200px;" aria-label="搜尋任務名稱或專案">
+      <select class="inp owner-select" id="filterOwner" style="width:160px;" aria-label="篩選負責人">
         <option value="">👤 所有負責人</option>
       </select>
       <label style="display:flex; align-items:center; gap:var(--space-xs); cursor:pointer; font-size:var(--font-size-sm); user-select:none;">
@@ -111,7 +113,7 @@
   <!-- 行動清單列表 (橫式展開) -->
   <div style="display:flex; flex-direction:column; gap:var(--space-xl);" id="actionPanels"></div>
 
-</div>
+</main>
 
 <div class="toast-container" id="toastContainer"></div>
 

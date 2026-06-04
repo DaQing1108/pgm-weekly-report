@@ -10,7 +10,9 @@
 </head>
 <body>
 
-<nav class="navbar">
+<a href="#main-content" class="sr-only sr-only-focusable">跳至主要內容</a>
+
+<nav class="navbar" aria-label="主導覽">
   <a href="index.html" class="navbar__logo">
     <div class="navbar__logo-icon">P</div>
     <span>P&amp;D CENTER</span>
@@ -53,7 +55,7 @@
   <span id="historyBadge" style="display:none;background:var(--color-warning-bg,#fff8e1);border:1px solid var(--color-warning,#e4a23c);border-radius:4px;padding:2px 8px;font-size:12px;">📅 歷史瀏覽（唯讀）</span>
 </div>
 
-<div class="page-container">
+<main id="main-content" class="page-container">
   <div class="page-header">
     <div class="page-header__left">
       <!-- V-14 修正：加返回路徑連結 -->
@@ -124,7 +126,7 @@
       </div>
     </div>
   </div>
-</div>
+</main>
 
 <div class="toast-container" id="toastContainer"></div>
 

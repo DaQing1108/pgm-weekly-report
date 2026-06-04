@@ -147,6 +147,53 @@ table {
   width: 100%;
 }
 
+/* ── 無障礙工具 ──────────────────────────────────────────────── */
+
+/* 全域可見焦點樣式（SC 2.4.7 / 2.4.11） */
+:focus-visible {
+  outline: 2px solid var(--color-info);
+  outline-offset: 2px;
+}
+
+/* 視覺隱藏但螢幕閱讀器可讀（SC 1.3.1） */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 聚焦時顯示的跳過連結 */
+.sr-only-focusable:focus-visible {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 9999;
+  width: auto;
+  height: auto;
+  padding: 8px 16px;
+  clip: auto;
+  white-space: normal;
+  background: var(--color-bg-primary);
+  border: 2px solid var(--color-info);
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* 動作縮減偏好（SC 2.3.3 推薦） */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* 排版工具 */
 .text-xs    { font-size: var(--font-size-xs); }
 .text-sm    { font-size: var(--font-size-sm); }

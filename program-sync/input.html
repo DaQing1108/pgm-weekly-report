@@ -10,7 +10,9 @@
 </head>
 <body>
 
-<nav class="navbar">
+<a href="#main-content" class="sr-only sr-only-focusable">跳至主要內容</a>
+
+<nav class="navbar" aria-label="主導覽">
   <a href="index.html" class="navbar__logo">
     <div class="navbar__logo-icon">P</div>
     <span>P&amp;D CENTER</span>
@@ -45,7 +47,7 @@
   <a href="resources.html"  class="navbar__link" style="padding:8px var(--space-md);">Resources</a>
 </div>
 
-<div class="page-container">
+<main id="main-content" class="page-container">
   <div class="page-header">
     <div class="page-header__left">
       <!-- V-14 修正：加返回路徑連結 -->
@@ -201,7 +203,7 @@
                 <label class="inp-label">負責人</label>
                 <!-- V-6 修正：owner select 加搜尋輸入框 -->
                 <div style="position:relative;">
-                  <input type="text" class="inp" id="qOwnerSearch" placeholder="搜尋負責人…" style="margin-bottom:2px;font-size:var(--font-size-xs);padding:3px 8px;" autocomplete="off">
+                  <input type="text" class="inp" id="qOwnerSearch" placeholder="搜尋負責人…" style="margin-bottom:2px;font-size:var(--font-size-xs);padding:3px 8px;" autocomplete="off" aria-label="搜尋負責人">
                   <select class="inp owner-select" id="qOwner">
                     <option value="">— 選擇 —</option>
                   </select>
@@ -313,7 +315,7 @@
   </div>
 
 
-</div>
+</main>
 
 <div class="toast-container" id="toastContainer"></div>
 
@@ -321,7 +323,7 @@
 import { store }   from './assets/js/store.js';
 import { appInit } from './assets/js/app-init.js';
 import { fetchReports, fetchReportContent, saveWeekState, getAdminToken } from './assets/js/api.js';
-import { toast, renderBadge, formatDate, generateId, relativeTime, modal, confirm as uiConfirm } from './assets/js/ui.js';
+import { toast, renderBadge, formatDate, generateId, relativeTime, modal, confirm as uiConfirm, escHtml } from './assets/js/ui.js';
 import { MEMBERS, TEAMS } from './assets/data/schema.js';
 
 (async () => {
@@ -642,7 +644,7 @@ function renderRecentList() {
   el.innerHTML = projects.map(p => `
     <div class="project-row project-row--${p.status}" style="margin-bottom:4px;">
       <div class="project-row__dot project-row__dot--${p.status}"></div>
-      <span class="flex-1 text-sm">${p.name}</span>
+      <span class="flex-1 text-sm">${escHtml(p.name)}</span>
       <span class="text-xs text-secondary">${p.progress}%</span>
       <span class="text-xs text-tertiary">${relativeTime(p._updatedAt)}</span>
     </div>`).join('');
