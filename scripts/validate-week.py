@@ -27,12 +27,12 @@ VALID_CATEGORIES = {"technical", "business", "resource"}
 
 
 def load(path):
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
 def save(path, data):
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     print(f"  [FIXED] Saved {os.path.basename(path)}")
 

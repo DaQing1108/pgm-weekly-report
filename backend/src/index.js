@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
+const { timingSafeEqual } = require('crypto');
 const db = require('./db');
 
 const app = express();
@@ -63,7 +64,9 @@ function requireAdminToken(req, res, next) {
     return res.status(503).json({ error: '伺服器設定錯誤：ADMIN_TOKEN 未設定', code: 'MISCONFIGURED' });
   }
   const provided = req.headers['x-admin-token'];
-  if (!provided || provided !== expected) {
+  const a = Buffer.from(provided || '');
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
     return res.status(401).json({ error: '需要管理員 Token', code: 'UNAUTHORIZED' });
   }
   next();

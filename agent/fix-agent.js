@@ -33,7 +33,7 @@ const WRITABLE_PATHS = new Set([
   'program-sync/assets/data/schema.js',
   'program-sync/assets/js/app-init.js',
   'program-sync/assets/js/ui.js',
-  'backend/src/index.js',
+  // backend/src/index.js 排除：含認證、spawn 呼叫，AI 自動寫入風險過高，需人工審核
 ]);
 
 // ── Tool definitions ───────────────────────────────────────────

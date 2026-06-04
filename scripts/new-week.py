@@ -55,7 +55,7 @@ def week_start_for(label):
 
 
 def load(path):
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -154,7 +154,7 @@ def main():
         "_resourceCharges": src.get("_resourceCharges", []),
     }
 
-    with open(dst_path, "w") as f:
+    with open(dst_path, "w", encoding="utf-8") as f:
         json.dump(new_week, f, ensure_ascii=False, indent=2)
 
     print(f"✅ Created {dst_path}")

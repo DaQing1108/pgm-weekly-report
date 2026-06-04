@@ -82,20 +82,21 @@ export const store = {
 
   /** 新增或更新（以 item.id 判斷） */
   save(key, item) {
-    if (!item.id) {
-      item.id = _uuid();
+    const entry = { ...item };
+    if (!entry.id) {
+      entry.id = _uuid();
     }
-    item._updatedAt = new Date().toISOString();
+    entry._updatedAt = new Date().toISOString();
     const list = _get(key);
-    const idx = list.findIndex(i => i.id === item.id);
+    const idx = list.findIndex(i => i.id === entry.id);
     if (idx >= 0) {
-      list[idx] = { ...list[idx], ...item };
+      list[idx] = { ...list[idx], ...entry };
     } else {
-      item._createdAt = item._createdAt || new Date().toISOString();
-      list.push(item);
+      entry._createdAt = entry._createdAt || new Date().toISOString();
+      list.push(entry);
     }
     _set(key, list);
-    return item;
+    return entry;
   },
 
   /** 刪除單筆 */

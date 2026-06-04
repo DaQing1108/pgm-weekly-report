@@ -34,6 +34,12 @@ import tempfile
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except ImportError:
+    pass  # python-dotenv 未安裝時跳過，依賴 shell 環境變數
+
 REPO_ROOT  = Path(__file__).parent.parent
 WEEKS_DIR  = REPO_ROOT / "backend" / "data" / "weeks"
 RAILWAY_URL = "https://pgm-weekly-report-production.up.railway.app"
@@ -371,15 +377,8 @@ def _fetch_railway(week_label):
 
 # ── Push 至 Railway ───────────────────────────────────────────────────────────
 def push_to_railway(week_label, payload):
-    # 嘗試從環境變數或 .env 取得 token（Railway 未設定時 API 為開放模式，token 可為空）
+    # 從環境變數取得 token（.env 已在模組頂部由 python-dotenv 載入）
     token = os.environ.get("ADMIN_TOKEN", "")
-    if not token:
-        env_path = REPO_ROOT / ".env"
-        if env_path.exists():
-            for line in env_path.read_text().splitlines():
-                if line.startswith("ADMIN_TOKEN="):
-                    token = line.split("=", 1)[1].strip().strip('"').strip("'")
-                    break
 
     url = f"{RAILWAY_URL}/api/weeks/{week_label}"
 
