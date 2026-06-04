@@ -200,6 +200,72 @@ app.post('/api/weeks/:weekLabel', requireAdminToken, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── AI 週報匯入並發布（localhost-only，SSE 串流）─────────────────
+// 接收 MD 文字內容 → 存至 drafts/ → import-draft.py --push --auto-release
+// 使用 SSE 將 stdout/stderr 即時推送到前端
+app.post('/api/admin/import-release', (req, res) => {
+  const remote = req.socket.remoteAddress || '';
+  if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(remote)) {
+    return res.status(403).json({ error: '此端點僅允許本機呼叫' });
+  }
+
+  const filename = (req.query.filename || 'import_temp.md').replace(/[^a-zA-Z0-9_.\-]/g, '_');
+  const draftsDir = path.join(REPO_ROOT, 'backend', 'drafts');
+  if (!fs.existsSync(draftsDir)) fs.mkdirSync(draftsDir, { recursive: true });
+  const draftPath = path.join(draftsDir, filename);
+
+  // 設定 SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const send = (data) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+  // 接收 MD 文字內容（express.text() middleware 需在路由前設定）
+  let body = '';
+  req.on('data', chunk => { body += chunk.toString(); });
+  req.on('end', () => {
+    if (!body.trim()) {
+      send({ type: 'error', text: '❌ 未收到 MD 內容' });
+      return res.end();
+    }
+
+    try {
+      fs.writeFileSync(draftPath, body, 'utf-8');
+      send({ type: 'log', text: `✅ 已暫存：backend/drafts/${filename}` });
+    } catch (e) {
+      send({ type: 'error', text: `❌ 儲存失敗：${e.message}` });
+      return res.end();
+    }
+
+    const scriptPath = path.join(REPO_ROOT, 'scripts', 'import-draft.py');
+    const child = spawn('python3', [scriptPath, draftPath, '--push', '--auto-release', '--yes'], {
+      cwd: REPO_ROOT,
+      env: { ...process.env, TERM: 'dumb', PYTHONUNBUFFERED: '1' },
+    });
+
+    child.stdout.on('data', d => {
+      d.toString().split('\n').filter(Boolean).forEach(line =>
+        send({ type: 'log', text: line })
+      );
+    });
+    child.stderr.on('data', d => {
+      d.toString().split('\n').filter(Boolean).forEach(line =>
+        send({ type: 'log', text: line })
+      );
+    });
+    child.on('close', code => {
+      send({ type: 'done', exitCode: code, success: code === 0 });
+      res.end();
+    });
+    child.on('error', e => {
+      send({ type: 'error', text: `❌ 執行失敗：${e.message}` });
+      res.end();
+    });
+  });
+});
+
 // ── 本機自動發布（localhost-only）─────────────────────────────
 // 瀏覽器完成歸檔後呼叫此端點，自動執行 release-week.sh --yes
 // 只接受 127.0.0.1 / ::1 連線，Production Railway 無法觸發

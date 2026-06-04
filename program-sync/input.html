@@ -59,8 +59,42 @@
     </div>
   </div>
 
-  <!-- 新週次匯入提示 -->
-  <div style="margin-bottom:var(--space-xl);padding:var(--space-md) var(--space-lg);background:var(--color-bg-secondary);border-radius:var(--radius-md);border-left:3px solid var(--color-info);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+  <!-- ── AI 週報匯入（localhost-only）────────────────────────── -->
+  <div id="importReleasePanel" style="display:none;margin-bottom:var(--space-xl);">
+    <div class="panel">
+      <div class="panel__header" style="background:linear-gradient(135deg,#1a1f2e,#252b3b);border-radius:var(--radius-md) var(--radius-md) 0 0;">
+        <span class="panel__title" style="color:#e2e8f0;">📥 AI 週報匯入 &amp; 發布</span>
+        <span style="font-size:11px;color:#64748b;margin-left:8px;">本機限定</span>
+      </div>
+      <div class="panel__body">
+        <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:var(--space-md);">
+          上傳 Claude Cowork 生成的 Final MD，自動完成解析 → 寫入 Railway → git 發布，一鍵到位。
+        </p>
+
+        <!-- 選擇檔案 -->
+        <div style="display:flex;gap:var(--space-sm);align-items:center;margin-bottom:var(--space-md);">
+          <label for="importMdFile" class="btn btn-secondary btn-sm" style="cursor:pointer;white-space:nowrap;">
+            📂 選擇 Final MD
+          </label>
+          <input type="file" id="importMdFile" accept=".md" style="display:none;">
+          <span id="importFilename" style="font-size:var(--font-size-sm);color:var(--color-text-secondary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            尚未選擇檔案
+          </span>
+        </div>
+
+        <!-- 匯入按鈕 -->
+        <button id="importReleaseBtn" class="btn btn-primary" disabled style="width:100%;margin-bottom:var(--space-md);">
+          🚀 匯入並發布
+        </button>
+
+        <!-- 進度 log -->
+        <div id="importLog" style="display:none;background:#0f1117;border-radius:var(--radius-md);padding:var(--space-md);max-height:320px;overflow-y:auto;font-family:monospace;font-size:12px;line-height:1.7;color:#94a3b8;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新週次匯入提示（非 localhost 時顯示） -->
+  <div id="importHintPanel" style="margin-bottom:var(--space-xl);padding:var(--space-md) var(--space-lg);background:var(--color-bg-secondary);border-radius:var(--radius-md);border-left:3px solid var(--color-info);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
     <strong style="color:var(--color-text-primary);">新週次資料匯入</strong>
     <ol style="margin:8px 0 0 0;padding-left:20px;line-height:2;">
       <li>在 Claude Code 提供本週會議記錄連結 → AI 產出草稿並存入 <code>backend/drafts/</code></li>
@@ -819,6 +853,105 @@ function _warnPastDate(input) {
       btn.textContent = '☰';
       btn.setAttribute('aria-label', '開啟選單');
     });
+  });
+})();
+
+// ── AI 週報匯入（localhost-only）────────────────────────────────
+(function() {
+  var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (isLocal) {
+    document.getElementById('importReleasePanel').style.display = 'block';
+    document.getElementById('importHintPanel').style.display = 'none';
+  }
+
+  var fileInput = document.getElementById('importMdFile');
+  var filenameLabel = document.getElementById('importFilename');
+  var importBtn = document.getElementById('importReleaseBtn');
+  var logBox = document.getElementById('importLog');
+  var selectedFile = null;
+
+  fileInput.addEventListener('change', function() {
+    selectedFile = fileInput.files[0] || null;
+    if (selectedFile) {
+      filenameLabel.textContent = selectedFile.name;
+      filenameLabel.style.color = 'var(--color-text-primary)';
+      importBtn.disabled = false;
+    } else {
+      filenameLabel.textContent = '尚未選擇檔案';
+      filenameLabel.style.color = 'var(--color-text-secondary)';
+      importBtn.disabled = true;
+    }
+  });
+
+  importBtn.addEventListener('click', function() {
+    if (!selectedFile) return;
+
+    importBtn.disabled = true;
+    importBtn.textContent = '⏳ 執行中…';
+    logBox.style.display = 'block';
+    logBox.innerHTML = '';
+
+    var appendLog = function(text, color) {
+      var line = document.createElement('div');
+      line.style.color = color || '#94a3b8';
+      line.textContent = text;
+      logBox.appendChild(line);
+      logBox.scrollTop = logBox.scrollHeight;
+    };
+
+    appendLog('📂 讀取檔案：' + selectedFile.name, '#60a5fa');
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var content = e.target.result;
+      appendLog('🚀 送出至本機後端…', '#60a5fa');
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/admin/import-release?filename=' + encodeURIComponent(selectedFile.name), true);
+      xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
+
+      var lastIdx = 0;
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState >= 3 && xhr.responseText.length > lastIdx) {
+          var chunk = xhr.responseText.slice(lastIdx);
+          lastIdx = xhr.responseText.length;
+          chunk.split('\n').forEach(function(line) {
+            line = line.trim();
+            if (!line.startsWith('data:')) return;
+            try {
+              var msg = JSON.parse(line.slice(5).trim());
+              if (msg.type === 'log') {
+                var color = msg.text.startsWith('✅') ? '#4ade80'
+                          : msg.text.startsWith('❌') ? '#f87171'
+                          : msg.text.startsWith('⚠') ? '#fbbf24'
+                          : msg.text.startsWith('🚀') ? '#60a5fa'
+                          : msg.text.startsWith('📌') ? '#a78bfa'
+                          : '#94a3b8';
+                appendLog(msg.text, color);
+              } else if (msg.type === 'done') {
+                if (msg.success) {
+                  appendLog('', '');
+                  appendLog('🎉 發布完成！Railway 約 1–2 分鐘後自動部署。', '#4ade80');
+                  importBtn.textContent = '✅ 發布成功';
+                  importBtn.style.background = '#16a34a';
+                } else {
+                  appendLog('❌ 流程結束，exitCode=' + msg.exitCode, '#f87171');
+                  importBtn.textContent = '❌ 發生錯誤';
+                  importBtn.disabled = false;
+                }
+              } else if (msg.type === 'error') {
+                appendLog(msg.text, '#f87171');
+                importBtn.textContent = '❌ 發生錯誤';
+                importBtn.disabled = false;
+              }
+            } catch(e) {}
+          });
+        }
+      };
+
+      xhr.send(content);
+    };
+    reader.readAsText(selectedFile, 'utf-8');
   });
 })();
 </script>
