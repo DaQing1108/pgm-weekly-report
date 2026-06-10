@@ -1,5 +1,42 @@
 # Changelog — PgM Weekly Report System
 
+## 2026/06/10 — Skill 打包同步修復（里程碑區塊遺漏）
+
+### [修復] program-sync-report.skill 重新打包
+
+**根因**：`program-sync-report.skill`（2026/05/15 打包）與 `program-sync-report-src/SKILL.md` 不同步——舊版打包檔完全沒有 `## Appendix: Dashboard Export` 區塊，導致 W24 AI 草稿缺少 `### 里程碑`，`import-draft.py` 解析出 0 筆里程碑。
+
+**修復**：
+- 從最新 src 重新打包 `.skill`（已驗證含 `### 里程碑` 區塊）
+- W24 FINAL md 手動補回里程碑表（17 筆）並重新 import + push
+
+**提醒**：修改 `program-sync-report-src/SKILL.md` 後必須重新打包 `.skill` 並重新安裝至 Claude，兩者才會一致（CLAUDE.md 既有規範）。
+
+### [新增] API 寫入端 payload 驗證 + release-week.sh Skill 同步防護（系統體檢 P1）
+
+**API 驗證（`backend/src/index.js`）**：
+- 新增 `validateWeekPayload()` 函式，在 `POST /api/weeks/:weekLabel` 寫入前驗證：
+  - action 狀態合法性（`pending/in-progress/done/blocked`）
+  - milestone 狀態合法性（`upcoming/in-progress/done/delayed`）
+  - 陣列欄位型別（`projects/actions/risks/members/milestones` 必須是陣列）
+  - `weekLabel` URL 與 body 一致性
+  - `weekStart` 日期格式（`YYYY-MM-DD`）
+- 驗證失敗回傳 `422 INVALID_PAYLOAD`，明確列出每一筆錯誤，防止髒資料寫入
+
+**Skill 打包防護（`scripts/release-week.sh`）**：
+- Section 0 新增 Skill 同步檢查：`program-sync-report.skill` 內的 `SKILL.md` 與 `program-sync-report-src/SKILL.md` 必須一致
+- 不一致時擋下 `release-week.sh`，顯示重新打包命令，防止重蹈 W24 草稿缺少里程碑區塊的問題
+
+### [修復] import-draft.py 狀態 fallback bug + 歷史資料清洗（系統體檢 P0）
+
+**根因**：`STATUS_MAP.get(status, "not-started")` 的 fallback 是非法值（合法狀態僅 `pending/in-progress/done/blocked`），任何未知狀態字串都會以 `not-started` 寫入資料，污染 Dashboard 統計。
+
+**修復**：
+- `import-draft.py` 兩處 fallback 改為 `"pending"`（L242、L260）
+- 清洗 W19/W21/W22 歷史資料：`not-started`→`pending`（33 筆）、`waiting`→`blocked`（1 筆）、`overdue`→`pending`（2 筆，逾期為 dueDate 衍生屬性非狀態）
+- W22 漂移解決：刪除本地多出的 2 筆 actions（`action-w22-12`、`action-w22-14`，以線上為準）
+- 三週清洗後資料已推送 Railway，16 週全數通過狀態合法性與本地/線上一致性驗證
+
 ## 2026/06/04 — Trends 歷史資料修復 + Code Review 修正
 
 ### [修復] trends.html 完成率 & 逾期數歷史資料不準確

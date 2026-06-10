@@ -56,7 +56,7 @@ app.use(cors(
 app.use(express.json({ limit: '2mb' }));
 
 // ── Admin Token 驗證中介層（S-1/S-2）────────────────────────────
-// 若環境變數 ADMIN_TOKEN 未設定 → 跳過驗證（向下相容 / 開發環境）
+// 若環境變數 ADMIN_TOKEN 未設定 → 回 503 拒絕所有寫入（fail-closed）
 // Railway 部署時於 Variables 設定 ADMIN_TOKEN=<隨機字串> 即可啟用
 function requireAdminToken(req, res, next) {
   const expected = process.env.ADMIN_TOKEN;
@@ -70,6 +70,42 @@ function requireAdminToken(req, res, next) {
     return res.status(401).json({ error: '需要管理員 Token', code: 'UNAUTHORIZED' });
   }
   next();
+}
+
+// ── 週資料寫入驗證（系統體檢 P1）──────────────────────────────
+// 只驗證有明確規範的欄位（CLAUDE.md：action / milestone 狀態 enum），
+// project 狀態無正式 enum 定義，不在此驗證以免誤擋前端既有值
+const VALID_ACTION_STATUSES    = new Set(['pending', 'in-progress', 'done', 'blocked']);
+const VALID_MILESTONE_STATUSES = new Set(['upcoming', 'in-progress', 'done', 'delayed']);
+const WEEK_ARRAY_FIELDS = ['projects', 'actions', 'risks', 'members', 'milestones'];
+
+function validateWeekPayload(body, weekLabel) {
+  const errors = [];
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return ['payload 必須是 JSON 物件'];
+  }
+  if (body.weekLabel && body.weekLabel !== weekLabel) {
+    errors.push(`payload.weekLabel (${body.weekLabel}) 與 URL 週次 (${weekLabel}) 不一致`);
+  }
+  if (body.weekStart && !/^\d{4}-\d{2}-\d{2}$/.test(body.weekStart)) {
+    errors.push(`weekStart 格式錯誤（需 YYYY-MM-DD）：${body.weekStart}`);
+  }
+  for (const field of WEEK_ARRAY_FIELDS) {
+    if (body[field] != null && !Array.isArray(body[field])) {
+      errors.push(`${field} 必須是陣列`);
+    }
+  }
+  for (const a of (Array.isArray(body.actions) ? body.actions : [])) {
+    if (a?.status && !VALID_ACTION_STATUSES.has(a.status)) {
+      errors.push(`action「${(a.task || a.id || '?').slice(0, 30)}」狀態非法：${a.status}（合法值：${[...VALID_ACTION_STATUSES].join('/')}）`);
+    }
+  }
+  for (const m of (Array.isArray(body.milestones) ? body.milestones : [])) {
+    if (m?.status && !VALID_MILESTONE_STATUSES.has(m.status)) {
+      errors.push(`milestone「${(m.name || m.id || '?').slice(0, 30)}」狀態非法：${m.status}（合法值：${[...VALID_MILESTONE_STATUSES].join('/')}）`);
+    }
+  }
+  return errors;
 }
 
 // ── Health ────────────────────────────────────────────────────
@@ -199,6 +235,10 @@ app.get('/api/weeks/:weekLabel', async (req, res) => {
 
 app.post('/api/weeks/:weekLabel', requireAdminToken, async (req, res) => {
   const safe = req.params.weekLabel.replace(/[^a-zA-Z0-9\-]/g, '');
+  const validationErrors = validateWeekPayload(req.body, safe);
+  if (validationErrors.length > 0) {
+    return res.status(422).json({ error: '資料驗證失敗', code: 'INVALID_PAYLOAD', details: validationErrors });
+  }
   try {
     await db.saveWeek(safe, req.body);
     res.json({ success: true, weekLabel: safe });

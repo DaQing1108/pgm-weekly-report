@@ -90,6 +90,18 @@ if [[ -n "${DIRTY}" ]]; then
   echo ""
 fi
 
+# ── 0. Skill 打包檔同步檢查（系統體檢 P1）────────────────────────────────────
+# program-sync-report.skill 內的 SKILL.md 必須與 src 一致，
+# 否則 AI 草稿會用舊模板生成（W24 事故根因之一），不一致即擋下發布
+SKILL_PKG="program-sync-report.skill"
+SKILL_SRC="program-sync-report-src/SKILL.md"
+if [[ -f "${SKILL_PKG}" && -f "${SKILL_SRC}" ]]; then
+  if ! cmp -s <(unzip -p "${SKILL_PKG}" "program-sync-report-src/SKILL.md" 2>/dev/null) "${SKILL_SRC}"; then
+    error "Skill 打包檔與 src 不同步：${SKILL_PKG} ≠ ${SKILL_SRC}\n請重新打包後再發布：\n  rm ${SKILL_PKG} && zip -r ${SKILL_PKG} program-sync-report-src/ -x '*.DS_Store'\n並重新安裝至 ~/.claude/skills/program-sync-report/"
+  fi
+  info "Skill 同步檢查：${SKILL_PKG} 與 src 一致 ✓"
+fi
+
 # ── 1. 確認 JSON 資料檔存在 ───────────────────────────────────────────────────
 JSON_PATH="backend/data/weeks/${WEEK}.json"
 

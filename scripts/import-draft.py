@@ -239,7 +239,7 @@ def parse_actions(text, week_label, week_start, existing, projects, v2=False):
             continue
 
         # 狀態正規化
-        status_norm = STATUS_MAP.get(status, "not-started")
+        status_norm = STATUS_MAP.get(status, "pending")
 
         existing_item = find_existing(existing, "task", task)
 
@@ -257,7 +257,7 @@ def parse_actions(text, week_label, week_start, existing, projects, v2=False):
         # （避免 Quick Input 手動改成 done 後被 MD 的舊值蓋回）
         # 例外：MD 明確標 done → 仍以 done 更新（進度只進不退除非人工退回）
         if existing_item:
-            existing_status = existing_item.get("status", "not-started")
+            existing_status = existing_item.get("status", "pending")
             if status_norm == "done":
                 final_status = "done"           # MD 說完成 → 採用
             else:
