@@ -830,5 +830,61 @@
   "_version": "2.0",
   "_savedAt": "2026-04-03T08:00:00.000Z",
   "weekLabel": "W14",
-  "_dataVersion": 14
+  "_dataVersion": 14,
+  "members": [
+    {
+      "id": "steve-liu",
+      "name": "Steve Liu",
+      "team": "media-agent",
+      "role": "Team Lead",
+      "avatar": "SL",
+      "_updatedAt": "2026-03-23T07:07:15.762Z",
+      "_createdAt": "2026-03-23T07:07:15.762Z"
+    },
+    {
+      "id": "tc-peng",
+      "name": "TC Peng",
+      "team": "learnmode",
+      "role": "Team Lead",
+      "avatar": "TC",
+      "_updatedAt": "2026-03-23T07:07:15.762Z",
+      "_createdAt": "2026-03-23T07:07:15.762Z"
+    },
+    {
+      "id": "tonny-shen",
+      "name": "Tonny Shen",
+      "team": "chuangzaoli",
+      "role": "Team Lead",
+      "avatar": "TS",
+      "_updatedAt": "2026-03-23T07:07:15.762Z",
+      "_createdAt": "2026-03-23T07:07:15.762Z"
+    },
+    {
+      "id": "tom-liu",
+      "name": "Tom Liu",
+      "team": "tv-solution",
+      "role": "Team Lead",
+      "avatar": "TL",
+      "_updatedAt": "2026-03-23T07:07:15.762Z",
+      "_createdAt": "2026-03-23T07:07:15.762Z"
+    },
+    {
+      "id": "alex-chen",
+      "name": "AlexLiao",
+      "team": "media-agent",
+      "role": "Program Manager",
+      "avatar": "A",
+      "_updatedAt": "2026-03-23T07:08:54.334Z",
+      "_createdAt": "2026-03-23T07:07:15.762Z"
+    },
+    {
+      "id": "d21bb140-d2ae-49a0-92f0-74a9d61b6f99",
+      "name": "Anna Guo",
+      "team": "media-agent",
+      "role": "Engineer",
+      "avatar": "AG",
+      "_updatedAt": "2026-03-23T07:19:13.623Z",
+      "_createdAt": "2026-03-23T07:18:46.224Z"
+    }
+  ]
 }

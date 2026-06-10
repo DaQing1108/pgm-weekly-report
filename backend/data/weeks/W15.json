@@ -1,5 +1,5 @@
 {
-  "weekStart": "2026-04-07",
+  "weekStart": "2026-04-06",
   "projects": [
     {
       "id": "p001",
@@ -12,7 +12,7 @@
       "blockers": "AI Demo 正式日期尚未由 WenChi confirm（暫定 4 月最後一週）；Demo 主軸 4/8 才完成調整，準備時間極壓縮；Demo rehearsal 手排流程待完成",
       "targetDate": "2026-04-30",
       "category": "Demo",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "p002",
@@ -25,7 +25,7 @@
       "blockers": "公視交件原定 4 月中，已延期至 8 月中；OpenMAM 4.0 架構說明排年 5 月（Dream）",
       "targetDate": "2026-04-30",
       "category": "Platform",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "p003",
@@ -38,7 +38,7 @@
       "blockers": "無業務人員明確承接 OpenMAM / OlaMedia / Olapedia 推廣，Michael Q2 目標推動產品化，銷售對接方式（聯威渠道 vs Solo Product）待決策",
       "targetDate": "2026-06-30",
       "category": "Platform",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "p004",
@@ -51,7 +51,7 @@
       "blockers": "TVBS 多音軌方案可行性待確認（是否可拆出 4 條獨立音軌）；Gemini 4 在 DGX 上測試待排（Steve，年 6 月）",
       "targetDate": "2026-06-30",
       "category": "AI/ML",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "p005",
@@ -64,7 +64,7 @@
       "blockers": "軟硬整合可演示版本截止 4/15，API 聯調剛完成，整合測試時間極短；上海寄送 Demo 機器時程待確認",
       "targetDate": "2026-04-15",
       "category": "Hardware",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "p006",
@@ -77,7 +77,7 @@
       "blockers": "",
       "targetDate": "2026-05-31",
       "category": "AI/ML",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "p007",
@@ -90,7 +90,7 @@
       "blockers": "EDD 推進需與 Steve 討論規範，尚無工程慣例",
       "targetDate": "2026-04-30",
       "category": "Process",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "p008",
@@ -103,7 +103,7 @@
       "blockers": "教育 BU 自本週移出週報主體，改月報追蹤",
       "targetDate": "2026-08-31",
       "category": "Education",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     }
   ],
   "risks": [
@@ -117,7 +117,7 @@
       "dueDate": "2026-04-10",
       "status": "open",
       "mitigation": "Michael 4/10 與 WenChi 會面後確認日期",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "r002",
@@ -129,7 +129,7 @@
       "dueDate": "2026-04-30",
       "status": "in-progress",
       "mitigation": "Alex 負責 Demo 文件改版 + 素材準備（4/10 前）；Rehearsal 手排流程（Alex/Steve）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "r003",
@@ -141,7 +141,7 @@
       "dueDate": "2026-04-30",
       "status": "open",
       "mitigation": "Michael Q2 目標推動真正產品化；銷售對接方式（聯威渠道 vs Solo Product）待決策",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "r004",
@@ -153,7 +153,7 @@
       "dueDate": "2026-04-10",
       "status": "open",
       "mitigation": "Alex 持續追蹤 ASAP",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "r005",
@@ -165,7 +165,7 @@
       "dueDate": "2026-04-10",
       "status": "in-progress",
       "mitigation": "Alex 個人已上傳，已告知 JH",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "r006",
@@ -177,7 +177,7 @@
       "dueDate": "2026-04-17",
       "status": "open",
       "mitigation": "Alex 跟進 TVBS 確認音軌輸出格式（4/1x）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "r007",
@@ -189,7 +189,7 @@
       "dueDate": "2026-04-30",
       "status": "in-progress",
       "mitigation": "Alex 本週與 Steve 對齊 EDD 規範",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "r008",
@@ -201,7 +201,7 @@
       "dueDate": "2026-04-15",
       "status": "in-progress",
       "mitigation": "全體專案組衝刺；娃娃改裝 Robert 本週執行",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "r009",
@@ -213,7 +213,7 @@
       "dueDate": "2026-04-10",
       "status": "in-progress",
       "mitigation": "Michael 4/10 下午與 IT 確認升級至 Business Standard（+$7/月）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "r010",
@@ -225,7 +225,7 @@
       "dueDate": "2026-04-30",
       "status": "open",
       "mitigation": "Dream 目標 4 月底向全組說明進度",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     }
   ],
   "actions": [
@@ -237,7 +237,7 @@
       "dueDate": "2026-04-10",
       "status": "in-progress",
       "project": "TVBS AI Demo（媒體資產再利用）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a02",
@@ -247,7 +247,7 @@
       "dueDate": "2026-04-10",
       "status": "in-progress",
       "project": "TVBS AI Demo（媒體資產再利用）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a03",
@@ -257,7 +257,7 @@
       "dueDate": "2026-04-17",
       "status": "pending",
       "project": "TVBS AI Demo（媒體資產再利用）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a04",
@@ -267,7 +267,7 @@
       "dueDate": "2026-04-10",
       "status": "in-progress",
       "project": "TVBS AI Demo（媒體資產再利用）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a05",
@@ -277,7 +277,7 @@
       "dueDate": "2026-04-10",
       "status": "in-progress",
       "project": "TVBS AI Demo（媒體資產再利用）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a06",
@@ -287,7 +287,7 @@
       "dueDate": "2026-04-30",
       "status": "pending",
       "project": "STT 技術對標與部署策略",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a07",
@@ -297,7 +297,7 @@
       "dueDate": "2026-04-17",
       "status": "pending",
       "project": "STT 技術對標與部署策略",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a08",
@@ -307,7 +307,7 @@
       "dueDate": "2026-05-15",
       "status": "pending",
       "project": "STT 技術對標與部署策略",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a09",
@@ -317,7 +317,7 @@
       "dueDate": "2026-04-10",
       "status": "in-progress",
       "project": "台標識別模型訓練",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a10",
@@ -327,7 +327,7 @@
       "dueDate": "2026-06-30",
       "status": "pending",
       "project": "STT 技術對標與部署策略",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a11",
@@ -337,7 +337,7 @@
       "dueDate": "2026-04-17",
       "status": "in-progress",
       "project": "EDD 工程文件規範導入",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a12",
@@ -347,7 +347,7 @@
       "dueDate": "2026-04-17",
       "status": "in-progress",
       "project": "OpenMAM 3.0 / 4.0 路線圖",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a13",
@@ -357,7 +357,7 @@
       "dueDate": "2026-05-31",
       "status": "in-progress",
       "project": "OpenMAM 3.0 / 4.0 路線圖",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a14",
@@ -367,7 +367,7 @@
       "dueDate": "2026-04-30",
       "status": "in-progress",
       "project": "OpenMAM 3.0 / 4.0 路線圖",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "a15",
@@ -377,7 +377,7 @@
       "dueDate": "2026-04-10",
       "status": "in-progress",
       "project": "LearnMode 教育部門（月報）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "b01",
@@ -387,7 +387,7 @@
       "dueDate": "2026-04-11",
       "status": "in-progress",
       "project": "創造栗 小栗方 Pro 4/15 里程碑",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "b02",
@@ -397,7 +397,7 @@
       "dueDate": "2026-04-15",
       "status": "in-progress",
       "project": "創造栗 小栗方 Pro 4/15 里程碑",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "b03",
@@ -407,7 +407,7 @@
       "dueDate": "2026-04-15",
       "status": "in-progress",
       "project": "創造栗 小栗方 Pro 4/15 里程碑",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "b04",
@@ -417,7 +417,7 @@
       "dueDate": "2026-04-15",
       "status": "pending",
       "project": "創造栗 小栗方 Pro 4/15 里程碑",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "b05",
@@ -427,7 +427,7 @@
       "dueDate": "2026-04-15",
       "status": "in-progress",
       "project": "創造栗 小栗方 Pro 4/15 里程碑",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "c01",
@@ -437,7 +437,7 @@
       "dueDate": "2026-04-17",
       "status": "pending",
       "project": "LearnMode 教育部門（月報）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "c02",
@@ -447,7 +447,7 @@
       "dueDate": "2026-04-17",
       "status": "pending",
       "project": "LearnMode 教育部門（月報）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "c03",
@@ -457,7 +457,7 @@
       "dueDate": "2026-04-30",
       "status": "in-progress",
       "project": "LearnMode 教育部門（月報）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "c04",
@@ -467,7 +467,7 @@
       "dueDate": "2026-04-10",
       "status": "in-progress",
       "project": "LearnMode 教育部門（月報）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "c05",
@@ -477,7 +477,7 @@
       "dueDate": "2026-04-16",
       "status": "pending",
       "project": "LearnMode 教育部門（月報）",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     }
   ],
   "milestones": [
@@ -488,7 +488,7 @@
       "team": "media-agent",
       "project": "TVBS AI Demo（媒體資產再利用）",
       "status": "done",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "m002",
@@ -497,7 +497,7 @@
       "team": "chuangzaoli",
       "project": "創造栗 小栗方 Pro 4/15 里程碑",
       "status": "done",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "m003",
@@ -506,7 +506,7 @@
       "team": "media-agent",
       "project": "TVBS AI Demo（媒體資產再利用）",
       "status": "upcoming",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "m004",
@@ -515,7 +515,7 @@
       "team": "chuangzaoli",
       "project": "創造栗 小栗方 Pro 4/15 里程碑",
       "status": "upcoming",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "m005",
@@ -524,7 +524,7 @@
       "team": "learnmode",
       "project": "LearnMode 教育部門（月報）",
       "status": "upcoming",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "m006",
@@ -533,7 +533,7 @@
       "team": "learnmode",
       "project": "LearnMode 教育部門（月報）",
       "status": "upcoming",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "m007",
@@ -542,7 +542,7 @@
       "team": "media-agent",
       "project": "TVBS AI Demo（媒體資產再利用）",
       "status": "upcoming",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "m008",
@@ -551,7 +551,7 @@
       "team": "tv-solution",
       "project": "OpenMAM 3.0 / 4.0 路線圖",
       "status": "upcoming",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "m009",
@@ -560,7 +560,7 @@
       "team": "media-agent",
       "project": "Olapedia / OlaMedia 獨立產品化",
       "status": "upcoming",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     },
     {
       "id": "m010",
@@ -569,7 +569,7 @@
       "team": "tv-solution",
       "project": "OpenMAM 3.0 / 4.0 路線圖",
       "status": "upcoming",
-      "weekStart": "2026-04-07"
+      "weekStart": "2026-04-06"
     }
   ],
   "snapshots": [
@@ -747,5 +747,61 @@
   "_version": "2.0",
   "_savedAt": "2026-04-11T08:00:00.000Z",
   "weekLabel": "W15",
-  "_dataVersion": 15
+  "_dataVersion": 15,
+  "members": [
+    {
+      "id": "steve-liu",
+      "name": "Steve Liu",
+      "team": "media-agent",
+      "role": "Team Lead",
+      "avatar": "SL",
+      "_updatedAt": "2026-03-23T07:07:15.762Z",
+      "_createdAt": "2026-03-23T07:07:15.762Z"
+    },
+    {
+      "id": "tc-peng",
+      "name": "TC Peng",
+      "team": "learnmode",
+      "role": "Team Lead",
+      "avatar": "TC",
+      "_updatedAt": "2026-03-23T07:07:15.762Z",
+      "_createdAt": "2026-03-23T07:07:15.762Z"
+    },
+    {
+      "id": "tonny-shen",
+      "name": "Tonny Shen",
+      "team": "chuangzaoli",
+      "role": "Team Lead",
+      "avatar": "TS",
+      "_updatedAt": "2026-03-23T07:07:15.762Z",
+      "_createdAt": "2026-03-23T07:07:15.762Z"
+    },
+    {
+      "id": "tom-liu",
+      "name": "Tom Liu",
+      "team": "tv-solution",
+      "role": "Team Lead",
+      "avatar": "TL",
+      "_updatedAt": "2026-03-23T07:07:15.762Z",
+      "_createdAt": "2026-03-23T07:07:15.762Z"
+    },
+    {
+      "id": "alex-chen",
+      "name": "AlexLiao",
+      "team": "media-agent",
+      "role": "Program Manager",
+      "avatar": "A",
+      "_updatedAt": "2026-03-23T07:08:54.334Z",
+      "_createdAt": "2026-03-23T07:07:15.762Z"
+    },
+    {
+      "id": "d21bb140-d2ae-49a0-92f0-74a9d61b6f99",
+      "name": "Anna Guo",
+      "team": "media-agent",
+      "role": "Engineer",
+      "avatar": "AG",
+      "_updatedAt": "2026-03-23T07:19:13.623Z",
+      "_createdAt": "2026-03-23T07:18:46.224Z"
+    }
+  ]
 }
