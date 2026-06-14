@@ -282,32 +282,82 @@ function _showHistoryBanner(viewing, latest) {
   nav.insertAdjacentElement('afterend', bar);
 }
 
-// N-3：後端回 401（ADMIN_TOKEN 已設定但前端未帶 token）時顯示警告
+// N-3 + C 方案：後端回 401 時顯示強制 modal，要求輸入 token 才能繼續同步
 function _showAuthBanner() {
-  if (document.getElementById('appInitAuthBanner')) return;
-  const nav = document.querySelector('.navbar');
-  if (!nav) return;
-  const bar = document.createElement('div');
-  bar.id = 'appInitAuthBanner';
-  bar.style.cssText = [
-    'background:var(--color-danger-bg,#fdecea)',
-    'border-bottom:1px solid var(--color-danger,#d94f4f)',
-    'padding:6px 24px',
-    'font-size:12px',
-    'display:flex',
-    'align-items:center',
-    'gap:12px',
-    'flex-wrap:wrap',
+  if (document.getElementById('appInitAuthModal')) return;
+
+  const modal = document.createElement('div');
+  modal.id = 'appInitAuthModal';
+  modal.style.cssText = [
+    'position:fixed', 'inset:0', 'z-index:99999',
+    'background:rgba(0,0,0,.55)',
+    'display:flex', 'align-items:center', 'justify-content:center',
   ].join(';');
-  bar.innerHTML = `
-    <span style="color:var(--color-danger,#d94f4f);font-weight:600;">🔒 後端同步失敗</span>
-    <span style="color:var(--color-text-secondary,#555);">ADMIN_TOKEN 已設定，請在 Console 執行：</span>
-    <code style="background:rgba(0,0,0,.07);padding:2px 8px;border-radius:4px;font-size:11px;user-select:all;">
-      import('/assets/js/api.js').then(m=&gt;m.setAdminToken('your-token'))
-    </code>
-    <button onclick="document.getElementById('appInitAuthBanner').remove()"
-      style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;color:var(--color-danger,#d94f4f);">✕</button>`;
-  nav.insertAdjacentElement('afterend', bar);
+
+  modal.innerHTML = `
+    <div style="background:var(--color-bg-primary,#fff);border-radius:12px;padding:28px 32px;
+      max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);
+      border:2px solid var(--color-danger,#d94f4f);">
+      <div style="font-size:18px;font-weight:700;color:var(--color-danger,#d94f4f);margin-bottom:8px;">
+        🔒 同步驗證失敗
+      </div>
+      <div style="font-size:13px;color:var(--color-text-secondary,#555);margin-bottom:20px;line-height:1.6;">
+        後端需要 Admin Token 才能寫入資料。<br>
+        請輸入 Token 以恢復同步，資料才能跨瀏覽器一致。
+      </div>
+      <input id="_authTokenInput" type="password" placeholder="貼上 ADMIN_TOKEN…"
+        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--color-border-default,#ddd);
+          border-radius:6px;font-size:13px;margin-bottom:12px;outline:none;
+          font-family:monospace;" />
+      <div id="_authTokenError" style="font-size:11px;color:var(--color-danger,#d94f4f);
+        margin-bottom:8px;min-height:16px;"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button id="_authTokenSkip"
+          style="padding:8px 16px;border:1px solid var(--color-border-default,#ddd);
+            border-radius:6px;background:none;cursor:pointer;font-size:13px;
+            color:var(--color-text-secondary,#888);">
+          暫時略過（資料不會同步）
+        </button>
+        <button id="_authTokenSubmit"
+          style="padding:8px 20px;background:var(--color-primary,#378add);color:#fff;
+            border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">
+          確認
+        </button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+
+  const input = document.getElementById('_authTokenInput');
+  const errEl = document.getElementById('_authTokenError');
+
+  async function _submitToken() {
+    const token = input.value.trim();
+    if (!token) { errEl.textContent = '請輸入 Token'; return; }
+    errEl.textContent = '';
+
+    const { setAdminToken, saveWeekState, listWeeks } = await import('./api.js');
+    setAdminToken(token);
+
+    // 驗證 token 是否正確：嘗試取得週次清單後觸發一次寫入確認
+    try {
+      const weeks = await listWeeks();
+      const latestLabel = weeks.length > 0 ? weeks[0].weekLabel : null;
+      if (latestLabel) {
+        // 觸發一次同步來驗證 token（store:updated 會重新 debounce 推送）
+        window.dispatchEvent(new CustomEvent('store:updated', { detail: { key: '_authRetry' } }));
+      }
+      modal.remove();
+    } catch {
+      errEl.textContent = 'Token 無效，請確認後再試';
+      setAdminToken(''); // 清除無效 token
+    }
+  }
+
+  document.getElementById('_authTokenSubmit').onclick = _submitToken;
+  document.getElementById('_authTokenSkip').onclick = () => modal.remove();
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') _submitToken(); });
+  setTimeout(() => input.focus(), 50);
 }
 
 /** 最小 HTML 跳脫，避免 banner 注入 XSS */

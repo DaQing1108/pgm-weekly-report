@@ -25,16 +25,16 @@ let _backendAvailable = null;
 let _backendLastChecked = 0;
 const _BACKEND_RETRY_MS = 30_000; // 斷線後 30s 自動重試
 
-// ── Admin Token 管理（S-1/S-2）────────────────────────────────
-// 存 sessionStorage：每次重開分頁需重新輸入，避免持久外洩
+// ── Admin Token 管理（S-1/S-2，B 方案：改存 localStorage 持久化）────────────────────────────────
+// 存 localStorage：跨 session 持久，不需每次重設
 // 設定方式：在頁面 console 執行 → await import('./assets/js/api.js').then(m=>m.setAdminToken('xxx'))
 const _ADMIN_TOKEN_KEY = 'pgm_admin_token';
 export function setAdminToken(token) {
-  if (token) sessionStorage.setItem(_ADMIN_TOKEN_KEY, token);
-  else        sessionStorage.removeItem(_ADMIN_TOKEN_KEY);
+  if (token) localStorage.setItem(_ADMIN_TOKEN_KEY, token);
+  else        localStorage.removeItem(_ADMIN_TOKEN_KEY);
 }
-export function getAdminToken() { return sessionStorage.getItem(_ADMIN_TOKEN_KEY); }
-export function clearAdminToken() { sessionStorage.removeItem(_ADMIN_TOKEN_KEY); }
+export function getAdminToken() { return localStorage.getItem(_ADMIN_TOKEN_KEY); }
+export function clearAdminToken() { localStorage.removeItem(_ADMIN_TOKEN_KEY); }
 
 /** 回傳含 Content-Type + 可選 X-Admin-Token 的 header 物件 */
 function _writeHeaders() {
