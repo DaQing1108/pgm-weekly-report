@@ -1,5 +1,45 @@
 # Changelog — PgM Weekly Report System
 
+## 2026/06/14 — 系統健康檢查 & 全面優化（Health Check P0–M10）
+
+### [修復] H2 — PG 連線失敗 fail-fast（index.js）
+
+`DATABASE_URL` 存在但 PG 無法連線時，原本靜默退回 ephemeral FS 模式，redeploy 後資料蒸發。現改為 `process.exit(1)` 強制中止啟動，Railway 顯示失敗而非以半殘狀態運行。
+
+### [修復] H3 — PG 連線池冷啟動保護（db.js）
+
+PG Pool 加入 `connectionTimeoutMillis: 5000`，冷啟動時若 5 秒無法連線立即報錯，不再無限等待。
+
+### [修復] H4 — 資料權威來源說明（README.md）
+
+明確標注 Railway PostgreSQL 為唯一正式資料來源，`backend/data/weeks/*.json` 為本機開發備份，兩者不一致以 PG 為準。
+
+### [修復] H8 — import-draft.py 支援暫存檔匯入（import-draft.py + index.js）
+
+新增 `--week W##` 參數手動指定週次，修正 UI/API 以 `parse_temp.md` 暫存檔呼叫時無法解析週次導致 500 的問題。後端 API 呼叫同步加入 `?week=W##` 傳遞。
+
+### [修復] M2 — /read 端點 HTML escape（index.js）
+
+500 錯誤訊息加 HTML escape，防止 `err.message` 含特殊字元時的 Reflected XSS。
+
+### [修復] M4 — saveState timeout（api.js）
+
+`saveState` 加入 `AbortSignal.timeout(8000)`，防止跨瀏覽器狀態同步時無限等待。
+
+### [修復] M5 — _dataVersion 後端自動遞增（db.js）
+
+`saveWeek` 改由後端讀取現有版本後 +1，FS 模式與 PG 模式皆覆蓋。版本判斷不再依賴客戶端時鐘，解決時鐘漂移下 `_localIsNewer` 判斷失準問題。
+
+### [修復] M7 — projects 空陣列保護（store.js）
+
+`startBackendSync` 前檢查 `projects` 是否為空，localStorage 損壞導致 `projects=[]` 時拒絕上傳，防止意外清空後端資料。
+
+### [修復] M10 — _fetch_railway 錯誤區分（import-draft.py）
+
+`_fetch_railway` 現區分 HTTP 404（正常：Railway 無此週資料）與連線異常（印出 ⚠️ 警告），不再所有失敗情境靜默回 `None`。
+
+---
+
 ## 2026/06/14 — 跨瀏覽器資料不一致修復（Admin Token 持久化 + 強制 modal）
 
 ### [修復] Chrome vs Safari 看到不同資料
