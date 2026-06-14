@@ -1,5 +1,22 @@
 # Changelog — PgM Weekly Report System
 
+## 2026/06/14 — 跨瀏覽器資料不一致修復（Admin Token 持久化 + 強制 modal）
+
+### [修復] Chrome vs Safari 看到不同資料
+
+**根因**：`ADMIN_TOKEN` 存於 `sessionStorage`，每次重開瀏覽器後 token 消失，`saveWeekState` 回傳 401 靜默失敗，Chrome 的 localStorage 編輯從未推送至 Railway。Safari（無 localStorage）從 Railway 讀到舊版資料，造成兩者不一致。
+
+**修復**：
+- `api.js`：Admin Token 改存 `localStorage`，跨 session 持久，設定一次永久有效
+- `app-init.js`：401 時改為強制輸入 modal（取代可被忽略的 banner），要求輸入 token 後才恢復同步，防止靜默失敗
+
+**首次設定方式**（換新瀏覽器 / 換電腦時）：
+```javascript
+import('/assets/js/api.js').then(m => m.setAdminToken('YOUR_ADMIN_TOKEN'))
+```
+
+---
+
 ## 2026/06/10 — Skill 打包同步修復（里程碑區塊遺漏）
 
 ### [修復] program-sync-report.skill 重新打包
