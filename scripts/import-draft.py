@@ -358,22 +358,32 @@ def parse_milestones(text, week_label, week_start, existing, v2=False):
 
 # ── 從 Railway 抓現有資料 ─────────────────────────────────────────────────────
 def _fetch_railway(week_label):
-    """GET /api/weeks/{week_label}，回傳 dict 或 None（失敗時靜默）。"""
+    """GET /api/weeks/{week_label}，回傳 dict 或 None。
+    M10: 區分「Railway 確實無此週」與「連線失敗」，後者印出警告。
+    """
     url = f"{RAILWAY_URL}/api/weeks/{week_label}"
     try:
         result = subprocess.run(
-            ["curl", "-s", "--max-time", "10", url],
+            ["curl", "-s", "-w", "\n%{http_code}", "--max-time", "10", url],
             capture_output=True, text=True, timeout=15
         )
         if result.returncode != 0 or not result.stdout.strip():
+            print(f"⚠️   無法連線 Railway（curl 回傳碼 {result.returncode}），改用本地資料")
             return None
-        data = json.loads(result.stdout)
-        # Railway 回傳的是週資料本身（dict），若有 error key 則代表不存在
+        lines = result.stdout.strip().rsplit("\n", 1)
+        body, http_code = lines[0], lines[1] if len(lines) > 1 else "0"
+        if http_code == "404":
+            return None  # 正常：Railway 無此週資料
+        if http_code != "200":
+            print(f"⚠️   Railway 回傳 HTTP {http_code}，改用本地資料")
+            return None
+        data = json.loads(body)
         if isinstance(data, dict) and "error" not in data:
             return data
-    except Exception:
-        pass
-    return None
+        return None
+    except Exception as e:
+        print(f"⚠️   Railway fetch 發生例外（{e}），改用本地資料")
+        return None
 
 # ── Push 至 Railway ───────────────────────────────────────────────────────────
 def push_to_railway(week_label, payload):

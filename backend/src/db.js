@@ -44,7 +44,10 @@ const fsImpl = {
   },
 
   async saveWeek(weekLabel, body) {
-    const payload = { ...body, _savedAt: new Date().toISOString() };
+    // M5: FS 模式也遞增版本號，與 PG 模式行為一致
+    const existing = await fsImpl.getWeek(weekLabel);
+    const nextVer  = ((existing?._dataVersion) || 0) + 1;
+    const payload  = { ...body, _savedAt: new Date().toISOString(), _dataVersion: nextVer };
     fs.writeFileSync(
       path.join(WEEKS_DIR, `${weekLabel}.json`),
       JSON.stringify(payload, null, 2),
@@ -124,8 +127,11 @@ function buildPgImpl() {
   }
 
   async function saveWeek(weekLabel, body) {
-    const now     = new Date().toISOString();
-    const payload = { ...body, _savedAt: now };
+    const now      = new Date().toISOString();
+    // M5: 後端負責遞增版本號，不依賴客戶端時鐘
+    const existing = await getWeek(weekLabel);
+    const nextVer  = ((existing?._dataVersion) || 0) + 1;
+    const payload  = { ...body, _savedAt: now, _dataVersion: nextVer };
     await pool.query(
       `INSERT INTO weeks (week_label, data, saved_at)
        VALUES ($1, $2, $3)

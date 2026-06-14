@@ -349,8 +349,14 @@ export const store = {
       clearTimeout(_timer);
       _timer = setTimeout(() => {
         // D-1/M-1 修正：改用 _exportWeekObj() 回傳物件
+        // M7: projects 為空時拒絕上傳，防止 localStorage 損壞時靜默清空後端資料
+        const weekObj = _exportWeekObj();
+        if (weekObj.projects.length === 0) {
+          console.warn('[store] 本地 projects 為空，略過後端同步（防止意外覆蓋）');
+          return;
+        }
         window.dispatchEvent(new CustomEvent('store:syncing'));
-        saveFn(_exportWeekObj())
+        saveFn(weekObj)
           .then(() => {
             window.dispatchEvent(new CustomEvent('store:syncSuccess'));
           })

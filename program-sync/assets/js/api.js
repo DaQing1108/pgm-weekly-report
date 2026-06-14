@@ -144,7 +144,8 @@ export async function saveState(data) {
     const res = await fetch(`${API_BASE}/state`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      signal: AbortSignal.timeout(8000),  // M4: 防止無限等待
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();

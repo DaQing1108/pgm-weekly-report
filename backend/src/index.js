@@ -432,7 +432,8 @@ ${sections || '<p>目前無週報</p>'}
 </body>
 </html>`);
   } catch (err) {
-    res.status(500).send(`<p>讀取失敗：${err.message}</p>`);
+    const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    res.status(500).send(`<p>讀取失敗：${esc(err.message)}</p>`);
   }
 });
 
