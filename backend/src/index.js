@@ -269,8 +269,10 @@ app.post('/api/admin/parse-draft', requireAdminToken, (req, res) => {
     catch (e) { return res.status(500).json({ error: `暫存失敗：${e.message}` }); }
 
     const scriptPath = path.join(REPO_ROOT, 'scripts', 'import-draft.py');
+    // H8: 若 query 帶有 week 參數（例如 ?week=W24），傳給 import-draft.py 避免暫存檔名無法解析週次
+    const weekArg = /^W\d{1,2}$/i.test(req.query.week || '') ? ['--week', req.query.week] : [];
     let output = '';
-    const child = spawn('python3', [scriptPath, draftPath, '--dry-run'], {
+    const child = spawn('python3', [scriptPath, draftPath, '--dry-run', ...weekArg], {
       cwd: REPO_ROOT,
       env: { ...process.env, PYTHONUNBUFFERED: '1' },
     });
@@ -331,7 +333,9 @@ app.post('/api/admin/import-release', requireAdminToken, (req, res) => {
     }
 
     const scriptPath = path.join(REPO_ROOT, 'scripts', 'import-draft.py');
-    const child = spawn('python3', [scriptPath, draftPath, '--push', '--auto-release', '--yes'], {
+    // H8: 若 query 帶有 week 參數（例如 ?week=W24），傳給 import-draft.py 避免暫存檔名無法解析週次
+    const weekArg = /^W\d{1,2}$/i.test(req.query.week || '') ? ['--week', req.query.week] : [];
+    const child = spawn('python3', [scriptPath, draftPath, '--push', '--auto-release', '--yes', ...weekArg], {
       cwd: REPO_ROOT,
       env: { ...process.env, TERM: 'dumb', PYTHONUNBUFFERED: '1' },
     });
@@ -447,7 +451,12 @@ if (fs.existsSync(PROGRAM_SYNC)) {
     }
   } catch (err) {
     console.error('[db] initDB failed:', err.message);
-    // Non-fatal: continue in filesystem mode if PG unavailable
+    // H2: DATABASE_URL 存在但連線失敗 → 拒絕啟動，避免靜默寫入 ephemeral FS 後資料蒸發
+    if (process.env.DATABASE_URL) {
+      console.error('[db] DATABASE_URL 已設定但無法連線 PG，中止啟動（避免資料寫入 ephemeral FS）');
+      process.exit(1);
+    }
+    // 無 DATABASE_URL → 本機開發模式，FS fallback 為預期行為
   }
   app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);

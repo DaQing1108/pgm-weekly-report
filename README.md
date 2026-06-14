@@ -154,6 +154,8 @@ python3 scripts/import-draft.py \
 >
 > 狀態值不在上述清單時，`import-draft.py` 一律 fallback 為 `pending`（Action）或 `upcoming`（里程碑）。API 端點也會在寫入前驗證，非法值回傳 422。
 
+> **⚠️ 資料權威來源說明（H4）**：正式環境以 **Railway PostgreSQL 為唯一權威**。`backend/data/weeks/*.json` 是本機開發用檔案與發布時快照，不代表線上最新資料。若兩者不一致，以 PG 為準。
+
 **資料保留邏輯**：`--push` 時先從 Railway 抓現有資料作為合併基底，確保 Quick Input 手動更新不被覆蓋。
 
 | 欄位 | push 時行為 |

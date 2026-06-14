@@ -445,6 +445,7 @@ def main():
     parser.add_argument("--yes",          action="store_true", help="略過確認直接寫入")
     parser.add_argument("--auto-release", action="store_true", help="push 成功後自動執行 release-week.sh（需搭配 --push）")
     parser.add_argument("--dry-run",      action="store_true", help="只解析並輸出 JSON 摘要，不寫入任何檔案")
+    parser.add_argument("--week",         help="手動指定週次（例：W24），用於 UI/API 呼叫時檔名無法解析的情況")
     args = parser.parse_args()
 
     draft_path = Path(args.draft).expanduser().resolve()
@@ -455,17 +456,26 @@ def main():
     # 從檔名取得週次，支援兩種命名格式：
     # v2:  YYMMDD_ProgramSync_WeekXX_FINAL.md
     # 舊版: ProgramSync_W##_YYYY-MM-DD_draft.md
-    m_v2  = re.search(r"ProgramSync_Week(\d{1,2})_", draft_path.name, re.IGNORECASE)
-    m_old = re.search(r"ProgramSync_(W\d{1,2})_",    draft_path.name, re.IGNORECASE)
-    if m_v2:
-        week_label = f"W{int(m_v2.group(1)):02d}"
-    elif m_old:
-        week_label = m_old.group(1).upper()
+    # H8: --week 手動指定優先（UI/API 呼叫 parse_temp.md 等暫存檔時使用）
+    if args.week:
+        m_manual = re.match(r"W(\d{1,2})$", args.week.strip(), re.IGNORECASE)
+        if not m_manual:
+            print(f"❌  --week 格式錯誤（應為 W## 例如 W24）：{args.week}")
+            sys.exit(1)
+        week_label = f"W{int(m_manual.group(1)):02d}"
     else:
-        print("❌  無法從檔名解析週次")
-        print("    v2  格式：YYMMDD_ProgramSync_WeekXX_FINAL.md")
-        print("    舊版格式：ProgramSync_W##_YYYY-MM-DD_draft.md")
-        sys.exit(1)
+        m_v2  = re.search(r"ProgramSync_Week(\d{1,2})_", draft_path.name, re.IGNORECASE)
+        m_old = re.search(r"ProgramSync_(W\d{1,2})_",    draft_path.name, re.IGNORECASE)
+        if m_v2:
+            week_label = f"W{int(m_v2.group(1)):02d}"
+        elif m_old:
+            week_label = m_old.group(1).upper()
+        else:
+            print("❌  無法從檔名解析週次")
+            print("    v2  格式：YYMMDD_ProgramSync_WeekXX_FINAL.md")
+            print("    舊版格式：ProgramSync_W##_YYYY-MM-DD_draft.md")
+            print("    或使用 --week W## 手動指定")
+            sys.exit(1)
     week_start = week_start_for(week_label)
     if not week_start:
         print(f"❌  無法計算 {week_label} 的 weekStart")

@@ -61,7 +61,9 @@ function buildPgImpl() {
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost')
       ? { rejectUnauthorized: false }
-      : false
+      : false,
+    connectionTimeoutMillis: 5000,  // H3: 冷啟動保護，連線逾時 5s 立即報錯
+    max: 10,
   });
 
   async function initDB() {
