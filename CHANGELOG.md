@@ -1,5 +1,25 @@
 # Changelog — PgM Weekly Report System
 
+## 2026/06/15 — 第二輪系統健康檢查修復（H-A/H-E/M-B/M-E）
+
+### [修復] H-A — saveState 前端未傳 Admin Token（api.js）
+
+`POST /api/state` 後端要求 X-Admin-Token，但 `saveState` 的 headers 只帶 `Content-Type`，導致跨瀏覽器 UI 狀態同步一律 401 靜默失敗。改用 `_writeHeaders()` 後，有 token 時自動帶上，與其他寫入端點行為一致。
+
+### [修復] H-E — 加入 HTTP 安全 Headers（index.js）
+
+全域中介層加入三個安全 header：`X-Frame-Options: DENY`（防 clickjacking）、`X-Content-Type-Options: nosniff`（防 MIME sniffing）、`Referrer-Policy: strict-origin-when-cross-origin`（隱私保護）。適用所有 API 及靜態資源回應。
+
+### [修復] M-B — Health Check 加入 DB 連線驗證（index.js）
+
+原本 `/api/health` 永遠回傳 200 ok，PG 故障時 Railway 仍視為健康。現改為非同步執行 `db.getWeek('__health_check__')`，連線失敗時回傳 `503 + { status: 'degraded', db: 'error' }`，使監控工具能正確感知 DB 故障。
+
+### [修復] M-E — localStorage 損壞後自動清除（store.js）
+
+JSON.parse 失敗時原本只派出 `store:corrupt` 事件並 return `[]`，但損壞的 key 仍留在 localStorage，導致使用者每次開頁都重複觸發錯誤。現加入 `localStorage.removeItem()` 自動清除損壞 key，下次讀取時從空陣列起始，無需手動開 DevTools 修復。
+
+---
+
 ## 2026/06/14 — 系統健康檢查 & 全面優化（Health Check P0–M10）
 
 ### [修復] H2 — PG 連線失敗 fail-fast（index.js）
