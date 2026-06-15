@@ -53,6 +53,11 @@ app.use(cors(
       }
     : {} // 未設定 → cors() 預設行為（allow all）
 ));
+
+// M-A: 若 CORS_ORIGIN 未設定，在生產環境啟動時警告
+if (!process.env.CORS_ORIGIN && process.env.NODE_ENV !== 'development') {
+  console.warn('[cors] ⚠️  CORS_ORIGIN 未設定，目前允許所有跨域來源。建議在 Railway Variables 設定 CORS_ORIGIN=https://your-app.railway.app');
+}
 app.use(express.json({ limit: '2mb' }));
 
 // ── Admin Token 驗證中介層（S-1/S-2）────────────────────────────
