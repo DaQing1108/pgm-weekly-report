@@ -108,9 +108,25 @@ function validateWeekPayload(body, weekLabel) {
   return errors;
 }
 
-// ── Health ────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: 'v3', message: 'PgM Weekly Report API is running' });
+// ── Security Headers（H-E）────────────────────────────────────
+app.use((req, res, next) => {
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
+// ── Health（M-B: 含 DB 連線檢查）────────────────────────────────
+app.get('/api/health', async (req, res) => {
+  const health = { status: 'ok', version: 'v3', db: 'unknown' };
+  try {
+    await db.getWeek('__health_check__');
+    health.db = 'ok';
+  } catch {
+    health.db = 'error';
+    health.status = 'degraded';
+  }
+  res.status(health.status === 'ok' ? 200 : 503).json(health);
 });
 
 // ── List reports ──────────────────────────────────────────────

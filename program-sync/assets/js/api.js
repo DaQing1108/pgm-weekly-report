@@ -143,7 +143,7 @@ export async function saveState(data) {
   try {
     const res = await fetch(`${API_BASE}/state`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: _writeHeaders(),
       body: JSON.stringify(data),
       signal: AbortSignal.timeout(8000),  // M4: 防止無限等待
     });

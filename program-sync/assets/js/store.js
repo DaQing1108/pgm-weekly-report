@@ -33,6 +33,8 @@ function _get(name) {
   } catch (e) {
     // P0-1 修正：記錄損壞的 key 並派出 store:corrupt 事件，讓 UI 層顯示警告
     console.error(`[store] localStorage 資料損壞 (key: ${name}):`, e.message);
+    // M-E: 自動清除損壞的 key，避免每次讀取都重複錯誤
+    try { localStorage.removeItem(_key(name)); } catch { /* ignore */ }
     window.dispatchEvent(new CustomEvent('store:corrupt', {
       detail: { key: name, error: e.message },
       bubbles: true,
