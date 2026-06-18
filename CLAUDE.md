@@ -26,10 +26,31 @@ npm run dev        # 啟動於 localhost:3001（nodemon，自動重載）
 ```bash
 ./scripts/new-week.sh W##          # 週一：從上週複製建立新週 JSON
 # … 在瀏覽器 input.html 更新本週資料 …
-./scripts/release-week.sh W##      # 週末：驗證 → git commit → git push → Railway 自動部署
+./scripts/release-week.sh W##      # 週末：驗證 → git commit → git push → Railway DB 同步
 ```
 
+`release-week.sh` 執行順序：
+1. 驗證 JSON 格式
+2. git add → git commit → git push
+3. **自動** `POST /api/weeks/:week` 將資料同步至 Railway PostgreSQL（從 `.env` 讀取 `ADMIN_TOKEN`）
+
 > ⚠️ **絕對不要在週中 commit `backend/data/weeks/W##.json`**，只有 `release-week.sh` 才應觸發該檔案的提交。
+
+> ⚠️ **Railway 使用 PostgreSQL，JSON 檔案只供本機開發使用。** `git push` 僅部署程式碼，資料必須透過 `POST /api/weeks/:week` 寫入 DB。`release-week.sh` 已自動處理此步驟。
+
+### 手動同步 Railway DB（緊急補救）
+
+若 `release-week.sh` 同步失敗，可手動執行：
+
+```bash
+source .env
+curl -X POST https://pgm-weekly-report-production.up.railway.app/api/weeks/W## \
+  -H "Content-Type: application/json" \
+  -H "x-admin-token: $ADMIN_TOKEN" \
+  -d @backend/data/weeks/W##.json
+```
+
+> 注意：後端驗證 header 名稱為 `x-admin-token`，不是 `Authorization: Bearer`。
 
 ---
 
@@ -66,6 +87,8 @@ python3 scripts/import-draft.py backend/drafts/ProgramSync_W##_YYYY-MM-DD_draft.
 
 > Action 狀態合法值：`pending` / `in-progress` / `done` / `blocked`
 > 里程碑狀態合法值：`upcoming` / `in-progress` / `done` / `delayed`
+
+> ⚠️ **`### 里程碑` 區塊容易被遺漏。** 章節 9 的里程碑總表不會被自動解析，必須在 Appendix 中另行補寫。若 `import-draft.py` 回報「里程碑：0 筆」，代表此區塊缺失。
 
 ---
 
