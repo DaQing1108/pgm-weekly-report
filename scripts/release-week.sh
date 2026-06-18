@@ -302,9 +302,44 @@ git commit -m "${COMMIT_MSG}"
 info "執行 git push origin main..."
 git push origin main
 
+# ── 10. 同步資料至 Railway PostgreSQL ─────────────────────────────────────────
+RAILWAY_URL="https://pgm-weekly-report-production.up.railway.app"
+JSON_FILE="backend/data/weeks/${WEEK}.json"
+
+if [[ -z "${ADMIN_TOKEN:-}" ]]; then
+  # 依序從 .env → ~/.env 讀取
+  for _env_file in ".env" "${HOME}/.env"; do
+    if [[ -f "${_env_file}" ]]; then
+      ADMIN_TOKEN=$(grep '^ADMIN_TOKEN=' "${_env_file}" | cut -d= -f2-)
+      [[ -n "${ADMIN_TOKEN}" ]] && break
+    fi
+  done
+fi
+
+if [[ -n "${ADMIN_TOKEN}" && -f "${JSON_FILE}" ]]; then
+  info "同步 ${WEEK} 資料至 Railway DB..."
+  HTTP_STATUS=$(curl -s -o /tmp/_railway_sync_resp.json -w "%{http_code}" \
+    -X POST "${RAILWAY_URL}/api/weeks/${WEEK}" \
+    -H "Content-Type: application/json" \
+    -H "x-admin-token: ${ADMIN_TOKEN}" \
+    -d "@${JSON_FILE}")
+  if [[ "${HTTP_STATUS}" == "200" ]]; then
+    success "Railway DB 同步完成（${WEEK}）"
+  else
+    warn "Railway DB 同步失敗（HTTP ${HTTP_STATUS}）— 請手動執行："
+    echo "     curl -X POST ${RAILWAY_URL}/api/weeks/${WEEK} \\"
+    echo "       -H 'Content-Type: application/json' \\"
+    echo "       -H 'x-admin-token: \$ADMIN_TOKEN' \\"
+    echo "       -d @${JSON_FILE}"
+  fi
+else
+  warn "未找到 ADMIN_TOKEN 或 ${JSON_FILE}，跳過 Railway DB 同步"
+  echo "     請手動同步或設定 ADMIN_TOKEN 於 ~/.env"
+fi
+
 echo ""
-success "完成！${WEEK} 週報已發布，Railway 將在約 1–2 分鐘後自動部署。"
+success "完成！${WEEK} 週報已發布。"
 echo ""
-echo "     週次資料：https://pgm-weekly-report-production.up.railway.app/api/weeks/${WEEK}"
-echo "     歷史週報：https://pgm-weekly-report-production.up.railway.app（Dashboard → 歷史週報中心）"
+echo "     週次資料：${RAILWAY_URL}/api/weeks/${WEEK}"
+echo "     歷史週報：${RAILWAY_URL}（Dashboard → 歷史週報中心）"
 echo ""
