@@ -13,20 +13,20 @@ export const TEAMS = [
 ];
 
 export const MEMBERS = [
-  { id: 'dream-ku',      name: 'Dream Ku',      team: 'media-agent',  role: 'Develop Head',     avatar: 'DK' },
-  { id: 'steve-liu',     name: 'Steve Liu',     team: 'media-agent',  role: 'Develop Head',     avatar: 'SL' },
-  { id: 'jh-tseng',      name: 'JH Tseng',      team: 'tv-solution',  role: 'Develop Head',     avatar: 'JH' },
-  { id: 'tc-peng',       name: 'TC Peng',       team: 'learnmode',    role: 'Developer Leader', avatar: 'TC' },
-  { id: 'michael-chien', name: 'Michael Chien', team: 'org-mgmt',     role: 'Product Head',     avatar: 'MC' },
-  { id: 'alex-liao',     name: 'Alex Liao',     team: 'org-mgmt',     role: 'Pgm Manager',      avatar: 'AL' },
-  { id: 'tonny-shieh',   name: 'Tonny Shieh',   team: 'chuangzaoli',  role: 'Developer Leader', avatar: 'TS' },
-  { id: 'tom-liu',       name: 'Tom Liu',       team: 'tv-solution',  role: 'Developer Leader', avatar: 'TL' },
-  { id: 'anna-guo',      name: 'Anna Guo',      team: 'media-agent',  role: 'Developer Leader', avatar: 'AG' },
-  { id: 'swift-zhu',     name: 'Swift Zhu',     team: 'learnmode',    role: 'Developer Leader', avatar: 'SZ' },
-  { id: 'stevenslee',    name: 'StevensLee',    team: 'edu',          role: 'Edu BU Head',      avatar: 'SE' },
-  { id: 'stevenCH-hung', name: 'StevenCH Hung', team: 'edu',          role: 'Edu BD',           avatar: 'SC' },
-  { id: 'eddy-lin',      name: 'Eddy Lin',      team: 'edu',          role: 'Edu BD',           avatar: 'EL' },
-  { id: 'sean-peng',     name: 'Sean Peng',     team: 'edu',          role: 'Edu PM',           avatar: 'SP' },
+  { id: 'dream-ku',      name: 'Dream Ku',      role: 'Develop Head',     avatar: 'DK' },
+  { id: 'steve-liu',     name: 'Steve Liu',     role: 'Develop Head',     avatar: 'SL' },
+  { id: 'jh-tseng',      name: 'JH Tseng',      role: 'Develop Head',     avatar: 'JH' },
+  { id: 'tc-peng',       name: 'TC Peng',       role: 'Developer Leader', avatar: 'TC' },
+  { id: 'michael-chien', name: 'Michael Chien', role: 'Product Head',     avatar: 'MC' },
+  { id: 'alex-liao',     name: 'Alex Liao',     role: 'Pgm Manager',      avatar: 'AL' },
+  { id: 'tonny-shieh',   name: 'Tonny Shieh',   role: 'Developer Leader', avatar: 'TS' },
+  { id: 'tom-liu',       name: 'Tom Liu',       role: 'Developer Leader', avatar: 'TL' },
+  { id: 'anna-guo',      name: 'Anna Guo',      role: 'Developer Leader', avatar: 'AG' },
+  { id: 'swift-zhu',     name: 'Swift Zhu',     role: 'Developer Leader', avatar: 'SZ' },
+  { id: 'stevenslee',    name: 'StevensLee',    role: 'Edu BU Head',      avatar: 'SE' },
+  { id: 'stevenCH-hung', name: 'StevenCH Hung', role: 'Edu BD',           avatar: 'SC' },
+  { id: 'eddy-lin',      name: 'Eddy Lin',      role: 'Edu BD',           avatar: 'EL' },
+  { id: 'sean-peng',     name: 'Sean Peng',     role: 'Edu PM',           avatar: 'SP' },
 ];
 
 // Q-12 修正：PROJECTS_CATALOG 為 dead code（全站無任何 import 使用），已移除。
