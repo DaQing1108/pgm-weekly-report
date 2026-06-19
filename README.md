@@ -247,3 +247,43 @@ pgm-weekly-report/
 ---
 
 *建置人：Alex Liao／VIA Technologies*
+
+---
+
+## 踩坑紀錄（Known Issues & Fixes）
+
+### 坑 1：`release-week.sh` git push 後 Dashboard 仍顯示舊週（W25 首次發現）
+
+**原因**：Railway 使用 PostgreSQL，`git push` 只部署程式碼，不同步資料。本地 `backend/data/weeks/*.json` 不會自動進入 DB。
+
+**修復**：`release-week.sh` 已在 git push 後自動執行 `POST /api/weeks/:week` 同步 Railway DB（從 `.env` 讀取 `ADMIN_TOKEN`）。
+
+**手動補救**：
+
+```bash
+source .env
+curl -X POST https://pgm-weekly-report-production.up.railway.app/api/weeks/W## \
+  -H "Content-Type: application/json" \
+  -H "x-admin-token: $ADMIN_TOKEN" \
+  -d @backend/data/weeks/W##.json
+```
+
+> 注意：header 為 `x-admin-token`，不是 `Authorization: Bearer`。
+
+---
+
+### 坑 2：匯入後里程碑 0 筆（W25 首次發現）
+
+**原因**：`import-draft.py` 只解析 `## Appendix: Dashboard Export` 區塊，章節 9 的里程碑總表不會被自動解析。草稿若未在 Appendix 補寫 `### 里程碑`，匯入後里程碑為空。
+
+**修復**：匯入前確認 Appendix 包含 `### 里程碑` 區塊（四欄表格）。若 `import-draft.py` 回報「里程碑：0 筆」，在 FINAL.md Appendix 補寫後重新匯入。
+
+---
+
+### 坑 3：成員管理顯示假資料（W25 首次發現）
+
+**原因**：`program-sync/assets/data/schema.js` 的 `MEMBERS` 初始為假的種子資料（從未更新為真實成員）。`import-draft.py` 匯入的 JSON `members: []`，瀏覽器載入時觸發 `initMembers()` 以假資料填充。
+
+**修復**：
+1. `schema.js` 已更新為真實 14 位成員名單（Dream Ku、Steve Liu、JH Tseng 等）
+2. `initMembers()` 改為比對 schema ID，偵測到 schema 與 localStorage 不一致時自動清除重置，不再需要手動清 localStorage
