@@ -287,3 +287,32 @@ curl -X POST https://pgm-weekly-report-production.up.railway.app/api/weeks/W## \
 **修復**：
 1. `schema.js` 已更新為真實 14 位成員名單（Dream Ku、Steve Liu、JH Tseng 等）
 2. `initMembers()` 改為比對 schema ID，偵測到 schema 與 localStorage 不一致時自動清除重置，不再需要手動清 localStorage
+
+---
+
+## 快速發布週報（推薦流程）
+
+在 Claude Code 說一句話即可完成整個匯入流程：
+
+```
+發布 W## 週報
+```
+
+例如「發布 W26 週報」，Claude Code 會自動：
+1. 在 `VIA_Cowork/Final/` 找到對應 FINAL.md
+2. 執行 Preflight 檢查（Appendix 四區塊、狀態值、筆數）
+3. 匯入並同步至 Railway PostgreSQL
+4. 確認 DB 資料並回報結果
+
+**不需要啟動 local server、不需要開瀏覽器、不需要手動指定路徑。**
+
+### Preflight 檢查項目
+
+每次匯入前自動執行，有 ❌ 直接中止：
+
+| 檢查項目 | 說明 |
+|---------|------|
+| Appendix 四區塊存在 | 專案進度 / Action Items / Risks / 里程碑 |
+| 各區塊筆數 > 0 | 里程碑 0 筆 = Appendix 缺 `### 里程碑` 區塊 |
+| 狀態值合法 | 非法值 fallback 為 pending / upcoming，⚠️ 警告 |
+| 負責人待確認 | `[待確認]` 欄位數量警告 |
