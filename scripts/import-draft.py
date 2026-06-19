@@ -447,6 +447,64 @@ def push_to_railway(week_label, payload):
     finally:
         os.unlink(tmp_path)
 
+# ── Preflight 靜態檢查 ────────────────────────────────────────────────────────
+REQUIRED_SECTIONS   = ["專案進度", "Action Items", "Risks", "里程碑"]
+VALID_ACTION_STATUS = {"pending", "in-progress", "done", "blocked"}
+VALID_PROJ_STATUS   = {"on-track", "at-risk", "behind", "completed", "paused"}
+VALID_MS_STATUS     = {"upcoming", "in-progress", "done", "delayed"}
+
+def preflight(text: str, v2: bool) -> bool:
+    """靜態檢查 FINAL.md，回傳 True=PASS / False=FAIL（有 ❌ 即 FAIL）."""
+    print("\n🔍  Preflight 檢查中…")
+    passed = True
+
+    if v2:
+        # ① Appendix 四區塊存在且有資料
+        for section in REQUIRED_SECTIONS:
+            rows = parse_appendix_table(text, section)
+            icon = "✅" if rows else "❌"
+            if not rows:
+                passed = False
+            print(f"  {icon}  {section}：{len(rows)} 筆")
+
+        # ② 狀態值合法性
+        action_rows = parse_appendix_table(text, "Action Items")
+        bad_statuses = []
+        for r in action_rows:
+            raw = (r.get("狀態") or r.get("status") or "").strip().lower()
+            mapped = STATUS_MAP.get(raw, raw)
+            if mapped not in VALID_ACTION_STATUS:
+                bad_statuses.append(raw or "(空)")
+        if bad_statuses:
+            print(f"  ⚠️   Action 狀態含非標準值（將 fallback 為 pending）：{set(bad_statuses)}")
+        else:
+            print("  ✅  Action 狀態值全部合法")
+
+        ms_rows = parse_appendix_table(text, "里程碑")
+        bad_ms = []
+        for r in ms_rows:
+            raw = (r.get("狀態") or r.get("status") or "").strip().lower()
+            mapped = MILESTONE_STATUS_MAP.get(raw, raw)
+            if mapped not in VALID_MS_STATUS:
+                bad_ms.append(raw or "(空)")
+        if bad_ms:
+            print(f"  ⚠️   里程碑狀態含非標準值（將 fallback 為 upcoming）：{set(bad_ms)}")
+
+        # ③ 負責人含 [待確認] 警告
+        tbd_count = sum(
+            1 for r in action_rows
+            if "[待確認]" in (r.get("負責人") or r.get("owner") or "")
+            or "待確認" in (r.get("負責人") or r.get("owner") or "")
+        )
+        if tbd_count:
+            print(f"  ⚠️   {tbd_count} 個 Action 負責人為「待確認」")
+
+    if passed:
+        print("✅  Preflight PASS — 繼續匯入\n")
+    else:
+        print("❌  Preflight FAIL — 請補齊缺少的區塊後重新匯入\n")
+    return passed
+
 # ── 主程式 ────────────────────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(description="從週報草稿 MD 匯入 Dashboard JSON")
@@ -503,6 +561,11 @@ def main():
         print("📋  格式：九章敘事週報（v2）— 從 Appendix: Dashboard Export 解析")
     else:
         print("📋  格式：Dashboard 草稿（舊版）— 從四張表格解析")
+
+    # Preflight 靜態檢查（v2 格式才有 Appendix 可驗證）
+    if v2 and not args.dry_run:
+        if not preflight(text, v2):
+            sys.exit(1)
 
     # 讀取現有 JSON（合併用）
     # --push 時優先從 Railway 抓最新資料，確保不蓋掉 Quick Input 的手動編輯

@@ -21,6 +21,45 @@ npm run dev        # 啟動於 localhost:3001（nodemon，自動重載）
 
 ---
 
+## 標準指令：「發布 W## 週報」
+
+當使用者說「**發布 W## 週報**」（例如「發布 W26 週報」），你必須自動執行以下流程，不需要使用者提供路徑或任何技術細節：
+
+### 執行步驟
+
+1. **找到 FINAL.md**
+   ```
+   find ~/Documents/VIA_Cowork/2A_Areas/Program_Sync/Final -name "*Week##*FINAL*.md" | sort | tail -1
+   ```
+   將 `##` 替換為實際週次數字（例如 26）。
+
+2. **確認檔案存在**，若找不到則回報：「找不到 W## 的 FINAL.md，請確認檔案已產出在 VIA_Cowork/Final/Week##_MMDD/ 資料夾下。」
+
+3. **執行匯入**（preflight 會自動在內部運行）：
+   ```bash
+   python3 scripts/import-draft.py "<找到的路徑>" --push --yes
+   ```
+
+4. **確認 Railway DB 已更新**：
+   ```bash
+   curl -s https://pgm-weekly-report-production.up.railway.app/api/weeks/W## | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'✅ W## 確認：{len(d.get(\"projects\",[]))} 專案 / {len(d.get(\"actions\",[]))} Actions / {len(d.get(\"milestones\",[]))} 里程碑')"
+   ```
+
+5. **回報結果**，格式如下：
+   ```
+   ✅ W## 發布完成
+   • 專案：N 筆
+   • Action Items：N 筆
+   • Risks：N 筆
+   • 里程碑：N 筆
+   • Railway DB：已同步
+   ```
+   若有 ⚠️ 警告（例如負責人待確認），一併列出。
+
+> 使用者不需要知道 local server、localhost、--push 旗標、Appendix 格式等技術細節。
+
+---
+
 ## 每週 SOP
 
 ```bash
