@@ -4,26 +4,29 @@
    ============================================================ */
 
 export const TEAMS = [
-  { id: 'media-agent',  name: 'Media Agent',    lead: 'Steve Liu',   color: '#4caf6e' },
-  { id: 'learnmode',    name: 'LearnMode',       lead: 'TC Peng',     color: '#378add' },
-  { id: 'chuangzaoli',  name: '創造栗',           lead: 'Tonny Shen',  color: '#e4a23c' },
-  { id: 'tv-solution',  name: 'TV Solution',     lead: 'Tom Liu',     color: '#9c6fcc' },
-  { id: 'healthcare',   name: 'BU2 Healthcare',  lead: 'Tonny Shen',  color: '#d94f4f' },
-  { id: 'org-mgmt',    name: '組織管理',          lead: '',            color: '#6b7280' },
+  { id: 'media-agent',  name: 'Media Agent',  lead: 'Steve Liu',    color: '#4caf6e' },
+  { id: 'learnmode',    name: 'LearnMode',     lead: 'TC Peng',      color: '#378add' },
+  { id: 'chuangzaoli',  name: '創造栗',         lead: 'Tonny Shieh',  color: '#e4a23c' },
+  { id: 'tv-solution',  name: 'TV Solution',   lead: 'Tom Liu',      color: '#9c6fcc' },
+  { id: 'edu',          name: '教育線',          lead: 'StevensLee',   color: '#d94f4f' },
+  { id: 'org-mgmt',     name: '組織管理',        lead: '',             color: '#6b7280' },
 ];
 
 export const MEMBERS = [
-  { id: 'steve-liu',    name: 'Steve Liu',    team: 'media-agent',  role: 'Team Lead',    avatar: 'SL' },
-  { id: 'tc-peng',      name: 'TC Peng',      team: 'learnmode',    role: 'Team Lead',    avatar: 'TC' },
-  { id: 'tonny-shen',   name: 'Tonny Shen',   team: 'chuangzaoli',  role: 'Team Lead',    avatar: 'TS' },
-  { id: 'tom-liu',      name: 'Tom Liu',      team: 'tv-solution',  role: 'Team Lead',    avatar: 'TL' },
-  { id: 'alex-chen',    name: 'Alex Chen',    team: 'media-agent',  role: 'Engineer',     avatar: 'AC' },
-  { id: 'michael-wu',   name: 'Michael Wu',   team: 'learnmode',    role: 'Engineer',     avatar: 'MW' },
-  { id: 'dream-lin',    name: 'Dream Lin',    team: 'chuangzaoli',  role: 'Designer',     avatar: 'DL' },
-  { id: 'jenny-huang',  name: 'Jenny Huang',  team: 'tv-solution',  role: 'QA Engineer',  avatar: 'JH' },
-  { id: 'kevin-chang',  name: 'Kevin Chang',  team: 'media-agent',  role: 'PM',           avatar: 'KC' },
-  { id: 'lily-tsai',    name: 'Lily Tsai',    team: 'healthcare',   role: 'Engineer',     avatar: 'LT' },
-  { id: 'ryan-hsu',     name: 'Ryan Hsu',     team: 'healthcare',   role: 'BA',           avatar: 'RH' },
+  { id: 'dream-ku',      name: 'Dream Ku',      team: 'media-agent',  role: 'Develop Head',     avatar: 'DK' },
+  { id: 'steve-liu',     name: 'Steve Liu',     team: 'media-agent',  role: 'Develop Head',     avatar: 'SL' },
+  { id: 'jh-tseng',      name: 'JH Tseng',      team: 'tv-solution',  role: 'Develop Head',     avatar: 'JH' },
+  { id: 'tc-peng',       name: 'TC Peng',       team: 'learnmode',    role: 'Developer Leader', avatar: 'TC' },
+  { id: 'michael-chien', name: 'Michael Chien', team: 'org-mgmt',     role: 'Product Head',     avatar: 'MC' },
+  { id: 'alex-liao',     name: 'Alex Liao',     team: 'org-mgmt',     role: 'Pgm Manager',      avatar: 'AL' },
+  { id: 'tonny-shieh',   name: 'Tonny Shieh',   team: 'chuangzaoli',  role: 'Developer Leader', avatar: 'TS' },
+  { id: 'tom-liu',       name: 'Tom Liu',       team: 'tv-solution',  role: 'Developer Leader', avatar: 'TL' },
+  { id: 'anna-guo',      name: 'Anna Guo',      team: 'media-agent',  role: 'Developer Leader', avatar: 'AG' },
+  { id: 'swift-zhu',     name: 'Swift Zhu',     team: 'learnmode',    role: 'Developer Leader', avatar: 'SZ' },
+  { id: 'stevenslee',    name: 'StevensLee',    team: 'edu',          role: 'Edu BU Head',      avatar: 'SE' },
+  { id: 'stevenCH-hung', name: 'StevenCH Hung', team: 'edu',          role: 'Edu BD',           avatar: 'SC' },
+  { id: 'eddy-lin',      name: 'Eddy Lin',      team: 'edu',          role: 'Edu BD',           avatar: 'EL' },
+  { id: 'sean-peng',     name: 'Sean Peng',     team: 'edu',          role: 'Edu PM',           avatar: 'SP' },
 ];
 
 // Q-12 修正：PROJECTS_CATALOG 為 dead code（全站無任何 import 使用），已移除。
