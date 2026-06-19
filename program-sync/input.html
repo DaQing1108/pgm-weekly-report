@@ -664,7 +664,14 @@ window.addEventListener('storage', e => { if (e.key?.startsWith('pgm_sync_')) { 
 const TEAM_LABEL = Object.fromEntries(TEAMS.map(t => [t.id, t.name]));
 
 function initMembers() {
-  if (store.getAll('members').length > 0) return;
+  const canonical = new Set(MEMBERS.map(m => m.id));
+  const stored = store.getAll('members');
+  const storedIds = new Set(stored.map(m => m.id));
+  const isStale = stored.length === 0 ||
+    [...canonical].some(id => !storedIds.has(id)) ||
+    [...storedIds].some(id => !canonical.has(id));
+  if (!isStale) return;
+  stored.forEach(m => store.delete('members', m.id));
   MEMBERS.forEach(m => store.save('members', { ...m }));
 }
 
