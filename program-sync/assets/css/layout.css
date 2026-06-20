@@ -406,6 +406,48 @@
     flex-wrap: wrap;
     gap: var(--space-md);
   }
+
+  /* Panel header 篩選工具列：mobile 下允許橫向捲動，避免溢出 */
+  .panel__header {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  /* Status filter tab-bar：mobile 下可橫滑 */
+  #statusFilter.tab-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  #statusFilter.tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Week nav bar：mobile 下允許換行，meta 自然降到下方 */
+  #weekNavBar {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  #weekNavMeta {
+    width: 100%;
+    margin-left: 0 !important;
+    text-align: right;
+  }
+
+  /* Archive card：mobile 下垂直排列按鈕 */
+  .archive-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .archive-card__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
 
 @media (max-width: 480px) {

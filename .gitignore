@@ -13,3 +13,4 @@ frontend/dist/
 .codex/
 backend/drafts/*.md
 knowledge_note.md
+.loop-state.md

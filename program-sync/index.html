@@ -57,7 +57,7 @@
     <span style="font-size:12px;font-weight:600;color:var(--color-text-secondary);white-space:nowrap;">📅 查看版本：</span>
     
     <!-- U-3: 新增 Tab/Radio 按鈕組，顯示最新 4 週 -->
-    <div class="tab-bar" id="weekRadioGroup" style="overflow-x:auto; margin:0; flex-wrap:nowrap;"></div>
+    <div class="tab-bar" id="weekRadioGroup" style="overflow-x:auto; margin:0; flex-wrap:nowrap; flex-shrink:1; min-width:0;"></div>
 
     <!-- 其餘歷史週次保留在下拉選單 -->
     <select id="weekSelect" class="inp" style="width:140px;padding:4px 8px;font-size:var(--font-size-sm); display:none;" onchange="loadWeekView(this.value)" aria-label="選擇歷史週次">
@@ -67,10 +67,10 @@
   </div>
 
   <!-- 歷史瀏覽 banner -->
-  <div id="historyBanner" style="display:none;margin-bottom:var(--space-md);background:#fff8e6;border:1px solid #f0b429;border-radius:var(--radius-md);padding:10px var(--space-lg);align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+  <div id="historyBanner" class="history-banner history-banner--warning">
     <div>
-      <span id="historyBannerTitle" style="font-size:13px;font-weight:600;color:#b45309;">📅 歷史瀏覽模式</span>
-      <span id="historyBannerText" style="font-size:12px;color:#92400e;margin-left:8px;"></span>
+      <span id="historyBannerTitle" class="history-banner__title--warning">📅 歷史瀏覽模式</span>
+      <span id="historyBannerText" class="history-banner__text--warning"></span>
     </div>
     <button id="historyBannerBtn" class="btn btn-outline btn-sm" onclick="returnToCurrentWeek()">↩ 回到本週</button>
   </div>
@@ -262,26 +262,26 @@ function _applyBanner() {
   const inputLink = document.querySelector('a[href="input.html"]');
 
   if (_isMdOnlyFallback) {
-    // 藍色 banner：本週無系統資料，自動顯示上一有資料週
-    Object.assign(banner.style, { display:'flex', background:'#eff6ff', borderColor:'#3b82f6' });
-    titleEl.style.color = '#1d4ed8';
+    banner.className = 'history-banner history-banner--info';
+    banner.style.display = 'flex';
+    titleEl.className = 'history-banner__title--info';
     titleEl.textContent = '📊 本週系統資訊';
-    textEl.style.color  = '#1e40af';
+    textEl.className  = 'history-banner__text--info';
     textEl.textContent  = `${_latestWeekLabel} 沒有新的專案，自動帶入 ${_viewingLabel} 專案`;
     btnEl.textContent   = '✏️ 輸入本週資料';
     btnEl.onclick       = () => location.href = 'input.html';
-    inputLink?.style.removeProperty('display');  // 保持「快速輸入」連結可見
+    inputLink?.style.removeProperty('display');
   } else if (_isHistoryView) {
-    // 琥珀色 banner：使用者手動切到歷史週
     const snap   = (_viewState?.snapshots || []).find(s => s.weekLabel === _viewingLabel)
                 || (_viewState?.snapshots || []).slice(-1)[0];
     const period = snap?.weekStart
       ? `${snap.weekStart.slice(5).replace('-','/')} 週`
       : _viewingLabel;
-    Object.assign(banner.style, { display:'flex', background:'#fff8e6', borderColor:'#f0b429' });
-    titleEl.style.color = '#b45309';
+    banner.className = 'history-banner history-banner--warning';
+    banner.style.display = 'flex';
+    titleEl.className = 'history-banner__title--warning';
     titleEl.textContent = '📅 歷史瀏覽模式';
-    textEl.style.color  = '#92400e';
+    textEl.className  = 'history-banner__text--warning';
     textEl.textContent  = `${_viewingLabel}（${period}）— ${(_viewState?.projects||[]).length} 個專案 | 唯讀`;
     btnEl.textContent   = '↩ 回到本週';
     btnEl.onclick       = () => returnToCurrentWeek();
@@ -857,15 +857,15 @@ async function initArchive() {
     }
 
     list.innerHTML = reports.map(r => `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--color-bg-secondary);border:1px solid var(--color-border-default);border-radius:var(--radius-md);transition:box-shadow 0.2s, border-color 0.2s;" onmouseover="this.style.borderColor='var(--color-info)';this.style.boxShadow='var(--shadow-sm)'" onmouseout="this.style.borderColor='var(--color-border-default)';this.style.boxShadow='none'">
-        <div style="display:flex;flex-direction:column;gap:4px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-weight:600;font-size:14px;color:var(--color-text-primary);">${r.filename.replace('.md','')}</span>
-            ${r.date ? `<span class="badge badge--neutral" style="font-size:10px;">${r.date}</span>` : ''}
+      <div class="archive-card">
+        <div class="archive-card__meta">
+          <div class="archive-card__name">
+            <span>${r.filename.replace('.md','')}</span>
+            ${r.date ? `<span class="badge badge-neutral text-xs">${r.date}</span>` : ''}
           </div>
-          ${r.period ? `<span class="text-secondary text-xs" style="display:flex;align-items:center;gap:4px;">📅 ${r.period}</span>` : ''}
+          ${r.period ? `<span class="archive-card__period">📅 ${r.period}</span>` : ''}
         </div>
-        <div style="display:flex;gap:6px;align-items:center;">
+        <div class="archive-card__actions">
           <button class="btn btn-ghost btn-sm" style="color:var(--color-info);" onclick="openReport('${r.filename}')">📖 閱讀</button>
           <a href="${downloadUrl(r.filename)}" class="btn btn-ghost btn-sm" download title="下載 MD">⬇ MD</a>
           <button class="btn btn-ghost btn-sm" onclick="exportReportPdf('${r.filename}', this)" title="匯出 PDF">📥 PDF</button>
