@@ -1,5 +1,22 @@
 # Changelog — PgM Weekly Report System
 
+## 2026/06/20 — Dashboard 完整 Dark Mode + Mobile 響應式優化
+
+透過 `engineering-discipline-loop` Skill（Full 9-Step / L2 risk）執行。
+
+### [優化] Dark Mode 全面支援
+
+- **`base.css`**：補齊 `--shadow-lg`、`--color-primary`、`--banner-warning-*`、`--banner-info-*` 語意色 CSS 變數；`[data-theme="dark"]` 與 `@media (prefers-color-scheme: dark)` 區塊補入 `color-scheme: dark` 及全套暗色覆蓋
+- **`components.css`**：`select.inp` 下拉箭頭 SVG 加 dark mode 版（stroke `#8c8a84`）；新增 `.history-banner`、`.history-banner--warning/info`、`.archive-card` 系列 CSS class，取代所有 JS inline hardcoded hex 顏色
+- **`index.html`**：`_applyBanner()` 改為 class 切換（移除 `Object.assign(banner.style, {background:'#fff8e6',...})`）；`archiveList` 改用 `.archive-card` DOM 結構
+
+### [優化] Mobile 響應式
+
+- **`layout.css`**：`@media (max-width: 768px)` 補 `.panel__header` flex-wrap、`#statusFilter.tab-bar` 橫滑（不換行 + 隱藏 scrollbar）、`#weekNavBar` flex-wrap 換行（meta 降底部右對齊）、`.archive-card` 垂直堆疊
+- **`index.html`**：`weekNavBar` radioGroup 加 `flex-shrink:1; min-width:0` 防止 overflow
+
+---
+
 ## 2026/06/15 — 第二輪系統健康檢查修復（H-A/H-E/M-B/M-E）
 
 ### [修復] H-A — saveState 前端未傳 Admin Token（api.js）
