@@ -228,7 +228,7 @@ STATUS_MAP = {
     "blocked":       "blocked",
 }
 
-def parse_actions(text, week_label, week_start, existing, projects, v2=False):
+def parse_actions(text, week_label, week_start, existing, projects, v2=False, prev_existing=None):
     rows = parse_appendix_table(text, "Action Items") if v2 else parse_table(text, "Action Items")
     actions = []
     proj_name_to_id = {p["name"]: p["id"] for p in projects}
@@ -248,7 +248,10 @@ def parse_actions(text, week_label, week_start, existing, projects, v2=False):
 
         existing_item = find_existing(existing, "task", task)
 
-        # 嘗試關聯專案
+        # 當週無此 action 時，從上週資料繼承 project / team / owner / category / dueDate
+        prev_item = find_existing(prev_existing or [], "task", task) if not existing_item else None
+
+        # 嘗試關聯專案（keyword 匹配，prev_item 有值時優先繼承）
         project_id   = ""
         project_name = ""
         for pname, pid in proj_name_to_id.items():
@@ -261,6 +264,7 @@ def parse_actions(text, week_label, week_start, existing, projects, v2=False):
         # 狀態保留規則：Railway 已有紀錄時，保留 Railway 的 status
         # （避免 Quick Input 手動改成 done 後被 MD 的舊值蓋回）
         # 例外：MD 明確標 done → 仍以 done 更新（進度只進不退除非人工退回）
+        # 注意：status 不從 prev_item 繼承，每週 MD 的狀態才是本週狀態
         if existing_item:
             existing_status = existing_item.get("status", "pending")
             if status_norm == "done":
@@ -270,19 +274,36 @@ def parse_actions(text, week_label, week_start, existing, projects, v2=False):
         else:
             final_status = status_norm
 
+        # owner / dueDate / category：MD 有值用 MD，空時繼承上週
+        resolved_owner    = owner if owner else (prev_item.get("owner", "") if prev_item else "")
+        resolved_due      = parse_date(due_raw)
+        if not resolved_due and prev_item:
+            resolved_due  = prev_item.get("dueDate", "")
+        resolved_category = category if category else (prev_item.get("category", "") if prev_item else "")
+
+        # project / projectId / team：MD 無此欄，優先繼承上週，否則用 keyword 推斷
+        if prev_item:
+            resolved_project_id   = prev_item.get("projectId", project_id)
+            resolved_project_name = prev_item.get("project",   project_name)
+            resolved_team         = prev_item.get("team",       infer_team(task))
+        else:
+            resolved_project_id   = project_id
+            resolved_project_name = project_name
+            resolved_team         = infer_team(task)
+
         action = {
-            "id":        existing_item["id"] if existing_item else make_id("action", week_label, i),
+            "id":        existing_item["id"] if existing_item else (prev_item["id"] if prev_item else make_id("action", week_label, i)),
             "task":      task,
-            "owner":     owner,
-            "team":      existing_item.get("team", infer_team(task)) if existing_item else infer_team(task),
-            "dueDate":   parse_date(due_raw),
+            "owner":     resolved_owner,
+            "team":      existing_item.get("team", resolved_team) if existing_item else resolved_team,
+            "dueDate":   resolved_due,
             "status":    final_status,
-            "priority":  existing_item.get("priority", "P2") if existing_item else "P2",
+            "priority":  existing_item.get("priority", "P2") if existing_item else (prev_item.get("priority", "P2") if prev_item else "P2"),
             "weekStart": week_start,
-            "projectId": existing_item.get("projectId", project_id) if existing_item else project_id,
-            "category":  category,
-            "project":   existing_item.get("project", project_name) if existing_item else project_name,
-            "_createdAt": existing_item["_createdAt"] if existing_item else iso_now(),
+            "projectId": existing_item.get("projectId", resolved_project_id) if existing_item else resolved_project_id,
+            "category":  resolved_category,
+            "project":   existing_item.get("project", resolved_project_name) if existing_item else resolved_project_name,
+            "_createdAt": existing_item["_createdAt"] if existing_item else (prev_item["_createdAt"] if prev_item else iso_now()),
             "_updatedAt": iso_now(),
         }
         actions.append(action)
@@ -597,8 +618,9 @@ def main():
     existing_actions  = existing_data.get("actions",  [])
     existing_risks    = existing_data.get("risks",    [])
 
-    # 載入上週資料，作為 owner / targetDate / team 的 carry-forward 來源
+    # 載入上週資料，作為 owner / targetDate / team / project 等的 carry-forward 來源
     prev_projects = []
+    prev_actions  = []
     prev_num = week_num(week_label)
     if prev_num and prev_num > 1:
         prev_label = f"W{prev_num - 1:02d}"
@@ -615,13 +637,16 @@ def main():
                 except Exception:
                     pass
         prev_projects = prev_data.get("projects", [])
+        prev_actions  = prev_data.get("actions",  [])
         if prev_projects:
             print(f"🔄  上週（{prev_label}）找到 {len(prev_projects)} 筆專案，將繼承 owner / targetDate / team")
+        if prev_actions:
+            print(f"🔄  上週（{prev_label}）找到 {len(prev_actions)} 筆 Actions，將繼承 project / category / owner / dueDate / team")
 
     # 解析草稿
     existing_milestones = existing_data.get("milestones", [])
     projects   = parse_projects(text, week_label, week_start, existing_projects, v2=v2, prev_existing=prev_projects)
-    actions    = parse_actions(text, week_label, week_start, existing_actions, projects, v2=v2)
+    actions    = parse_actions(text, week_label, week_start, existing_actions, projects, v2=v2, prev_existing=prev_actions)
     risks      = parse_risks(text, week_label, week_start, existing_risks, v2=v2)
     milestones = parse_milestones(text, week_label, week_start, existing_milestones, v2=v2)
 

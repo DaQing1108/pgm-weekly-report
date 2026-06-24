@@ -554,3 +554,100 @@ class TestParseProjectsPrevExisting:
         """AC-5 邊界：prev_existing=None 不 crash"""
         projects = parse_projects(self._MD, "W27", "2026-06-30", [], v2=True, prev_existing=None)
         assert len(projects) == 1
+
+
+# ── Action Items carry-forward ────────────────────────────────────────────────
+
+class TestParseActionsPrevExisting:
+    """驗證 parse_actions() 的上週資料繼承（prev_existing）功能"""
+
+    _MD = """\
+## Appendix: Dashboard Export
+
+### 專案進度
+| 專案名稱 | 狀態 | 進度 % | 本週更新 | 備註 |
+| --- | --- | --- | --- | --- |
+| AIWize | on-track | 60 | - | - |
+
+### Action Items
+| # | 任務描述 | 負責人 | 目標日期 | 狀態 | 分類 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 完成 API 串接 |  |  | in-progress |  |
+
+### Risks
+| Risk ID | 風險描述 | 嚴重度 | 負責人 | 因應措施 |
+| --- | --- | --- | --- | --- |
+
+### 里程碑
+| 日期 | 里程碑事項 | 團隊 | 狀態 |
+| --- | --- | --- | --- |
+"""
+
+    _PREV = [
+        {
+            "id":         "action-w26-01",
+            "task":       "完成 API 串接",
+            "owner":      "Alice",
+            "team":       "learnmode",
+            "dueDate":    "2026-07-15",
+            "status":     "pending",
+            "priority":   "P1",
+            "projectId":  "proj-w26-01",
+            "category":   "development",
+            "project":    "AIWize",
+            "_createdAt": "2026-01-01T00:00:00.000Z",
+        }
+    ]
+
+    _PROJECTS = [
+        {"id": "proj-w27-01", "name": "AIWize"}
+    ]
+
+    def test_project_carried_from_prev(self):
+        """AC-1：新週次匯入後，action 的 project 應等於上週同名 task 的 project"""
+        actions = parse_actions(self._MD, "W27", "2026-06-30", [], self._PROJECTS, v2=True, prev_existing=self._PREV)
+        assert actions[0]["project"] == "AIWize"
+        assert actions[0]["projectId"] == "proj-w26-01"
+
+    def test_owner_carried_when_md_empty(self):
+        """AC-2：MD 中 owner 欄位為空時，繼承上週 owner"""
+        actions = parse_actions(self._MD, "W27", "2026-06-30", [], self._PROJECTS, v2=True, prev_existing=self._PREV)
+        assert actions[0]["owner"] == "Alice"
+
+    def test_owner_from_md_when_filled(self):
+        """AC-2：MD 中 owner 有值時，用 MD 值而非繼承"""
+        md_with_owner = self._MD.replace("| 1 | 完成 API 串接 |  |", "| 1 | 完成 API 串接 | Bob |")
+        actions = parse_actions(md_with_owner, "W27", "2026-06-30", [], self._PROJECTS, v2=True, prev_existing=self._PREV)
+        assert actions[0]["owner"] == "Bob"
+
+    def test_due_date_carried_when_md_empty(self):
+        """AC-3：MD 中 dueDate 欄位為空時，繼承上週 dueDate"""
+        actions = parse_actions(self._MD, "W27", "2026-06-30", [], self._PROJECTS, v2=True, prev_existing=self._PREV)
+        assert actions[0]["dueDate"] == "2026-07-15"
+
+    def test_due_date_from_md_when_filled(self):
+        """AC-3：MD 中 dueDate 有值時，用 MD 值而非繼承"""
+        md_with_due = self._MD.replace("| 1 | 完成 API 串接 |  |  |", "| 1 | 完成 API 串接 |  | 2026-08-01 |")
+        actions = parse_actions(md_with_due, "W27", "2026-06-30", [], self._PROJECTS, v2=True, prev_existing=self._PREV)
+        assert actions[0]["dueDate"] == "2026-08-01"
+
+    def test_category_carried_when_md_empty(self):
+        """AC-4：MD 中 category 欄位為空時，繼承上週 category"""
+        actions = parse_actions(self._MD, "W27", "2026-06-30", [], self._PROJECTS, v2=True, prev_existing=self._PREV)
+        assert actions[0]["category"] == "development"
+
+    def test_status_not_carried_from_prev(self):
+        """AC-5：status 不從 prev 繼承，仍以 MD status_norm 為準"""
+        actions = parse_actions(self._MD, "W27", "2026-06-30", [], self._PROJECTS, v2=True, prev_existing=self._PREV)
+        assert actions[0]["status"] == "in-progress"  # MD 寫 in-progress，prev 是 pending
+
+    def test_no_prev_returns_empty_fields(self):
+        """AC-6：上週無同名 action 時，project/owner/category 為空"""
+        actions = parse_actions(self._MD, "W27", "2026-06-30", [], self._PROJECTS, v2=True, prev_existing=[])
+        assert actions[0]["owner"] == ""
+        assert actions[0]["category"] == ""
+
+    def test_none_prev_existing_no_crash(self):
+        """AC-7：prev_existing=None 時不 crash"""
+        actions = parse_actions(self._MD, "W27", "2026-06-30", [], self._PROJECTS, v2=True, prev_existing=None)
+        assert len(actions) == 1
