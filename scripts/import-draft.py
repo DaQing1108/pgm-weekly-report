@@ -22,6 +22,8 @@ scripts/import-draft.py — 從週報草稿 MD 匯入 Dashboard
     4. 進度 % 處理：v2 格式的 [keep] 標記會保留現有週次的進度值
     5. 寫入 backend/data/weeks/W##.json
     6. --push：呼叫 Railway API 同步至線上 DB（需 ADMIN_TOKEN 環境變數）
+    7. 上週 carry-forward：新週次匯入時，自動從上週 JSON 繼承 owner / targetDate / team，
+       避免每週重填；status 與 progress 仍以本週 Appendix 為準
 """
 
 import sys
@@ -164,7 +166,7 @@ def find_existing(existing_list, key_field, value):
     return None
 
 # ── 草稿解析：專案進度 ────────────────────────────────────────────────────────
-def parse_projects(text, week_label, week_start, existing, v2=False):
+def parse_projects(text, week_label, week_start, existing, v2=False, prev_existing=None):
     rows = parse_appendix_table(text, "專案進度") if v2 else parse_table(text, "專案進度")
     projects = []
     for i, row in enumerate(rows, 1):
@@ -182,10 +184,13 @@ def parse_projects(text, week_label, week_start, existing, v2=False):
         owner = owner_match.group(1) if owner_match else ""
 
         existing_item = find_existing(existing, "name", name)
+        # 當週無此專案時，從上週資料繼承 owner / targetDate / team 等持久欄位
+        prev_item = find_existing(prev_existing or [], "name", name) if not existing_item else None
+        ref = existing_item or prev_item
 
         # [keep] 標記（v2 格式）：保留現有週次的進度值，不以草稿覆蓋
         if progress_raw == "[keep]":
-            progress_int = existing_item.get("progress", 0) if existing_item else 0
+            progress_int = ref.get("progress", 0) if ref else 0
         else:
             try:
                 progress_int = int(float(progress_raw))
@@ -193,20 +198,20 @@ def parse_projects(text, week_label, week_start, existing, v2=False):
                 progress_int = 0
 
         proj = {
-            "id":           existing_item["id"] if existing_item else make_id("proj", week_label, i),
+            "id":           existing_item["id"] if existing_item else (prev_item["id"] if prev_item else make_id("proj", week_label, i)),
             "name":         name,
-            "team":         existing_item.get("team", infer_team(name + " " + notes)) if existing_item else infer_team(name + " " + notes),
+            "team":         ref.get("team", infer_team(name + " " + notes)) if ref else infer_team(name + " " + notes),
             "status":       status,
             "weekStart":    week_start,
             "description":  existing_item.get("description", week_done) if existing_item else week_done,
-            "owner":        existing_item.get("owner", owner) if existing_item else owner,
-            "dueDate":      existing_item.get("dueDate", "") if existing_item else "",
+            "owner":        ref.get("owner", owner) if ref else owner,
+            "dueDate":      ref.get("dueDate", "") if ref else "",
             "progress":     progress_int,
-            "targetDate":   existing_item.get("targetDate", "") if existing_item else "",
+            "targetDate":   ref.get("targetDate", "") if ref else "",
             "progressMode": "manual",
             "weekDone":     week_done,
             "blockers":     notes,
-            "_createdAt":   existing_item["_createdAt"] if existing_item else iso_now(),
+            "_createdAt":   existing_item["_createdAt"] if existing_item else (prev_item["_createdAt"] if prev_item else iso_now()),
             "_updatedAt":   iso_now(),
         }
         projects.append(proj)
@@ -592,9 +597,30 @@ def main():
     existing_actions  = existing_data.get("actions",  [])
     existing_risks    = existing_data.get("risks",    [])
 
+    # 載入上週資料，作為 owner / targetDate / team 的 carry-forward 來源
+    prev_projects = []
+    prev_num = week_num(week_label)
+    if prev_num and prev_num > 1:
+        prev_label = f"W{prev_num - 1:02d}"
+        prev_data: dict = {}
+        if args.push:
+            prev_railway = _fetch_railway(prev_label)
+            if prev_railway:
+                prev_data = prev_railway
+        if not prev_data:
+            prev_path = WEEKS_DIR / f"{prev_label}.json"
+            if prev_path.exists():
+                try:
+                    prev_data = json.loads(prev_path.read_text(encoding="utf-8"))
+                except Exception:
+                    pass
+        prev_projects = prev_data.get("projects", [])
+        if prev_projects:
+            print(f"🔄  上週（{prev_label}）找到 {len(prev_projects)} 筆專案，將繼承 owner / targetDate / team")
+
     # 解析草稿
     existing_milestones = existing_data.get("milestones", [])
-    projects   = parse_projects(text, week_label, week_start, existing_projects, v2=v2)
+    projects   = parse_projects(text, week_label, week_start, existing_projects, v2=v2, prev_existing=prev_projects)
     actions    = parse_actions(text, week_label, week_start, existing_actions, projects, v2=v2)
     risks      = parse_risks(text, week_label, week_start, existing_risks, v2=v2)
     milestones = parse_milestones(text, week_label, week_start, existing_milestones, v2=v2)

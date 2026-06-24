@@ -463,3 +463,94 @@ class TestParseProjectsKeep:
         projects = parse_projects(md, "W25", "2026-06-15", [], v2=True)
         assert len(projects) == 1
         assert projects[0]["name"] == "AIWize"
+
+
+class TestParseProjectsPrevExisting:
+    """AC-1/2/3/4/5：上週 carry-forward 測試"""
+
+    _MD = """\
+## Appendix: Dashboard Export
+
+### 專案進度
+| 專案名稱 | 狀態 | 進度 % | 本週更新 | 備註 |
+| --- | --- | --- | --- | --- |
+| AIWize | at-risk | 65 | 修正登入 bug | - |
+
+### Action Items
+| # | 任務描述 | 負責人 | 目標日期 | 狀態 | 分類 |
+| --- | --- | --- | --- | --- | --- |
+
+### Risks
+| Risk ID | 風險描述 | 嚴重度 | 負責人 | 因應措施 |
+| --- | --- | --- | --- | --- |
+
+### 里程碑
+| 日期 | 里程碑事項 | 團隊 | 狀態 |
+| --- | --- | --- | --- |
+"""
+
+    _PREV = [
+        {
+            "id": "proj-w26-01",
+            "name": "AIWize",
+            "team": "learnmode",
+            "owner": "Alex",
+            "targetDate": "2026-09-30",
+            "progress": 60,
+            "status": "on-track",
+            "_createdAt": "2026-01-01T00:00:00.000Z",
+        }
+    ]
+
+    def test_owner_carried_from_prev(self):
+        """AC-1：新週次匯入後，owner 應等於上週同名專案的 owner"""
+        projects = parse_projects(self._MD, "W27", "2026-06-30", [], v2=True, prev_existing=self._PREV)
+        assert projects[0]["owner"] == "Alex"
+
+    def test_target_date_carried_from_prev(self):
+        """AC-2：新週次匯入後，targetDate 應等於上週同名專案的 targetDate"""
+        projects = parse_projects(self._MD, "W27", "2026-06-30", [], v2=True, prev_existing=self._PREV)
+        assert projects[0]["targetDate"] == "2026-09-30"
+
+    def test_status_from_appendix_not_prev(self):
+        """AC-3：status 仍由 Appendix 表格決定，不被 carry-forward 覆蓋"""
+        projects = parse_projects(self._MD, "W27", "2026-06-30", [], v2=True, prev_existing=self._PREV)
+        assert projects[0]["status"] == "at-risk"   # Appendix 寫 at-risk，prev 是 on-track
+
+    def test_progress_from_appendix_not_prev(self):
+        """AC-3：progress 仍由 Appendix 表格決定"""
+        projects = parse_projects(self._MD, "W27", "2026-06-30", [], v2=True, prev_existing=self._PREV)
+        assert projects[0]["progress"] == 65   # Appendix 寫 65，prev 是 60
+
+    def test_no_prev_owner_empty(self):
+        """AC-4：上週無對應專案時，owner 為空（行為同現在）"""
+        projects = parse_projects(self._MD, "W27", "2026-06-30", [], v2=True, prev_existing=[])
+        assert projects[0]["owner"] == ""
+
+    def test_no_prev_target_date_empty(self):
+        """AC-4：上週無對應專案時，targetDate 為空（行為同現在）"""
+        projects = parse_projects(self._MD, "W27", "2026-06-30", [], v2=True, prev_existing=[])
+        assert projects[0]["targetDate"] == ""
+
+    def test_existing_takes_priority_over_prev(self):
+        """existing_item 存在時，prev_existing 不干擾"""
+        existing = [
+            {
+                "id": "proj-w27-existing",
+                "name": "AIWize",
+                "team": "media-agent",
+                "owner": "Bob",
+                "targetDate": "2026-12-31",
+                "progress": 70,
+                "status": "on-track",
+                "_createdAt": "2026-01-02T00:00:00.000Z",
+            }
+        ]
+        projects = parse_projects(self._MD, "W27", "2026-06-30", existing, v2=True, prev_existing=self._PREV)
+        assert projects[0]["owner"] == "Bob"        # 來自 existing，非 prev
+        assert projects[0]["targetDate"] == "2026-12-31"
+
+    def test_none_prev_existing_no_crash(self):
+        """AC-5 邊界：prev_existing=None 不 crash"""
+        projects = parse_projects(self._MD, "W27", "2026-06-30", [], v2=True, prev_existing=None)
+        assert len(projects) == 1
