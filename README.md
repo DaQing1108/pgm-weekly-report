@@ -322,13 +322,18 @@ curl -X POST https://pgm-weekly-report-production.up.railway.app/api/weeks/W## \
 ---
 
 ## Current State
-Last checkpoint: 2026-06-24 18:00
-Phase: W26 發布完成 + 匯入流程標準化
-Working: W26 已發布至 Railway（10 專案 / 30 Actions / 20 Risks / 13 里程碑）；「發布 W## 週報」一句話指令上線；preflight 靜態檢查整合進 import-draft.py；Skill 里程碑缺失警告強化
-Next action: W27 生成週報時驗證 Skill 新版指令是否自動產出里程碑區塊
+Last checkpoint: 2026-06-24 23:00
+Phase: import-draft.py carry-forward 完整化（專案 + Action Items）
+Working: parse_projects() + parse_actions() 均支援 prev_existing 參數；新週次匯入時自動從上週繼承 owner/targetDate/team（專案）及 project/category/owner/dueDate/team（Actions）；75/75 pytest 全部通過；commit fbca022 已 push
+Next action: W27 發布時驗收兩行 🔄 carry-forward 提示實際出現
 Blockers: none
 
 ## Checkpoint History
+### 2026-06-24 23:00｜import-draft.py carry-forward 完整化（專案 + Action Items）
+- Completed: parse_actions() 加 prev_existing 參數，carry-forward project/category/owner/dueDate/team；strategy：project/team 無條件繼承，owner/dueDate/category MD 優先，status 不繼承；9 個新測試（AC-1~7 全通），75/75 通過；commit fbca022
+- State: 75/75 pytest green；兩個 carry-forward commit（1edc3aa + fbca022）均已 push
+- Next: W27 發布時驗收實際 carry-forward 效果
+
 ### 2026-06-24 18:00｜W26 發布完成 + 匯入流程標準化
 - Completed: W26 週報發布至 Railway；「發布 W## 週報」一句話指令寫入 CLAUDE.md；preflight 靜態檢查整合進 import-draft.py；Skill SKILL.md 強化里程碑必填警告；踩坑紀錄寫入 README / GitHub / Notion
 - State: Railway W26 資料正確（10/30/20/13）；preflight 可攔截缺失區塊；Skill 已更新
