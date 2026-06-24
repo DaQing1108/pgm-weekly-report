@@ -318,3 +318,18 @@ curl -X POST https://pgm-weekly-report-production.up.railway.app/api/weeks/W## \
 | 各區塊筆數 > 0 | 里程碑 0 筆 = Appendix 缺 `### 里程碑` 區塊 |
 | 狀態值合法 | 非法值 fallback 為 pending / upcoming，⚠️ 警告 |
 | 負責人待確認 | `[待確認]` 欄位數量警告 |
+
+---
+
+## Current State
+Last checkpoint: 2026-06-24 18:00
+Phase: W26 發布完成 + 匯入流程標準化
+Working: W26 已發布至 Railway（10 專案 / 30 Actions / 20 Risks / 13 里程碑）；「發布 W## 週報」一句話指令上線；preflight 靜態檢查整合進 import-draft.py；Skill 里程碑缺失警告強化
+Next action: W27 生成週報時驗證 Skill 新版指令是否自動產出里程碑區塊
+Blockers: none
+
+## Checkpoint History
+### 2026-06-24 18:00｜W26 發布完成 + 匯入流程標準化
+- Completed: W26 週報發布至 Railway；「發布 W## 週報」一句話指令寫入 CLAUDE.md；preflight 靜態檢查整合進 import-draft.py；Skill SKILL.md 強化里程碑必填警告；踩坑紀錄寫入 README / GitHub / Notion
+- State: Railway W26 資料正確（10/30/20/13）；preflight 可攔截缺失區塊；Skill 已更新
+- Next: W27 驗收 Skill 新版指令效果
