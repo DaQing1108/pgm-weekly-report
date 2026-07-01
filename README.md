@@ -206,6 +206,25 @@ pytest tests/test_import_draft.py -v
 
 > 本機模式使用 `backend/data/weeks/*.json` 作為資料來源，無需 PostgreSQL。
 
+## Build / Test / Quality Gate
+
+```bash
+# Backend build check（Vanilla JS，無需編譯）
+cd backend && npm run build
+
+# Backend syntax lint
+cd backend && npm run lint
+
+# Backend formatting check（Prettier）
+cd backend && npm run format:check
+
+# Python parser tests
+pip install -r scripts/requirements.txt
+pytest tests/test_import_draft.py -v
+```
+
+GitHub Actions 會先執行 `engineering-baseline`，包含 backend build、lint、format check，以及 `tests/test_import_draft.py`；通過後才執行 weekly health check / auto-fix workflow。
+
 ---
 
 ## 專案結構
@@ -322,13 +341,19 @@ curl -X POST https://pgm-weekly-report-production.up.railway.app/api/weeks/W## \
 ---
 
 ## Current State
-Last checkpoint: 2026-06-24 23:00
-Phase: import-draft.py carry-forward 完整化（專案 + Action Items）
-Working: parse_projects() + parse_actions() 均支援 prev_existing 參數；新週次匯入時自動從上週繼承 owner/targetDate/team（專案）及 project/category/owner/dueDate/team（Actions）；75/75 pytest 全部通過；commit fbca022 已 push
-Next action: W27 發布時驗收兩行 🔄 carry-forward 提示實際出現
+Last checkpoint: 2026-07-02 07:48
+Phase: W27 週報發布 + program-sync-report Skill 三副本同步機制建立
+Working: W27 已發布至 Railway（8 專案/41 Actions/20 Risks/10 里程碑，commit 1b397be）；新增 scripts/sync-skill.sh 一鍵同步 Skill 的三份副本（src → zip → 已安裝版本），已跑過驗證三者一致；CLAUDE.md 補上 W27 踩坑紀錄（改了 src 忘記重裝，導致里程碑必填警告沒生效）
+Next action: 下次修改 program-sync-report-src/SKILL.md 後驗證是否確實養成執行 sync-skill.sh 的習慣
 Blockers: none
 
 ## Checkpoint History
+### 2026-07-02 07:48｜W27 發布 + Skill 三副本同步機制
+- Completed: 修復 FINAL.md 缺失的 Appendix `### 里程碑` 區塊並重新匯入；修復 program-sync-report.skill 內部路徑錯誤（zip 內 SKILL.md 應在 program-sync-report-src/ 前綴下）；W27 發布上線（release-week.sh，commit 1b397be，Railway DB 已同步）；發現 6/24 修過的里程碑必填警告只進了 repo 沒裝到 ~/.claude/skills/program-sync-report/，導致草稿生成時沒生效；新增 scripts/sync-skill.sh 一次完成打包+安裝+驗證三步驟並更新 CLAUDE.md
+- State: W27 資料正確（8/41/20/10）；三份 Skill 副本（src / zip / 已安裝）內容一致；sync-skill.sh 可重複執行
+- Next: 觀察下次 Skill 修改是否確實跑 sync-skill.sh，避免重蹈「改源頭沒生效」覆轍
+
+
 ### 2026-06-24 23:00｜import-draft.py carry-forward 完整化（專案 + Action Items）
 - Completed: parse_actions() 加 prev_existing 參數，carry-forward project/category/owner/dueDate/team；strategy：project/team 無條件繼承，owner/dueDate/category MD 優先，status 不繼承；9 個新測試（AC-1~7 全通），75/75 通過；commit fbca022
 - State: 75/75 pytest green；兩個 carry-forward commit（1edc3aa + fbca022）均已 push

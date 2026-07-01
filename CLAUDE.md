@@ -153,7 +153,11 @@ program-sync/ (Vanilla JS SPA，Express static serve)
 
 ## 重要限制
 
-- `program-sync-report.skill` 修改後，必須同步更新 `program-sync-report-src/SKILL.md`（兩者內容需一致）
+- `program-sync-report-src/SKILL.md` 是唯一應手動編輯的來源。**改完後必須執行 `./scripts/sync-skill.sh`**，一次完成三份副本同步：
+  1. 重新打包 `program-sync-report.skill`（進版控）
+  2. 安裝到 `~/.claude/skills/program-sync-report/SKILL.md`（Claude Code 實際載入執行的版本）
+  3. 驗證三份內容一致
+  > ⚠️ **W27 曾踩過的坑**：只改了 `program-sync-report-src/SKILL.md` 並 commit，但忘記重新安裝到 `~/.claude/skills/program-sync-report/`，導致 Claude 實際生成草稿時用的是舊版指令，修復的內容（里程碑必填警告）完全沒生效。改完 Skill 沒跑 `sync-skill.sh` 等於沒改。
 - 功能改動後須更新 `CHANGELOG.md`（格式：`## YYYY/MM/DD — 標題`）
 - `STRUCTURE.md` 只在新增/刪除檔案或資料夾時才更新
 
