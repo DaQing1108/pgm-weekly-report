@@ -334,8 +334,6 @@ function renderQuarterly() {
 
   document.getElementById('quarterlyBody').innerHTML = entries.length
     ? entries.map(e => {
-        const mboLines = (e.mbo||'').split('\n');
-        const mboPreview = mboLines.slice(0,3).join('\n') + (mboLines.length > 3 ? '\n…' : '');
         const isHot = e.total >= 40;
         return `<tr class="${isHot ? 'resource-hot' : ''}">
           <td><span class="font-600">${escHtml(e.productLine)}</span></td>
@@ -343,7 +341,7 @@ function renderQuarterly() {
           <td class="num">${e.tw||0}</td>
           <td class="num">${e.jp ? e.jp : '<span class="text-secondary">—</span>'}</td>
           <td class="num" style="font-weight:700;">${e.total||0}</td>
-          <td class="text-xs text-secondary mbo-cell">${escHtml(mboPreview).replace(/\n/g,'<br>')}</td>
+          <td class="text-xs text-secondary mbo-cell">${escHtml(e.mbo||'').replace(/\n/g,'<br>')}</td>
           <td class="text-xs text-secondary">${e.remark ? escHtml(e.remark) : '—'}</td>
           <td>
             <button class="btn btn-ghost btn-sm" onclick="editEntry('${e.id}')" aria-label="編輯" title="編輯">✏️</button>
