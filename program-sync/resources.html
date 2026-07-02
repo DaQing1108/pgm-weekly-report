@@ -50,7 +50,7 @@
   <div class="page-header">
     <div class="page-header__left">
       <h1 class="page-header__title">人力資源管理</h1>
-      <p class="page-header__sub">研發部門 Resource Allocation — 2025Q1 ~ 2026Q2</p>
+      <p class="page-header__sub">研發部門 Resource Allocation — 2025Q1 ~ 2026Q3</p>
     </div>
     <div class="page-header__right">
       <button class="btn btn-primary" id="btnAdd">+ 新增條目</button>
@@ -112,7 +112,7 @@
   <div id="tab-trends" style="display:none">
     <div class="panel" style="margin-bottom:var(--space-xl);">
       <div class="panel__header">
-        <span class="panel__title">跨季人月投入趨勢（25Q1 – 26Q2）</span>
+        <span class="panel__title">跨季人月投入趨勢（25Q1 – 26Q3）</span>
         <span class="text-xs text-secondary">▲▼ 較上季變動</span>
       </div>
       <div class="panel__body" style="padding:0;overflow-x:auto;">
@@ -141,7 +141,7 @@ const getCharges  = () => JSON.parse(localStorage.getItem(B_KEY) || '[]');
 const saveCharges = a  => localStorage.setItem(B_KEY, JSON.stringify(a));
 
 // ── 常數 ─────────────────────────────────────────────────────────
-const QUARTERS     = ['25Q1','25Q2','25Q3','25Q4','26Q1','26Q2'];
+const QUARTERS     = ['25Q1','25Q2','25Q3','25Q4','26Q1','26Q2','26Q3'];
 const PRODUCT_LINES= ['任我行','創造栗','智能體＋大模型','LearnMode','TV Solution','Media Agent','BU2 Healthcare'];
 const PL_ORDER     = Object.fromEntries(PRODUCT_LINES.map((p,i)=>[p,i]));
 const PERIODS      = ['24H2','25H1','25H2'];
@@ -226,6 +226,17 @@ const SEED_ENTRIES = [
     mbo:'1. STT for News dept\n2. STT for 節目部\n3. OpenMAM 對接（識別，標註，TBD）\n4. TV Logo final and Investigate other objects\n5. Olapedia 2.0\n6. NLP 2.0 (draft conversational)\n7. Media labeling upgraded',remark:'26H1 核心成長動能'},
   {id:'re030',quarter:'26Q2',productLine:'BU2 Healthcare',cn:1,tw:0,jp:0,total:1,
     mbo:'Training support/Release and copy protection',remark:''},
+  // ── 26Q3（預設複製自 26Q2，待手動修正）──
+  {id:'re031',quarter:'26Q3',productLine:'創造栗',cn:1.5,tw:0,jp:0,total:1.5,
+    mbo:'IdealLi Maintenance/Support',remark:'預設值複製自 26Q2，待修正'},
+  {id:'re032',quarter:'26Q3',productLine:'LearnMode',cn:0,tw:0.4,jp:0,total:0.4,
+    mbo:'Maintenance/Support',remark:'預設值複製自 26Q2，待修正'},
+  {id:'re033',quarter:'26Q3',productLine:'TV Solution',cn:34.5,tw:21,jp:0,total:55.5,
+    mbo:'1. OpenIO/OpenCapture\n2. OpenNews/OpenSchedule/OpenManager\n3. OpenCommand\n4. OpenMAM\n5. OpenMAM development\n6. OpenNews development',remark:'預設值複製自 26Q2，待修正'},
+  {id:'re034',quarter:'26Q3',productLine:'Media Agent',cn:54,tw:3,jp:0,total:57,
+    mbo:'1. STT for News dept\n2. STT for 節目部\n3. OpenMAM 對接（識別，標註，TBD）\n4. TV Logo final and Investigate other objects\n5. Olapedia 2.0\n6. NLP 2.0 (draft conversational)\n7. Media labeling upgraded',remark:'預設值複製自 26Q2，待修正'},
+  {id:'re035',quarter:'26Q3',productLine:'BU2 Healthcare',cn:1,tw:0,jp:0,total:1,
+    mbo:'Training support/Release and copy protection',remark:'預設值複製自 26Q2，待修正'},
 ];
 
 const SEED_CHARGES = [
@@ -247,7 +258,14 @@ const SEED_CHARGES = [
 ];
 
 function seedIfEmpty() {
-  if (!getEntries().length) saveEntries(SEED_ENTRIES);
+  if (!getEntries().length) {
+    saveEntries(SEED_ENTRIES);
+  } else {
+    const entries = getEntries();
+    if (!entries.some(e => e.quarter === '26Q3')) {
+      saveEntries([...entries, ...SEED_ENTRIES.filter(e => e.quarter === '26Q3')]);
+    }
+  }
   if (!getCharges().length) saveCharges(SEED_CHARGES);
 }
 
@@ -257,7 +275,7 @@ const genBId = () => 'bc' + Date.now().toString(36) + Math.random().toString(36)
 const fmt    = v  => (v == null || v === 0) ? '<span class="text-secondary">—</span>' : String(v);
 
 // ── Tab 切換 ──────────────────────────────────────────────────────
-let _tab = 'quarterly', _quarter = '26Q2', _period = '25H2';
+let _tab = 'quarterly', _quarter = '26Q3', _period = '25H2';
 
 document.querySelectorAll('.res-tab').forEach(btn => {
   btn.addEventListener('click', function() {
@@ -407,8 +425,9 @@ function showEntryModal(entry, onSave) {
   el.querySelector('.modal__close').addEventListener('click', close);
   el.querySelector('#meCancel').addEventListener('click', close);
   el.querySelector('#meSave').addEventListener('click', () => {
-    const total = parseFloat(el.querySelector('#meTotal').value)||0;
-    if(!total){ toast('請填入人月數值','error'); return; }
+    const totalRaw = el.querySelector('#meTotal').value.trim();
+    const total = parseFloat(totalRaw);
+    if(totalRaw === '' || isNaN(total)){ toast('請填入人月數值','error'); return; }
     close();
     onSave({
       ...entry, id: entry.id||genId(),
